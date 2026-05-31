@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html lang="uz"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MathScore Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f4fafd;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#161d1f",
+                      "primary-fixed-dim": "#c1c1ff",
+                      "on-secondary-container": "#6b3900",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed": "#2e1500",
+                      "on-secondary-fixed-variant": "#6d3a00",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#dde4e6",
+                      "secondary-fixed-dim": "#ffb77a",
+                      "on-primary-fixed-variant": "#2e2bc2",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#e1e0ff",
+                      "on-tertiary-container": "#e5ffe0",
+                      "surface-container-high": "#e2e9ec",
+                      "primary": "#4343d5",
+                      "tertiary-fixed": "#73fe84",
+                      "on-tertiary-fixed-variant": "#005319",
+                      "tertiary-container": "#00842e",
+                      "inverse-primary": "#c1c1ff",
+                      "tertiary-fixed-dim": "#55e16b",
+                      "on-tertiary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "on-primary-container": "#faf7ff",
+                      "surface-bright": "#f4fafd",
+                      "secondary-container": "#fc9d41",
+                      "surface-tint": "#4849da",
+                      "surface-container": "#e8eff1",
+                      "surface": "#f4fafd",
+                      "surface-variant": "#dde4e6",
+                      "on-error": "#ffffff",
+                      "surface-container-low": "#eef5f7",
+                      "on-primary-fixed": "#07006c",
+                      "tertiary": "#006822",
+                      "inverse-surface": "#2b3234",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#ffdcc2",
+                      "secondary": "#8f4e00",
+                      "outline": "#767586",
+                      "primary-container": "#5d5fef",
+                      "on-surface-variant": "#464555",
+                      "surface-dim": "#d4dbdd",
+                      "on-tertiary-fixed": "#002106",
+                      "background": "#f4fafd",
+                      "on-surface": "#161d1f",
+                      "inverse-on-surface": "#ebf2f4",
+                      "outline-variant": "#c7c4d7",
+                      "on-secondary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "64px",
+                      "gutter": "24px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "label-sm": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"],
+                      "label-md": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "headline-lg-mobile": ["Plus Jakarta Sans"],
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "label-sm": ["12px", {"lineHeight": "1.1", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-64 border-r-2 border-outline-variant bg-surface flex flex-col p-4 gap-2 shadow-[4px_0_0_0] shadow-primary-container/20 z-50">
+<div class="mb-8 px-4">
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary">MathScore</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Admin Portal</p>
+</div>
+<nav class="flex flex-col gap-2">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg font-bold translate-y-[2px] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-body-md text-body-md">Courses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="edit_calendar">edit_calendar</span>
+<span class="font-body-md text-body-md">Course Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md text-body-md">Students</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span class="font-body-md text-body-md">Team</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto p-4 bg-secondary-fixed rounded-xl border-2 border-secondary-container">
+<p class="font-label-md text-on-secondary-fixed mb-2">Upgrade Plan</p>
+<button class="w-full py-2 bg-secondary text-on-secondary font-bold rounded-lg text-sm hover:opacity-90 active:scale-95 transition-all">Get Pro</button>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 border-b-2 border-outline-variant bg-surface/90 backdrop-blur-md flex items-center justify-between px-8 z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-2 border-outline-variant rounded-full py-2 pl-10 pr-4 focus:border-primary focus:ring-0 text-sm transition-all" placeholder="Search data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-[2px] bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="font-label-md text-on-surface">John Doe</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Super Admin</p>
+</div>
+<img alt="Admin Avatar" class="w-10 h-10 rounded-full border-2 border-primary object-cover" data-alt="A professional headshot of a modern corporate administrator in a clean office setting. The person has a friendly, authoritative smile. The lighting is bright and airy with soft blue and white tones in the background, matching a premium SaaS platform aesthetic. High-quality photography with shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXVnC-9MQLjAKvLxU0zD-b_mdNZWGY_lCsDFoVeIZ_NOIHI5JcjDLatXH5wIcT4vma-TLk9r3JlzTrho3rXJEKiD1lfrVO-obJEIarkySS-H7jwvFgoQPDZGrlT-9rmWf61_MxaZU9_NMqWapixqLO497xULqeR7ljmzsTj0kBThQ8oT9rKyHUX21Pm2VeLllczz_Qxw1HFcYxbtq4zIdSpzhbCK5cLDnQJOuaZq0eupEoIW8B4FxbJu5xrkkSIYD68iERygIfih27"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-8 pb-12">
+<!-- Welcome Message -->
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Xush kelibsiz, Admin!</h2>
+<p class="font-body-md text-on-surface-variant">Bugungi o'quv jarayonlari va moliyaviy holat tahlili.</p>
+</div>
+<!-- Analytics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Revenue Card -->
+<div class="bg-surface-container-lowest border-2 border-primary-fixed p-6 rounded-[24px] shadow-[4px_4px_0_0_#c1c1ff] group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-fixed rounded-xl text-primary">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-bold rounded-full">+12.5%</span>
+</div>
+<p class="text-on-surface-variant font-label-md">Umumiy daromad</p>
+<h3 class="text-3xl font-extrabold text-on-surface mt-1">$45,230.00</h3>
+</div>
+<!-- Active Students Card -->
+<div class="bg-surface-container-lowest border-2 border-secondary-fixed p-6 rounded-[24px] shadow-[4px_4px_0_0_#ffdcc2] group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-fixed rounded-xl text-secondary">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-xs font-bold rounded-full">Faol</span>
+</div>
+<p class="text-on-surface-variant font-label-md">Faol talabalar</p>
+<h3 class="text-3xl font-extrabold text-on-surface mt-1">1,284</h3>
+</div>
+<!-- Sold Courses Card -->
+<div class="bg-surface-container-lowest border-2 border-tertiary-fixed-dim p-6 rounded-[24px] shadow-[4px_4px_0_0_#55e16b] group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-tertiary-fixed-dim rounded-xl text-tertiary">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+</div>
+<span class="px-3 py-1 bg-primary-fixed text-primary text-xs font-bold rounded-full">New +48</span>
+</div>
+<p class="text-on-surface-variant font-label-md">Sotilgan kurslar</p>
+<h3 class="text-3xl font-extrabold text-on-surface mt-1">856</h3>
+</div>
+</div>
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<div class="bg-white border-2 border-outline-variant rounded-[24px] p-6">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline-md text-on-surface">Oylik sotuvlar tahlili</h4>
+<button class="text-primary font-bold text-sm flex items-center gap-1">Yillik <span class="material-symbols-outlined text-sm">expand_more</span></button>
+</div>
+<!-- Mock Bar Chart -->
+<div class="h-64 flex items-end gap-4 px-4">
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-3/4">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-1/2 group-hover:h-full transition-all duration-300"></div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-1/2">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-2/3 group-hover:h-full transition-all duration-300"></div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-full">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-3/4 group-hover:h-full transition-all duration-300"></div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-2/3">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-1/2 group-hover:h-full transition-all duration-300"></div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-3/4">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-2/3 group-hover:h-full transition-all duration-300"></div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-5/6">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg h-3/4 group-hover:h-full transition-all duration-300"></div>
+</div>
+</div>
+<div class="flex justify-between mt-4 px-4 text-xs font-bold text-on-surface-variant">
+<span>Yan</span><span>Fev</span><span>Mar</span><span>Apr</span><span>May</span><span>Iyun</span>
+</div>
+</div>
+<div class="bg-white border-2 border-outline-variant rounded-[24px] p-6 overflow-hidden relative">
+<div class="flex justify-between items-center mb-6 relative z-10">
+<h4 class="font-headline-md text-on-surface">Daromad grafigi</h4>
+<div class="flex gap-2">
+<div class="flex items-center gap-1"><div class="w-3 h-3 bg-primary rounded-full"></div><span class="text-xs font-bold">Kurslar</span></div>
+<div class="flex items-center gap-1"><div class="w-3 h-3 bg-secondary rounded-full"></div><span class="text-xs font-bold">Mentorlik</span></div>
+</div>
+</div>
+<!-- Mock Area Chart -->
+<div class="h-64 flex items-center justify-center bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant">
+<div class="w-full h-full relative overflow-hidden">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 400 150">
+<path d="M0,120 Q50,80 100,100 T200,50 T300,80 T400,30 L400,150 L0,150 Z" fill="#5d5fef33"></path>
+<path d="M0,120 Q50,80 100,100 T200,50 T300,80 T400,30" fill="none" stroke="#4343d5" stroke-width="4"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-on-surface-variant font-label-md bg-white/80 backdrop-blur px-4 py-2 rounded-full border border-outline-variant">Haftalik o'sish: +18.4%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Recent Activities -->
+<div class="lg:col-span-2 bg-white border-2 border-outline-variant rounded-[24px] p-6">
+<h4 class="font-headline-md text-on-surface mb-6">So'nggi harakatlar</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-3 hover:bg-surface-container-low rounded-xl transition-all border-l-4 border-primary">
+<div class="w-10 h-10 bg-primary-fixed rounded-full flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">"Oliy matematika: Integrallar" kursi sotib olindi</p>
+<p class="text-xs text-on-surface-variant">Anvar G'aniyev tomonidan • 12 daqiqa avval</p>
+</div>
+<span class="font-bold text-primary">+$45</span>
+</div>
+<div class="flex items-center gap-4 p-3 hover:bg-surface-container-low rounded-xl transition-all border-l-4 border-tertiary">
+<div class="w-10 h-10 bg-tertiary-fixed rounded-full flex items-center justify-center text-tertiary shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="person_add">person_add</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">Yangi o'qituvchi ro'yxatdan o'tdi</p>
+<p class="text-xs text-on-surface-variant">Lola Karimova • 1 soat avval</p>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-tertiary-fixed-dim rounded text-on-tertiary">TASDIQLANDI</span>
+</div>
+<div class="flex items-center gap-4 p-3 hover:bg-surface-container-low rounded-xl transition-all border-l-4 border-secondary">
+<div class="w-10 h-10 bg-secondary-fixed rounded-full flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">Kurs bo'yicha yangi sharh qoldirildi</p>
+<p class="text-xs text-on-surface-variant">Algebra 101 • 3 soat avval</p>
+</div>
+<div class="flex text-secondary-container">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">Barcha harakatlarni ko'rish</button>
+</div>
+<!-- Recently Enrolled -->
+<div class="bg-white border-2 border-outline-variant rounded-[24px] p-6">
+<h4 class="font-headline-md text-on-surface mb-6">Yaqinda ro'yxatdan o'tganlar</h4>
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<img alt="Student 1" class="w-12 h-12 rounded-full object-cover border-2 border-surface-container-high" data-alt="Close-up portrait of a cheerful high school student with glasses, smiling warmly against a blurred library background. The image is bright and energetic, with warm sunlight filtering through, reflecting a positive educational environment. Premium corporate photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHofU2xpni0FdmxZ_nFQwe6fvpixYJ5_9kulirz--v4ToK-ksN4yQUoAoHgOIoJg3hHJoryfYxDZUXq8q1IqRjI6g5s3JR9Q6avgDad93EvPZdhshOgE9QYMFHTGP0shkYn1TszlEg0qxiOiguH939fmnOCByxl6CX0cBo2Pq09r2UuG4A0F9g17fzXgv5BPPZjSSPg8NL8Xk7kWw-skgeAaxwv8tqqrvW6Yh7aMILGhmLq2sK6AmcNxVQNxC0fI0hc64us21zC4Xf"/>
+<div>
+<p class="font-label-md text-on-surface">Malika Rasulova</p>
+<p class="text-xs text-on-surface-variant">Geometriya asoslari</p>
+</div>
+<div class="ml-auto flex items-center gap-1 text-tertiary">
+<div class="w-2 h-2 bg-tertiary rounded-full"></div>
+<span class="text-[10px] font-bold">Online</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<img alt="Student 2" class="w-12 h-12 rounded-full object-cover border-2 border-surface-container-high" data-alt="A portrait of a male teenage student looking confident, wearing a casual hoodie. He is set against a modern architectural background with clean lines. The lighting is crisp and clear, creating a professional yet approachable look for an educational platform's student profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9CmMWF0QXizezvb-YzdvQHkMOmhpICRNHW1UFhoON1gmAzLRE4oajgfNxlIEhFfCLdk8P67zwF0e0bE_0y0R5cd4wL7zq0h18IdPiFs6Dn43kk8pRq-QlWwdkrtCppkGQPnEq6JVmEQtM8lAGjz-aOPcTIf4sPxh6RZime5iIuOgLxJELWja9zkYxfe5atX7-zpYXuURD63Ms8Ypc7-Cnl0gpA4WYV4hz2NGZQYv520InEmFt82QskqfCxaTkZzKfvLjga4o8fkny"/>
+<div>
+<p class="font-label-md text-on-surface">Sardor Azimov</p>
+<p class="text-xs text-on-surface-variant">SAT Math Prep</p>
+</div>
+<div class="ml-auto flex items-center gap-1 text-on-surface-variant">
+<div class="w-2 h-2 bg-outline-variant rounded-full"></div>
+<span class="text-[10px] font-bold">Offline</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<img alt="Student 3" class="w-12 h-12 rounded-full object-cover border-2 border-surface-container-high" data-alt="Headshot of a smiling female student in her late teens with natural lighting. She is in a bright classroom setting that feels modern and welcoming. The overall image quality is high-resolution, conveying a sense of academic success and vibrant student life." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvZwNsp1C2uSGfHLNccMRu4t9bsVfQ08TdeTxF-nJF3thdFX-CDvowKbjMb2A_N3U0rfsZmTDsvF_FPawGLD4VdaOsXaJF8dTRrW9v7gAHCipSIdoqvbHAtqjnU-73ar2sHddiTkMTQQnft06mKOI9v4L_vRsv1NPP44G-UH7E9lbSaEIaeKaEi0enIbAmuo_aGpqmtsDhDs5CtWT4QxXK-Td-CvHZ1TGZ81ka3kxvNWrxv499NRuiQeiYe8Xy9gjU1kCxj1IwVbaT"/>
+<div>
+<p class="font-label-md text-on-surface">Elena Kim</p>
+<p class="text-xs text-on-surface-variant">Oliy matematika</p>
+</div>
+<div class="ml-auto flex items-center gap-1 text-tertiary">
+<div class="w-2 h-2 bg-tertiary rounded-full"></div>
+<span class="text-[10px] font-bold">Online</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<img alt="Student 4" class="w-12 h-12 rounded-full object-cover border-2 border-surface-container-high" data-alt="Portrait of a young male student with a bright, engaged expression. He is holding a digital tablet, suggesting a tech-savvy learner. The background is a soft-focus modern university campus, with a clean and professional aesthetic that inspires trust and motivation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjybOJEPBgvFZUqkcJmMmFKMEkfZY373i5d_no4hmnHReSQwPaRPUSGPucs2FNyclw94iarE7VFWcUrm53a-VnYWy6v3jJWPgzhMV3RTt46AHtryNc3mUNqJUjqZXeawcHwVVOmxQdvDHySOoWTcNkwwdsvgLjlLCaf-rGGYGV3m8obgT7fr7zifFPAgvqn0t7H6zrCi7Ri_pt50leAKcXLcWBbFk6T29H_kmuIGh1tEmjEU2jPPvdrHv5mpGrva0eI-bUYgHL2Xib"/>
+<div>
+<p class="font-label-md text-on-surface">Javohir Toshboyev</p>
+<p class="text-xs text-on-surface-variant">Trigonometriya</p>
+</div>
+<div class="ml-auto flex items-center gap-1 text-tertiary">
+<div class="w-2 h-2 bg-tertiary rounded-full"></div>
+<span class="text-[10px] font-bold">Online</span>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-surface-container-low rounded-xl border border-outline-variant border-dashed text-center">
+<p class="text-xs text-on-surface-variant mb-3">Bu oyda jami 124 ta yangi talaba qo'shildi</p>
+<div class="flex justify-center -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary-container flex items-center justify-center text-[10px] text-white font-bold">+120</div>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Small avatar of a student." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeWeO1dFA1dXH49f11NTTuWDuV1bqs6f1q91Lvw1D61pICrSkzvad6usLmzzpL2TL38A8ederUm_jlZn83x1AzszGlDoYENVX-NXDeBAa2kmP-PdzY-pzd_f7S3rkWnyENmzc1rUcc3cGqxntszcNPSzrlQqPByTD4kKLzuFzvHDTmlAtwthGGrODj0xJMdTAhSZ3zlSalu3xuqBxm4eq6wZhKpDJkO6LFaXOFST6m-QXIYjsk2sWAqFQoBDylPC2bc0Eo_l5sjSV0"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Small avatar of a student." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYm2eVk22uqSPjkCDCJSS-BGwsvFRkxnKS-wz13g0jaHLmmgvOKp3PM1RJZEdnXzAAPd5reCesYYfnfYOeXLpjO03tn3DbUYV3ickJZhs-Oq2ujyfmUxCeuP08zd-dboH_W7DoslKEgGKrUND_tVGe0k2NJvOApB2Uj6d9QNNpwl0__Dql0UKcXguO2FWId5-WxVP-B4B9B9_UTSPrIGn1e4He395dYGJ3_E2JuwDSEygxrz6e5Qw0szg8mtD6Ksrdk9r6Rrc6jbSH"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Small avatar of a student." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhlfmPvVRP2GPnU0hIkan1JG9t0ctDfBe-7m-pLRxnBlf2QGlTUq-C3RvL9luFicpUxvyFV8qT3jC2X6TabfFRAGkP94Wsr0YD2cojkSEpIfeSIdeNuCgsN3MW6yr66Q61Fv9o40E_dGFi6lWqbHJESYfVpLOvMBjjHOIrYWvmqdEgYkorx68-WsqwUh9MsFfFp8uAckIu0p5Im9w1BdPeMmz8jri0uPI6rMUF3F9-DQb3ufXItn1EReW1Uv7LGEwRA1qQljNysC3P"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

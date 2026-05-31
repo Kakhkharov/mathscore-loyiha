@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MathScore - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "on-background": "#161d1f",
+                    "outline": "#767586",
+                    "on-primary-fixed": "#07006c",
+                    "on-secondary-container": "#6b3900",
+                    "surface-dim": "#d4dbdd",
+                    "background": "#f4fafd",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#ebf2f4",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#c1c1ff",
+                    "on-tertiary-container": "#e5ffe0",
+                    "secondary-fixed-dim": "#ffb77a",
+                    "tertiary-container": "#00842e",
+                    "outline-variant": "#c7c4d7",
+                    "surface-variant": "#dde4e6",
+                    "primary-container": "#5d5fef",
+                    "on-tertiary-fixed-variant": "#005319",
+                    "primary": "#4343d5",
+                    "surface-container": "#e8eff1",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#c1c1ff",
+                    "inverse-surface": "#2b3234",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f4fafd",
+                    "secondary-container": "#fc9d41",
+                    "secondary": "#8f4e00",
+                    "surface-container-high": "#e2e9ec",
+                    "surface-container-highest": "#dde4e6",
+                    "on-primary-container": "#faf7ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#6d3a00",
+                    "secondary-fixed": "#ffdcc2",
+                    "on-secondary-fixed": "#2e1500",
+                    "surface-tint": "#4849da",
+                    "primary-fixed": "#e1e0ff",
+                    "tertiary-fixed": "#73fe84",
+                    "tertiary-fixed-dim": "#55e16b",
+                    "on-surface-variant": "#464555",
+                    "on-tertiary-fixed": "#002106",
+                    "on-surface": "#161d1f",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#2e2bc2",
+                    "surface-container-low": "#eef5f7",
+                    "surface-bright": "#f4fafd",
+                    "tertiary": "#006822"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "unit": "4px",
+                    "margin-desktop": "64px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-sm": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "display-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg": [
+                            "Plus Jakarta Sans"
+                    ]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": [
+                            "28px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "800"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f4fafd; /* background */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 lg:p-margin-desktop font-body-md text-on-background antialiased">
+<!-- Login Container (Bento/Split Layout) -->
+<div class="w-full max-w-[1024px] bg-surface-container-lowest rounded-[24px] flex flex-col lg:flex-row overflow-hidden border-2 border-primary-fixed-dim relative shadow-[0_4px_0_0_#c1c1ff]">
+<!-- Left Side: Form Area -->
+<div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center relative z-10 bg-surface-container-lowest">
+<!-- Header / Logo -->
+<div class="mb-8 flex flex-col items-center lg:items-start text-center lg:text-left">
+<img alt="MathScore Logo" class="w-16 h-16 object-contain mb-4 rounded-md" src="https://lh3.googleusercontent.com/aida/ADBb0ui1P0v6-8g0Edt8-eP4U5U-LuEjayLIdlyKocauGp43ryxoK1kiWf4qifvAaTRbSxsIIK0FN1xPb4YY0mlXmuoVSqyxbp3nsT6YNhqqvXOvxIOnVRa6ij-c_VE88QeffFE67x_U23nBIX5MZrYmjxNiMPuekYpkhSsMP7oKhdvMfnAO-VCiVjn5bfn9Iw8UuOUQpL_Y1Q7edigLRb-sRqziNK-qGywKkxShMl21ZWRVvqgyPE566AespGKR"/>
+<h1 class="font-headline-lg text-headline-lg lg:font-headline-lg lg:text-headline-lg text-primary font-bold mb-2">MathScore-ga xush kelibsiz</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
+</div>
+<!-- Form -->
+<form class="space-y-6 w-full max-w-md mx-auto lg:mx-0">
+<!-- Email Input -->
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-on-surface font-semibold" for="email">Email yoki Telefon raqami</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">person</span>
+<input class="w-full h-12 pl-12 pr-4 bg-surface rounded-lg border-2 border-outline-variant text-on-surface font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors placeholder:text-outline/60" id="email" name="email" placeholder="email@misol.uz" type="text"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="block font-label-md text-label-md text-on-surface font-semibold" for="password">Parol</label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-fixed-dim transition-colors font-semibold" href="#">Parolni unutdingizmi?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full h-12 pl-12 pr-12 bg-surface rounded-lg border-2 border-outline-variant text-on-surface font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors placeholder:text-outline/60" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-14 bg-primary text-on-primary font-label-md text-label-md font-bold rounded-lg hover:bg-primary-container hover:text-on-primary-container active:translate-y-[2px] transition-all flex items-center justify-center gap-2" type="submit">
+<span>Kirish</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<!-- Secondary Action (Optional Registration link) -->
+<div class="text-center mt-6">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Hisobingiz yo'qmi? <a class="text-primary font-semibold hover:underline decoration-2 underline-offset-4" href="#">Ro'yxatdan o'tish</a>
+</p>
+</div>
+</form>
+</div>
+<!-- Right Side: Illustration/Branding (Hidden on mobile) -->
+<div class="hidden lg:flex w-1/2 bg-surface-container-low p-12 flex-col justify-center items-center relative border-l-2 border-surface-variant overflow-hidden">
+<!-- Decorative Background Elements -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+<div class="relative z-10 w-full max-w-sm aspect-square bg-surface-container-lowest rounded-[24px] border-2 border-primary-fixed-dim shadow-[0_4px_0_0_#c1c1ff] flex items-center justify-center p-8 overflow-hidden">
+<img alt="Online Learning Illustration" class="w-full h-full object-cover rounded-xl opacity-90 mix-blend-multiply" data-alt="A modern, high-quality digital illustration featuring a stylized student deeply focused on a glowing laptop screen, surrounded by abstract floating mathematical symbols (like pi, sigma, and infinity) and clean geometric shapes. The color palette leans heavily into the brand's primary blue (#4343d5) and purple tones, set against a bright, airy background. The lighting is soft and optimistic, representing clarity and academic growth in a sleek, premium SaaS environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1mIOq4dZCnUImrTO_k2xFZdbT-KLbOyPiOHa5zBP2faIVFTg0Ei47PDQB9t9NKFAIZ6BdUvm8jOU4_a0Q6lPDOhBxWsFpLb0zY_ci-N40E1wkReXsoUFtQPkWS9BlWp02cIP7ZPrYIiyXeSSuOkIxQ9LiN6Z_LmBNqm4LK4DMiFKzh3NhVljJ2kGXk-sa0Q9dsVyWvnYWYJd9EJGZ8sGHNgbIoTczEnh2S9awsm_8nTNe5HEd0isz5A2aAC9Lwk0disLVhrTiD1lt"/>
+</div>
+<div class="mt-12 text-center relative z-10">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-tertiary-container/10 border-2 border-tertiary text-tertiary rounded-full font-label-sm text-label-sm font-bold mb-4">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>Natijalaringizni yaxshilang</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface mb-2">Matematikani oson o'rganing</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto">Sizning muvaffaqiyatingiz uchun maxsus ishlab chiqilgan platforma.</p>
+</div>
+</div>
+</div>
+</body></html>

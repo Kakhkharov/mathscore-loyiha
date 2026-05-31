@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String       @id @default(uuid())
+  name      String
+  email     String       @unique
+  password  String
+  role      String       @default("student")
+  avatar    String?
+  phone     String?
+  course    String?      // Legacy field (kept for backward compat)
+  status    String?      @default("Online")
+  deadline  DateTime?    // Student access deadline
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  submissions  Submission[]
+  userCourses  UserCourse[]
+  notifications Notification[]
+  completedLessons CompletedLesson[]
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  title       String
+  category    String
+  instructor  String
+  price       String
+  image       String?
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lessons     Lesson[]
+  tests       Test[]
+  userCourses UserCourse[]
+}
+
+model UserCourse {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId   String
+  grantedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Lesson {
+  id        String  @id @default(uuid())
+  title     String
+  duration  String
+  videoUrl  String
+  courseId  String
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  completedBy CompletedLesson[]
+}
+
+model Test {
+  id                 String       @id @default(uuid())
+  title              String
+  category           String
+  difficulty         String
+  questionCount      Int
+  duration           Int          // duration in minutes
+  status             String
+  passingPercentage  Int?         @default(70)
+  startDate          String?
+  endDate            String?
+  randomizeQuestions Boolean?     @default(false)
+  randomizeAnswers   Boolean?     @default(false)
+  courseId           String?
+  course             Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  questions          Question[]
+  submissions        Submission[]
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model Question {
+  id            String  @id @default(uuid())
+  type          String
+  text          String
+  options       String  // Stored as JSON string
+  correctAnswer Int
+  score         Int
+  difficulty    String?
+  explanation   String?
+  hint          String?
+  imageUrl      String?
+  testId        String
+  test          Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id             String   @id @default(uuid())
+  userId         String
+  userName       String?
+  userEmail      String?
+  testId         String
+  testTitle      String?
+  score          Int
+  correctCount   Int
+  incorrectCount Int
+  tabSwitches    Int      @default(0)
+  timeSpent      String?  
+  passed         Boolean
+  submittedAt    DateTime @default(now())
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test           Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid())
+  type      String
+  severity  String
+  message   String
+  ip        String
+  details   String?  // Stored as JSON string
+  timestamp DateTime @default(now())
+}
+
+model ApiLog {
+  id         String   @id @default(uuid())
+  method     String
+  url        String
+  statusCode Int
+  ip         String
+  userAgent  String?
+  timestamp  DateTime @default(now())
+}
+
+model CompletedLesson {
+  id        String   @id @default(uuid())
+  userId    String
+  lessonId  String
+  completedAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}

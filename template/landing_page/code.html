@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MathScore - SAT Matematika</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#dde4e6",
+                        "surface-bright": "#f4fafd",
+                        "on-secondary-fixed": "#2e1500",
+                        "surface-dim": "#d4dbdd",
+                        "secondary-fixed": "#ffdcc2",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "surface-variant": "#dde4e6",
+                        "on-primary-fixed": "#07006c",
+                        "secondary-container": "#fc9d41",
+                        "on-tertiary-fixed": "#002106",
+                        "on-error": "#ffffff",
+                        "primary": "#4343d5",
+                        "on-surface-variant": "#464555",
+                        "tertiary-container": "#00842e",
+                        "outline": "#767586",
+                        "on-surface": "#161d1f",
+                        "primary-fixed": "#e1e0ff",
+                        "surface-container-high": "#e2e9ec",
+                        "surface-tint": "#4849da",
+                        "on-primary-container": "#faf7ff",
+                        "tertiary-fixed": "#73fe84",
+                        "inverse-surface": "#2b3234",
+                        "surface-container-low": "#eef5f7",
+                        "on-tertiary-fixed-variant": "#005319",
+                        "surface": "#f4fafd",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#6d3a00",
+                        "error-container": "#ffdad6",
+                        "on-background": "#161d1f",
+                        "tertiary": "#006822",
+                        "surface-container": "#e8eff1",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "primary-container": "#5d5fef",
+                        "inverse-primary": "#c1c1ff",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#55e16b",
+                        "background": "#f4fafd",
+                        "on-secondary-container": "#6b3900",
+                        "secondary": "#8f4e00",
+                        "inverse-on-surface": "#ebf2f4",
+                        "on-tertiary-container": "#e5ffe0",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb77a",
+                        "outline-variant": "#c7c4d7",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "unit": "4px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "1.1", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4fafd; color: #161d1f; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .bg-pastel-green { background-color: #e0f8e0; border-color: #98e098; color: #1e5c1e; }
+        .bg-pastel-blue { background-color: #e0eaf8; border-color: #98b9e0; color: #1e3a5c; }
+        .bg-pastel-orange { background-color: #f8efe0; border-color: #e0c898; color: #5c411e; }
+        .bg-pastel-purple { background-color: #efe0f8; border-color: #c898e0; color: #411e5c; }
+        .bg-pastel-yellow { background-color: #f8f6e0; border-color: #e0da98; color: #5c591e; }
+        .bg-pastel-red { background-color: #f8e0e0; border-color: #e09898; color: #5c1e1e; }
+        
+        .card-border { border-width: 2px; border-style: solid; border-radius: 24px; padding: 24px; }
+        .card-lift:hover { transform: translateY(-4px); box-shadow: 0 4px 0px currentColor; transition: all 0.2s ease; }
+        
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-250px * 7)); }
+        }
+        .slider { overflow: hidden; position: relative; width: 100%; padding: 20px 0; }
+        .slide-track { display: flex; width: calc(250px * 14); animation: scroll 40s linear infinite; }
+        .slide { width: 250px; padding: 0 10px; flex-shrink: 0; }
+    </style>
+</head>
+<body class="bg-surface antialiased">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md text-primary dark:text-primary-fixed-dim docked full-width top-0 sticky z-50 border-b-2 border-outline-variant/30 flat no shadows flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="font-display-lg text-headline-md tracking-tight text-primary dark:text-primary-fixed-dim">
+            MathScore
+        </div>
+<nav class="hidden md:flex gap-8">
+<a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary font-bold pb-1 font-label-md text-label-md hover:bg-primary/5 dark:hover:bg-primary-fixed/10 rounded-lg px-2" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:bg-primary/5 dark:hover:bg-primary-fixed/10 rounded-lg px-2" href="#tariflar">Tariflar</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:bg-primary/5 dark:hover:bg-primary-fixed/10 rounded-lg px-2" href="#aloqa">Aloqa</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:bg-primary/5 dark:hover:bg-primary-fixed/10 rounded-lg px-2" href="#natijalar">Natijalar</a>
+</nav>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-2 rounded-lg hover:opacity-90 active:translate-y-px transition-all">Sign in</button>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 flex flex-col md:flex-row items-center gap-12">
+<div class="flex-1 space-y-6">
+<h1 class="font-display-lg text-display-lg text-on-surface">
+                    SAT Matematikani <span class="text-primary">zamonaviy metodlar</span> yordamida, ingliz tilida tez va samarali o'rganing
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                    Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutish imkoniyatini qo'lga kiriting.
+                </p>
+<div class="pt-4">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-8 py-4 rounded-lg hover:opacity-90 active:translate-y-px transition-all text-lg font-bold shadow-[0_4px_0_#2e2bc2]">
+                        Kursga yozilish
+                    </button>
+</div>
+</div>
+<div class="flex-1 w-full relative">
+<div class="aspect-square rounded-full bg-primary-fixed/30 absolute -inset-4 blur-3xl z-0"></div>
+<img alt="Students studying together in a modern classroom setting with natural light." class="rounded-2xl relative z-10 w-full h-[500px] object-cover border-2 border-primary-fixed shadow-[8px_8px_0_#e1e0ff]" data-alt="A diverse group of university students studying together around a large wooden table in a bright, modern academic library. The scene is illuminated by soft, natural sunlight streaming through large windows, creating a welcoming and focused learning environment. The students are engaged, looking at laptops and notebooks, conveying a sense of academic achievement and collaboration. The overall mood is energetic, studious, and high-quality, fitting a premium educational platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArW8Uc0_kSgKSsniA_f9P74j0UX-Oww5TZqRRyMYnMUbWaefbg9X9MYdj9z4u9SJfI4NJrhH11kkV2GVKYOWimLdgrJLs-SU8bh9on0_K-ce6LjoGyEqC1dOKN3lyEMsKI0vmNSRj_ZdsbQtrJiAVrsfwoyTuXNsx1eV0-XAiLaObOMQ1NaK7BBO0Dk42qyUNlEJ4SkgW47RXdywORTdzfWsekH37icvVXGKd9NHwbu9SKrgn61d630Jr0vPJcNynTbfjL5BmvxYAF"/>
+</div>
+</section>
+<!-- Natijalar -->
+<section class="bg-surface-container-low py-20" id="natijalar">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-10">
+<h2 class="font-headline-lg text-headline-lg text-center text-on-surface mb-4">Natijalar</h2>
+<p class="text-center text-on-surface-variant font-body-md text-body-md max-w-2xl mx-auto">O'quvchilarimiz erishgan yuqori SAT va A-Level natijalari</p>
+</div>
+<div class="slider">
+<div class="slide-track">
+<!-- Duplicate slides for continuous loop -->
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1520</p><p class="text-sm text-on-surface-variant">Azizbek K.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-tertiary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1480</p><p class="text-sm text-on-surface-variant">Malika O.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-secondary mb-2">workspace_premium</span><p class="font-bold text-xl">A-Level A*</p><p class="text-sm text-on-surface-variant">Sardor T.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1550</p><p class="text-sm text-on-surface-variant">Durdona S.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-tertiary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1450</p><p class="text-sm text-on-surface-variant">Javohir N.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-secondary mb-2">workspace_premium</span><p class="font-bold text-xl">A-Level A</p><p class="text-sm text-on-surface-variant">Laylo R.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1500</p><p class="text-sm text-on-surface-variant">Rustam M.</p></div></div>
+<!-- Duplicates -->
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1520</p><p class="text-sm text-on-surface-variant">Azizbek K.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-tertiary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1480</p><p class="text-sm text-on-surface-variant">Malika O.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-secondary mb-2">workspace_premium</span><p class="font-bold text-xl">A-Level A*</p><p class="text-sm text-on-surface-variant">Sardor T.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1550</p><p class="text-sm text-on-surface-variant">Durdona S.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-tertiary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1450</p><p class="text-sm text-on-surface-variant">Javohir N.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-secondary mb-2">workspace_premium</span><p class="font-bold text-xl">A-Level A</p><p class="text-sm text-on-surface-variant">Laylo R.</p></div></div>
+<div class="slide"><div class="bg-white p-4 rounded-xl border-2 border-outline-variant shadow-sm h-64 flex flex-col justify-center items-center"><span class="material-symbols-outlined text-5xl text-primary mb-2">workspace_premium</span><p class="font-bold text-xl">SAT 1500</p><p class="text-sm text-on-surface-variant">Rustam M.</p></div></div>
+</div>
+</div>
+</section>
+<!-- Imkoniyatlar -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20">
+<h2 class="font-headline-lg text-headline-lg text-center text-on-surface mb-2">Imkoniyatlar - ajoyib!</h2>
+<p class="text-center text-on-surface-variant font-body-md text-body-md mb-12">Kursni tugatgandan keyingi natijalaringiz ham qiziqmi?!</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="card-border bg-pastel-purple card-lift">
+<p class="font-body-md text-body-md font-semibold">Ingliz tilini o'rganish orqali nufuzli chet el universitetlariga grant yutish imkoni ham paydo bo'ladi</p>
+</div>
+<div class="card-border bg-pastel-green card-lift">
+<p class="font-body-md text-body-md font-semibold">Qisqa vaqt ichida qiyin SAT masalalarini oson yechish ko'nikmasiga ega bo'lasiz</p>
+</div>
+<div class="card-border bg-pastel-blue card-lift">
+<p class="font-body-md text-body-md font-semibold">Xalqaro darajadagi ta'lim muhitiga kirib, kuchli va maqsadli tengdoshlar bilan o'qiysiz</p>
+</div>
+<div class="card-border bg-pastel-orange card-lift">
+<p class="font-body-md text-body-md font-semibold">Terminlarni to'g'ri tushunish va qo'llashni o'rganasiz. "Something in your eyes" iborasini Avazbek Olimovdan yaxshiroq ayta olasiz!</p>
+</div>
+<div class="card-border bg-pastel-red card-lift">
+<p class="font-body-md text-body-md font-semibold">Ingliz tilida matematika o'rganishning mutlaqo yangi va zamonaviy metodlarini sinab ko'rasiz</p>
+</div>
+<div class="card-border bg-pastel-yellow card-lift">
+<p class="font-body-md text-body-md font-semibold">Shaxsiy karyerangizda o'sish uchun yuqori maoshli ish topishingizga zamin yaratasiz</p>
+</div>
+</div>
+<div class="mt-12 text-center">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-8 py-3 rounded-lg hover:opacity-90 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2]">
+                    Ishtirok etish
+                </button>
+</div>
+</section>
+<!-- Kurslarimiz aynan -->
+<section class="bg-surface-container-low py-20">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<h2 class="font-headline-lg text-headline-lg text-center text-on-surface mb-12">Kurslarimiz aynan kimlar uchun?</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="card-border bg-pastel-orange card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Abituriyentlar</h3>
+<p class="font-body-sm text-sm">Davlat va chet el universitetlari, litsey va boshqa o'quv muassasalari imtihonlariga ingliz tilidan tayyorlanuvchilar uchun</p>
+</div>
+<div class="card-border bg-pastel-green card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Havaskorlar</h3>
+<p class="font-body-sm text-sm">Yangi til va madaniyatlarni o'rganishga qiziquvchi sayohatchilar, poliglotlar uchun</p>
+</div>
+<div class="card-border bg-pastel-blue card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Ma'lum kasb egalari</h3>
+<p class="font-body-sm text-sm">Qo'shimcha til bilish orqali o'z karyerasida o'sishni reja qilyotgan xodimlar uchun</p>
+</div>
+<div class="card-border bg-pastel-purple card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Maktab o'quvchilari</h3>
+<p class="font-body-sm text-sm">Ingliz tilini o'rganib, darsdan bo'sh vaqtlarini samarali o'tkazishni xohlovchi o'quvchilar uchun</p>
+</div>
+<div class="card-border bg-pastel-purple card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Talabalar</h3>
+<p class="font-body-sm text-sm">Darslardan tashqari zamonaviy kasblarni o'rganib moliyaviy erkinlikka erishmoqchi bo'lgan yoshlar uchun</p>
+</div>
+<div class="card-border bg-pastel-yellow card-lift flex flex-col justify-center">
+<h3 class="font-headline-md text-headline-md mb-2">Chet eldagi yurtdoshlarimiz</h3>
+<p class="font-body-sm text-sm">Ishlash yoki o'qish maqsadida chet elga ketgan, kundalik muloqot uchun ingliz tiliga ehtiyoji bo'lgan insonlar uchun ideal tanlov hisoblanadi</p>
+</div>
+</div>
+<div class="mt-12 text-center">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-8 py-3 rounded-lg hover:opacity-90 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2]">
+                        Ishtirok etish
+                    </button>
+</div>
+</div>
+</section>
+<!-- Tariflar -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20" id="tariflar">
+<h2 class="font-headline-lg text-headline-lg text-center text-on-surface mb-12">Tariflar</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- SAT Card -->
+<div class="bg-white rounded-2xl border-2 border-primary overflow-hidden hover:shadow-[0_8px_0_#4343d5] transition-all duration-300 flex flex-col">
+<div class="h-48 bg-primary/10 relative">
+<img alt="Mathematical equations on a blackboard" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="Close up shot of complex mathematical equations and calculus formulas written in white chalk on a classic green school chalkboard. The lighting is soft and focused on the center of the board, creating an academic, rigorous, and intelligent atmosphere. The texture of the chalk and the board adds a tactile, traditional educational feel to the modern layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDml4tLNvySCO_8Sk5xl-mjsjhz_Ej0cqH5cHeg56Ubt-Sm8Pb7RaEXyE_QJfIlAxjKq4MaZGzrY3eO141r3AhrdP1OuulE35nT1PKttbDY_Rv7phjufab0qv_R9MDZ5vEOYjS2L6SUM9t4_zUqnW2zBjCJ75A8tEwyE8BonYWKIwircoAZ54nUSrDMuwcFkz0t59CYPzNojT7fvfsKCGrudiTQcaImh7ACT_kRWUBGhRrBhdBf3L4qePh5wotnQNm497SH1cpiDVKY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent"></div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">SAT Matematika</h3>
+<p class="text-on-surface-variant mb-6 flex-1">Noldan boshlab yuqori darajagacha intensiv tayyorgarlik. Ingliz tilida masalalar yechish.</p>
+<div class="mb-6">
+<span class="font-display-lg text-3xl font-bold text-primary">600,000</span>
+<span class="text-on-surface-variant text-sm">so'm / oy</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:bg-primary-container hover:text-on-primary-container border border-primary transition-colors font-bold">
+                            Ishtirok etish
+                        </button>
+</div>
+</div>
+<!-- A Level Card -->
+<div class="bg-white rounded-2xl border-2 border-tertiary overflow-hidden hover:shadow-[0_8px_0_#006822] transition-all duration-300 flex flex-col relative">
+<div class="absolute top-4 right-4 bg-tertiary text-on-tertiary text-xs font-bold px-3 py-1 rounded-full z-10">Popular</div>
+<div class="h-48 bg-tertiary/10 relative">
+<img alt="Graph paper with geometry tools" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A top-down view of a student's desk showing engineering graph paper, a metal compass, a protractor, and a sharp pencil. The composition is neat, structured, and highly organized, reflecting precision and advanced study. The color palette features cool blues and bright white natural light, emphasizing clarity, focus, and academic excellence in a higher education context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmlLTsBn2JqKAZIVyqo2XBzGZPQs4-pUQKDhyXtXeTNzhznSy5M4KqKpuO6UqUlwqqSnzGWsP4r9UybYlr__glDn7aoO996-b_ZZxGcqPihBpEBBGb7idSRAOkGYD5xzYsddWGfl17ILVxnprJ1L0vc8q1l_ZlSlHB7d_WUGj-iFTinYzaGQGi_RiLViqNOiq1QieA_fwI7WD_dBeRAQRcNpBgovT4f_ENRa7Iedgja1pnQ_BRaOMyE8qoBUeKCEmLW7nVrx65ZP1i"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent"></div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">A-Level Math</h3>
+<p class="text-on-surface-variant mb-6 flex-1">Kembrij dasturi asosida chuqurlashtirilgan matematika. Pure Math va Mechanics.</p>
+<div class="mb-6">
+<span class="font-display-lg text-3xl font-bold text-tertiary">700,000</span>
+<span class="text-on-surface-variant text-sm">so'm / oy</span>
+</div>
+<button class="w-full bg-tertiary text-on-tertiary font-label-md text-label-md py-3 rounded-lg hover:opacity-90 transition-colors font-bold">
+                            Ishtirok etish
+                        </button>
+</div>
+</div>
+<!-- Foundation Card -->
+<div class="bg-white rounded-2xl border-2 border-secondary overflow-hidden hover:shadow-[0_8px_0_#8f4e00] transition-all duration-300 flex flex-col">
+<div class="h-48 bg-secondary/10 relative">
+<img alt="Calculator and notes" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A close-up of a modern scientific calculator resting on top of handwritten study notes and colorful sticky notes. The background is slightly blurred, focusing on the buttons of the calculator. The lighting is warm and inviting, suggesting a comfortable evening study session. The aesthetic is relatable to high school students, blending serious study tools with a hint of creative organization." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-jfwMWlV2Z7MU1wgHOVMAyNVwULA6sO57ip8zSt13Xus0ItU4d72lDf_GPn-aUzR11GPcvNgulQWL1rB57YX2n6ALDqTO9fotxU3XbPYV82cyUJjnollL8oNqjoqnnOuee-oQWUGObCfNJ6_w-okXyOWgF1xcuXRK3EbBLQTfYW7knIY6MvLRVxJd49DPF_82aU6d-4j76OUfF9L9MZeMzm8SgXzgcWI5qZkQ5vyWfFeBwAyAPbtEET6OluJ_aOrcZeqWwu6gxl-D"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent"></div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Matematika Foundation</h3>
+<p class="text-on-surface-variant mb-6 flex-1">Asosiy matematik bilimlarni mustahkamlash va ingliz tilidagi terminlarga moslashish.</p>
+<div class="mb-6">
+<span class="font-display-lg text-3xl font-bold text-secondary">500,000</span>
+<span class="text-on-surface-variant text-sm">so'm / oy</span>
+</div>
+<button class="w-full bg-white text-secondary font-label-md text-label-md py-3 rounded-lg border-2 border-secondary hover:bg-secondary/5 transition-colors font-bold">
+                            Ishtirok etish
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low dark:bg-surface-container-lowest text-primary dark:text-primary-fixed-dim font-body-md text-body-md full-width border-t-2 border-outline-variant flat flex flex-col md:flex-row justify-between items-center gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto transition-all duration-300" id="aloqa">
+<div class="flex flex-col items-center md:items-start mb-6 md:mb-0">
+<span class="font-headline-md text-headline-md text-on-surface dark:text-on-surface-variant mb-2">MathScore</span>
+<span class="text-on-surface-variant">© 2024 MathScore. Barcha huquqlar himoyalangan.</span>
+</div>
+<div class="flex flex-col md:flex-row items-center gap-6">
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors hover:opacity-80" href="#">
+<span class="material-symbols-outlined">send</span>
+                Telegram Admin (@mathscore_admin)
+            </a>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors hover:opacity-80" href="#">
+<span class="material-symbols-outlined">photo_camera</span>
+                Instagram
+            </a>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors hover:opacity-80" href="#">
+<span class="material-symbols-outlined">call</span>
+                Phone: +998 90 123 45 67
+            </a>
+</div>
+</footer>
+</body></html>

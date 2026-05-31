@@ -1,0 +1,1233 @@
+{
+  "users": [
+    {
+      "id": "usr-admin",
+      "name": "Malika Opa",
+      "email": "admin@mathscore.uz",
+      "password": "$2a$10$f6sSr8CJqo53r.gRcv3UeeXCOszJiYX3ypTnBs1MgkQd5/H09sjA6",
+      "role": "admin",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop"
+    },
+    {
+      "id": "usr-student",
+      "name": "Alex Johnson",
+      "email": "student@mathscore.uz",
+      "password": "$2a$10$f6sSr8CJqo53r.gRcv3UeeXCOszJiYX3ypTnBs1MgkQd5/H09sjA6",
+      "role": "student",
+      "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=256&auto=format&fit=crop"
+    },
+    {
+      "name": "Jamshid Turdaliyev",
+      "email": "jamshid@mathscore.uz",
+      "password": "$2a$10$9XNR/Y8sMhEE0ytrNu84bePG89mPAX.pXYXjK3ECLgrD335aR2l66",
+      "role": "student",
+      "course": "SAT Mathematics Intensive",
+      "status": "Online",
+      "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAHofU2xpni0FdmxZ_nFQwe6fvpixYJ5_9kulirz--v4ToK-ksN4yQUoAoHgOIoJg3hHJoryfYxDZUXq8q1IqRjI6g5s3JR9Q6avgDad93EvPZdhshOgE9QYMFHTGP0shkYn1TszlEg0qxiOiguH939fmnOCByxl6CX0cBo2Pq09r2UuG4A0F9g17fzXgv5BPPZjSSPg8NL8Xk7kWw-skgeAaxwv8tqqrvW6Yh7aMILGhmLq2sK6AmcNxVQNxC0fI0hc64us21zC4Xf",
+      "id": "use-1779270229341-q3bt7",
+      "createdAt": "2026-05-20T09:43:49.342Z"
+    },
+    {
+      "name": "Musulmon",
+      "email": "musurmonqahharov747@gmail.com",
+      "password": "$2a$10$ftH7vSsycSKW5P/5/xmocOukgBtllfnsncA38OJgvTIsv4CTtVnNa",
+      "role": "student",
+      "course": "SAT Mathematics Intensive",
+      "status": "Online",
+      "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAHofU2xpni0FdmxZ_nFQwe6fvpixYJ5_9kulirz--v4ToK-ksN4yQUoAoHgOIoJg3hHJoryfYxDZUXq8q1IqRjI6g5s3JR9Q6avgDad93EvPZdhshOgE9QYMFHTGP0shkYn1TszlEg0qxiOiguH939fmnOCByxl6CX0cBo2Pq09r2UuG4A0F9g17fzXgv5BPPZjSSPg8NL8Xk7kWw-skgeAaxwv8tqqrvW6Yh7aMILGhmLq2sK6AmcNxVQNxC0fI0hc64us21zC4Xf",
+      "id": "use-1779273967887-q4qek",
+      "createdAt": "2026-05-20T10:46:07.887Z"
+    },
+    {
+      "name": "Test Student",
+      "email": "test_integration@mathscore.uz",
+      "password": "$2a$10$YwRSyISlrwE277siXkF8HOVIc8MOCSaMluNMX0MKstVUzNstkh2VK",
+      "role": "student",
+      "course": "SAT Mathematics Intensive",
+      "status": "Online",
+      "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAHofU2xpni0FdmxZ_nFQwe6fvpixYJ5_9kulirz--v4ToK-ksN4yQUoAoHgOIoJg3hHJoryfYxDZUXq8q1IqRjI6g5s3JR9Q6avgDad93EvPZdhshOgE9QYMFHTGP0shkYn1TszlEg0qxiOiguH939fmnOCByxl6CX0cBo2Pq09r2UuG4A0F9g17fzXgv5BPPZjSSPg8NL8Xk7kWw-skgeAaxwv8tqqrvW6Yh7aMILGhmLq2sK6AmcNxVQNxC0fI0hc64us21zC4Xf",
+      "id": "use-1779361157219-vibqw",
+      "createdAt": "2026-05-21T10:59:17.219Z"
+    }
+  ],
+  "courses": [
+    {
+      "id": "sat-math",
+      "title": "SAT Mathematics Intensive",
+      "category": "Algebra & Geometry",
+      "instructor": "Malika Opa",
+      "price": "450000",
+      "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=250&fit=crop",
+      "description": "Quantitative section full preparation.",
+      "lessons": [
+        {
+          "id": 1,
+          "title": "1. Kirish va Kurs Rejasi",
+          "duration": "15:20",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4"
+        },
+        {
+          "id": 2,
+          "title": "2. Algebra Asoslari & Tenglamalar",
+          "duration": "45:00",
+          "videoUrl": "https://www.w3schools.com/html/movie.mp4"
+        },
+        {
+          "id": 3,
+          "title": "3. Chiziqli Tenglamalar Tizimi",
+          "duration": "38:15",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4"
+        },
+        {
+          "id": 4,
+          "title": "4. Kvadrat Tenglamalar va Grafiklar",
+          "duration": "42:10",
+          "videoUrl": "https://www.w3schools.com/html/movie.mp4"
+        }
+      ]
+    },
+    {
+      "id": "alevel-math",
+      "title": "A-Level Pure Math & Mechanics",
+      "category": "Calculus",
+      "instructor": "Malika Opa",
+      "price": 600000,
+      "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=250&fit=crop",
+      "description": "Deep dive into differentiation, integration, and trigonometric identities.",
+      "lessons": [
+        {
+          "id": 1,
+          "title": "1. Kirish va Limitlar",
+          "duration": "20:10",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4"
+        },
+        {
+          "id": 1779279544816,
+          "title": "Integration Integration Integration",
+          "duration": "45",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "videoFile": ""
+        }
+      ],
+      "lessonsCount": 2,
+      "curriculum": [
+        {
+          "id": 1,
+          "title": "1. Kirish va Limitlar",
+          "duration": "20:10",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4"
+        },
+        {
+          "id": 1779279544816,
+          "title": "Integration Integration Integration",
+          "duration": "45",
+          "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+          "videoFile": ""
+        }
+      ],
+      "promoVideoUrl": "",
+      "promoVideoFile": "",
+      "updatedAt": "2026-05-20T12:19:27.249Z"
+    }
+  ],
+  "tests": [
+    {
+      "id": "sat-diagnostic",
+      "title": "SAT Quantitative Diagnostik Testi",
+      "course": "SAT Mathematics Intensive",
+      "category": "SAT Prep",
+      "difficulty": "Medium",
+      "questionCount": 2,
+      "duration": 60,
+      "status": "Published",
+      "questions": [
+        {
+          "id": 1,
+          "type": "single",
+          "text": "Solve for x in the equation: 3x - 7 = 14",
+          "options": [
+            "x = 5",
+            "x = 7",
+            "x = 9",
+            "x = 6"
+          ],
+          "correctAnswer": 1,
+          "score": 4,
+          "explanation": "3x = 21 => x = 7."
+        },
+        {
+          "id": 2,
+          "type": "single",
+          "text": "Berilgan aniq integralni hisoblang: \\int_{0}^{2} (3x^2 - 2x) dx",
+          "options": [
+            "4",
+            "6",
+            "8",
+            "10"
+          ],
+          "correctAnswer": 0,
+          "score": 5,
+          "explanation": "F(x) = x^3 - x^2. F(2) - F(0) = 8 - 4 = 4."
+        }
+      ]
+    }
+  ],
+  "submissions": [
+    {
+      "userId": "use-1779270229341-q3bt7",
+      "userName": "Jamshid Turdaliyev",
+      "userEmail": "jamshid@mathscore.uz",
+      "testId": "sat-diagnostic",
+      "testTitle": "SAT Quantitative Diagnostik Testi",
+      "score": 0,
+      "correctCount": 0,
+      "incorrectCount": 2,
+      "tabSwitches": 0,
+      "timeSpent": "00:00",
+      "passed": false,
+      "submittedAt": "2026-05-20T10:14:45.231Z",
+      "id": "sub-1779272085235-975js",
+      "createdAt": "2026-05-20T10:14:45.235Z"
+    },
+    {
+      "userId": "use-1779270229341-q3bt7",
+      "userName": "Jamshid Turdaliyev",
+      "userEmail": "jamshid@mathscore.uz",
+      "testId": "sat-diagnostic",
+      "testTitle": "SAT Quantitative Diagnostik Testi",
+      "score": 0,
+      "correctCount": 0,
+      "incorrectCount": 2,
+      "tabSwitches": 0,
+      "timeSpent": "00:00",
+      "passed": false,
+      "submittedAt": "2026-05-20T10:14:48.439Z",
+      "id": "sub-1779272088440-dax3a",
+      "createdAt": "2026-05-20T10:14:48.440Z"
+    },
+    {
+      "userId": "use-1779270229341-q3bt7",
+      "userName": "Jamshid Turdaliyev",
+      "userEmail": "jamshid@mathscore.uz",
+      "testId": "sat-diagnostic",
+      "testTitle": "SAT Quantitative Diagnostik Testi",
+      "score": 50,
+      "correctCount": 1,
+      "incorrectCount": 1,
+      "tabSwitches": 0,
+      "timeSpent": "00:07",
+      "passed": false,
+      "submittedAt": "2026-05-20T10:45:23.657Z",
+      "id": "sub-1779273923658-6fcqp",
+      "createdAt": "2026-05-20T10:45:23.658Z"
+    }
+  ],
+  "securityLogs": [
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Test Student. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 1",
+      "ip": "::1",
+      "id": "sec-1779361405129-sgs4",
+      "timestamp": "2026-05-21T11:03:25.129Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Test Student. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 1",
+      "ip": "::1",
+      "id": "sec-1779361405124-svpa",
+      "timestamp": "2026-05-21T11:03:25.124Z"
+    },
+    {
+      "type": "STUDENT_CREATED_BY_ADMIN",
+      "severity": "LOW",
+      "message": "Admin tomonidan yangi student qo'shildi: test_integration@mathscore.uz",
+      "ip": "::1",
+      "id": "sec-1779361157223-5qyy",
+      "timestamp": "2026-05-21T10:59:17.223Z"
+    },
+    {
+      "type": "INVALID_TOKEN_ATTEMPT",
+      "severity": "MEDIUM",
+      "message": "Attempted access with expired/invalid JWT token",
+      "ip": "::1",
+      "id": "sec-1779361089437-aha7",
+      "timestamp": "2026-05-21T10:58:09.437Z"
+    },
+    {
+      "type": "INVALID_TOKEN_ATTEMPT",
+      "severity": "MEDIUM",
+      "message": "Attempted access with expired/invalid JWT token",
+      "ip": "::1",
+      "id": "sec-1779361089407-y98f",
+      "timestamp": "2026-05-21T10:58:09.407Z"
+    },
+    {
+      "type": "STUDENT_CREATED_BY_ADMIN",
+      "severity": "LOW",
+      "message": "Admin tomonidan yangi student qo'shildi: musurmonqahharov747@gmail.com",
+      "ip": "::1",
+      "id": "sec-1779273967889-d94m",
+      "timestamp": "2026-05-20T10:46:07.889Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 3",
+      "ip": "::1",
+      "id": "sec-1779272084818-0zim",
+      "timestamp": "2026-05-20T10:14:44.818Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 3",
+      "ip": "::1",
+      "id": "sec-1779272084649-7xn9",
+      "timestamp": "2026-05-20T10:14:44.649Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 2",
+      "ip": "::1",
+      "id": "sec-1779272068594-md11",
+      "timestamp": "2026-05-20T10:14:28.594Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 2",
+      "ip": "::1",
+      "id": "sec-1779272068494-q1lx",
+      "timestamp": "2026-05-20T10:14:28.494Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 1",
+      "ip": "::1",
+      "id": "sec-1779272058600-5ng9",
+      "timestamp": "2026-05-20T10:14:18.600Z"
+    },
+    {
+      "type": "TAB_SWITCH_WARNING",
+      "severity": "MEDIUM",
+      "message": "Talaba imtihon oynasidan chiqdi: Jamshid Turdaliyev. Test: \"SAT Quantitative Diagnostik Testi\". Ogohlantirishlar: 1",
+      "ip": "::1",
+      "id": "sec-1779272058451-tag0",
+      "timestamp": "2026-05-20T10:14:18.451Z"
+    },
+    {
+      "type": "STUDENT_CREATED_BY_ADMIN",
+      "severity": "LOW",
+      "message": "Admin tomonidan yangi student qo'shildi: jamshid@mathscore.uz",
+      "ip": "::1",
+      "id": "sec-1779270229344-wix9",
+      "timestamp": "2026-05-20T09:43:49.344Z"
+    }
+  ],
+  "apiLogs": [
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361412123-cdc6",
+      "timestamp": "2026-05-21T11:03:32.123Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361412114-jrdp",
+      "timestamp": "2026-05-21T11:03:32.114Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361411987-vdq8",
+      "timestamp": "2026-05-21T11:03:31.987Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361411969-oh87",
+      "timestamp": "2026-05-21T11:03:31.969Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411776-nddn",
+      "timestamp": "2026-05-21T11:03:31.776Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411744-8ueb",
+      "timestamp": "2026-05-21T11:03:31.744Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411385-holp",
+      "timestamp": "2026-05-21T11:03:31.385Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411375-xoym",
+      "timestamp": "2026-05-21T11:03:31.375Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411311-i8m8",
+      "timestamp": "2026-05-21T11:03:31.311Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361411273-wef4",
+      "timestamp": "2026-05-21T11:03:31.273Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/system/cheat-report",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361405132-kupm",
+      "timestamp": "2026-05-21T11:03:25.132Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/system/cheat-report",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361405126-tr8d",
+      "timestamp": "2026-05-21T11:03:25.126Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361299338-3e9x",
+      "timestamp": "2026-05-21T11:01:39.338Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361299332-la01",
+      "timestamp": "2026-05-21T11:01:39.332Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361299231-j09f",
+      "timestamp": "2026-05-21T11:01:39.231Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361299217-9jg8",
+      "timestamp": "2026-05-21T11:01:39.217Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361299086-6bpn",
+      "timestamp": "2026-05-21T11:01:39.086Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361299073-uibo",
+      "timestamp": "2026-05-21T11:01:39.073Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361298819-55f3",
+      "timestamp": "2026-05-21T11:01:38.819Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361298808-56u4",
+      "timestamp": "2026-05-21T11:01:38.808Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361298716-p74r",
+      "timestamp": "2026-05-21T11:01:38.716Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361298699-a4p5",
+      "timestamp": "2026-05-21T11:01:38.699Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361233117-vzvr",
+      "timestamp": "2026-05-21T11:00:33.117Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361233063-g3iy",
+      "timestamp": "2026-05-21T11:00:33.063Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361232901-lsoq",
+      "timestamp": "2026-05-21T11:00:32.901Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/auth/login",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361232804-fbrd",
+      "timestamp": "2026-05-21T11:00:32.804Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188884-54un",
+      "timestamp": "2026-05-21T10:59:48.884Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188875-mf85",
+      "timestamp": "2026-05-21T10:59:48.875Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188840-dg8i",
+      "timestamp": "2026-05-21T10:59:48.840Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361188806-wuf0",
+      "timestamp": "2026-05-21T10:59:48.806Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188802-wmmr",
+      "timestamp": "2026-05-21T10:59:48.802Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188585-hafp",
+      "timestamp": "2026-05-21T10:59:48.585Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361188572-rm4v",
+      "timestamp": "2026-05-21T10:59:48.572Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361188564-hi4v",
+      "timestamp": "2026-05-21T10:59:48.564Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361158349-y2t9",
+      "timestamp": "2026-05-21T10:59:18.349Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361157731-69vg",
+      "timestamp": "2026-05-21T10:59:17.731Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361157497-fzpo",
+      "timestamp": "2026-05-21T10:59:17.497Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361157420-0xx6",
+      "timestamp": "2026-05-21T10:59:17.420Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 201,
+      "id": "log-1779361157233-1dma",
+      "timestamp": "2026-05-21T10:59:17.233Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361097385-wqpz",
+      "timestamp": "2026-05-21T10:58:17.385Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361097333-ce18",
+      "timestamp": "2026-05-21T10:58:17.333Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361097254-394d",
+      "timestamp": "2026-05-21T10:58:17.254Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779361096995-84bs",
+      "timestamp": "2026-05-21T10:58:16.995Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/auth/login",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779361096979-siej",
+      "timestamp": "2026-05-21T10:58:16.979Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 403,
+      "id": "log-1779361089440-pweh",
+      "timestamp": "2026-05-21T10:58:09.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 403,
+      "id": "log-1779361089431-yxq9",
+      "timestamp": "2026-05-21T10:58:09.431Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779279571277-8e4x",
+      "timestamp": "2026-05-20T12:19:31.277Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779279571165-ln6x",
+      "timestamp": "2026-05-20T12:19:31.165Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779279569077-f8lp",
+      "timestamp": "2026-05-20T12:19:29.077Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779279568556-8byh",
+      "timestamp": "2026-05-20T12:19:28.556Z"
+    },
+    {
+      "method": "PUT",
+      "url": "/api/courses/alevel-math",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779279567334-uy76",
+      "timestamp": "2026-05-20T12:19:27.334Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843285-2ndp",
+      "timestamp": "2026-05-20T12:07:23.285Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843280-ueng",
+      "timestamp": "2026-05-20T12:07:23.280Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843269-nr4s",
+      "timestamp": "2026-05-20T12:07:23.269Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843163-leop",
+      "timestamp": "2026-05-20T12:07:23.163Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843155-q1uh",
+      "timestamp": "2026-05-20T12:07:23.155Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278843130-qwh6",
+      "timestamp": "2026-05-20T12:07:23.130Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843125-s96v",
+      "timestamp": "2026-05-20T12:07:23.125Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278843114-m1ui",
+      "timestamp": "2026-05-20T12:07:23.114Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672440-ixq4",
+      "timestamp": "2026-05-20T12:04:32.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672436-bavt",
+      "timestamp": "2026-05-20T12:04:32.436Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672413-agrg",
+      "timestamp": "2026-05-20T12:04:32.413Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278672389-7den",
+      "timestamp": "2026-05-20T12:04:32.389Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672383-imht",
+      "timestamp": "2026-05-20T12:04:32.383Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672305-51i6",
+      "timestamp": "2026-05-20T12:04:32.305Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672297-gpj5",
+      "timestamp": "2026-05-20T12:04:32.297Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278672290-17qf",
+      "timestamp": "2026-05-20T12:04:32.290Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278668676-88ft",
+      "timestamp": "2026-05-20T12:04:28.676Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278668661-ekex",
+      "timestamp": "2026-05-20T12:04:28.661Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278668539-71dt",
+      "timestamp": "2026-05-20T12:04:28.539Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278668496-ga3b",
+      "timestamp": "2026-05-20T12:04:28.496Z"
+    },
+    {
+      "method": "PUT",
+      "url": "/api/courses/alevel-math",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278668366-boh0",
+      "timestamp": "2026-05-20T12:04:28.366Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278639033-1cjj",
+      "timestamp": "2026-05-20T12:03:59.033Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/submissions",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278639020-i8tw",
+      "timestamp": "2026-05-20T12:03:59.020Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278638986-bre4",
+      "timestamp": "2026-05-20T12:03:58.986Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278638780-2zsn",
+      "timestamp": "2026-05-20T12:03:58.780Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278638776-0ipy",
+      "timestamp": "2026-05-20T12:03:58.776Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278638704-97vf",
+      "timestamp": "2026-05-20T12:03:58.704Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278638661-hub8",
+      "timestamp": "2026-05-20T12:03:58.661Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278638656-qsg2",
+      "timestamp": "2026-05-20T12:03:58.656Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278628482-gugm",
+      "timestamp": "2026-05-20T12:03:48.482Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278628406-wt05",
+      "timestamp": "2026-05-20T12:03:48.406Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278628373-v07m",
+      "timestamp": "2026-05-20T12:03:48.373Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278628318-dy6f",
+      "timestamp": "2026-05-20T12:03:48.318Z"
+    },
+    {
+      "method": "PUT",
+      "url": "/api/courses/alevel-math",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278628291-xnme",
+      "timestamp": "2026-05-20T12:03:48.292Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278609234-q3pp",
+      "timestamp": "2026-05-20T12:03:29.234Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278609209-rx0j",
+      "timestamp": "2026-05-20T12:03:29.209Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278609166-v2ap",
+      "timestamp": "2026-05-20T12:03:29.166Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278609132-ghng",
+      "timestamp": "2026-05-20T12:03:29.132Z"
+    },
+    {
+      "method": "PUT",
+      "url": "/api/courses/alevel-math",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278609023-mnes",
+      "timestamp": "2026-05-20T12:03:29.023Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278394530-nvja",
+      "timestamp": "2026-05-20T11:59:54.530Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/tests",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278394527-kab8",
+      "timestamp": "2026-05-20T11:59:54.527Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278394522-ju04",
+      "timestamp": "2026-05-20T11:59:54.522Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/system/stats",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278394497-dzpt",
+      "timestamp": "2026-05-20T11:59:54.497Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278394099-h2j9",
+      "timestamp": "2026-05-20T11:59:54.099Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/students",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278394015-3kjg",
+      "timestamp": "2026-05-20T11:59:54.015Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278394000-8s72",
+      "timestamp": "2026-05-20T11:59:54.000Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/courses",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278393813-2is3",
+      "timestamp": "2026-05-20T11:59:53.813Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 304,
+      "id": "log-1779278393808-z0gc",
+      "timestamp": "2026-05-20T11:59:53.808Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/auth/me",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "statusCode": 200,
+      "id": "log-1779278393733-k80l",
+      "timestamp": "2026-05-20T11:59:53.733Z"
+    }
+  ]
+}

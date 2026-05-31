@@ -1,0 +1,71 @@
+{
+  "settings": {
+    "heroTitle": "SAT Matematikani zamonaviy metodlar yordamida, ingliz tilida tez va samarali o'rganing",
+    "heroSubtitle": "Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutish imkoniyatini qo'lga kiriting.",
+    "contactPhone": "+998 99 824 46 18",
+    "contactAddress": "Toshkent shahri, Sergeli tumani",
+    "telegramLink": "https://t.me/math_teacher_m"
+  },
+  "results": [
+    {
+      "id": 1780124367654,
+      "score": "A Level",
+      "name": "Musulmon",
+      "color": "text-secondary",
+      "imageUrl": "http://localhost:5000/uploads/919f1cad-42c0-4c41-9984-86929d1494bb.jpg",
+      "imagePosition": "object-bottom"
+    },
+    {
+      "id": 1780124404928,
+      "score": "SAT: 1430 ball",
+      "name": "Mirzoxon Muxtorov",
+      "color": "text-primary",
+      "imageUrl": "http://localhost:5000/uploads/8eadd075-de6a-4860-9f42-6255a9ef7e64.jpg"
+    },
+    {
+      "id": 1780132689119,
+      "score": "SAT 1400",
+      "name": "Fayzullayev Jonibek",
+      "color": "text-secondary",
+      "imageUrl": "http://localhost:5000/uploads/8a57a913-3377-41e6-a617-038949356d93.jpg",
+      "imagePosition": "object-center"
+    },
+    {
+      "id": 1780134000900,
+      "score": "A level",
+      "name": "Asliddin",
+      "color": "text-tertiary",
+      "imageUrl": "",
+      "imagePosition": "object-center"
+    },
+    {
+      "id": 1780134018675,
+      "score": "SAT 1500",
+      "name": "Abdulla",
+      "color": "text-secondary"
+    }
+  ],
+  "pricing": [
+    {
+      "id": 2,
+      "title": "A-Level Math",
+      "description": "Kembrij dasturi asosida chuqurlashtirilgan matematika. Pure Math va Mechanics.",
+      "price": "700,000",
+      "type": "tertiary"
+    },
+    {
+      "id": 1,
+      "title": "SAT Matematika",
+      "description": "Noldan boshlab yuqori darajagacha intensiv tayyorgarlik. Ingliz tilida masalalar yechish.",
+      "price": "600,000",
+      "type": "primary"
+    },
+    {
+      "id": 3,
+      "title": "Matematika Foundation",
+      "description": "Asosiy matematik bilimlarni mustahkamlash va ingliz tilidagi terminlarga moslashish.",
+      "price": "500,000",
+      "type": "secondary"
+    }
+  ]
+}

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathScore | Cyber Security Shield & API Controller</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Material Symbols & Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            cyber: {
+              dark: '#030712',
+              card: 'rgba(17, 24, 39, 0.7)',
+              border: 'rgba(255, 255, 255, 0.06)',
+              neonIndigo: '#6366f1',
+              neonPink: '#ec4899',
+              neonRed: '#ef4444',
+              neonEmerald: '#10b981',
+              neonAmber: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Glassmorphism Scrollbar and Effects */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(31, 41, 55, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.6);
+    }
+    .glass-panel {
+      background: var(--cyber-card, rgba(13, 18, 30, 0.8));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .neon-shadow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+    .neon-shadow-indigo {
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+    }
+    .neon-shadow-pink {
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+    }
+    .pulse-glow {
+      animation: pulse-glow-anim 2s infinite alternate;
+    }
+    @keyframes pulse-glow-anim {
+      0% {
+        box-shadow: 0 0 5px rgba(99, 102, 241, 0.2);
+      }
+      100% {
+        box-shadow: 0 0 18px rgba(99, 102, 241, 0.6);
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200 antialiased overflow-x-hidden">
+
+  <!-- Floating Ambient Lights -->
+  <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-pink-600/5 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+
+  <!-- App Wrapper -->
+  <div class="max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col gap-6">
+
+    <!-- Top Navigation Header -->
+    <header class="glass-panel rounded-2xl px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20 pulse-glow">
+          <span class="material-symbols-outlined text-[26px]">shield</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-outfit text-xl font-bold tracking-tight text-white">MathScore CyberShield</h1>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest">v1.0 Secure</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Node.js API Monitoring & IPS Control Panel</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Maintenance Alert -->
+        <div id="maintenanceAlert" class="hidden flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg text-xs font-semibold animate-pulse">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          Maintenance Mode Active
+        </div>
+
+        <!-- Connection Status -->
+        <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          SSE Stream Connected
+        </div>
+
+        <button onclick="fetchStats()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/20">
+          <span class="material-symbols-outlined text-[16px]">sync</span>
+          Sync Stats
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid Dashboard Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      
+      <!-- Card 1: API Request counter -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden neon-shadow-indigo border-l-4 border-l-indigo-500">
+        <span class="material-symbols-outlined text-indigo-400/20 text-5xl absolute right-3 top-3">alt_route</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">API Hits</p>
+          <h3 id="statApiHits" class="text-3xl font-extrabold font-outfit mt-2 text-white">0</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-4">Total monitored requests</p>
+      </div>
+
+      <!-- Card 2: Cyber events -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden border-l-4 border-l-rose-500">
+        <span class="material-symbols-outlined text-rose-400/20 text-5xl absolute right-3 top-3">gavel</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Threats Blocked</p>
+          <h3 id="statSecurityEvents" class="text-3xl font-extrabold font-outfit mt-2 text-rose-400">0</h3>
+        </div>
+        <p class="text-[10px] text-rose-400/80 mt-4 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[12px] block">warning</span> IPS Shield Active
+        </p>
+      </div>
+
+      <!-- Card 3: Courses -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden border-l-4 border-l-emerald-500">
+        <span class="material-symbols-outlined text-emerald-400/20 text-5xl absolute right-3 top-3">school</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Courses</p>
+          <h3 id="statCourses" class="text-3xl font-extrabold font-outfit mt-2 text-emerald-400">0</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-4">Active curriculum database</p>
+      </div>
+
+      <!-- Card 4: Tests -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden border-l-4 border-l-pink-500">
+        <span class="material-symbols-outlined text-pink-400/20 text-5xl absolute right-3 top-3">assignment</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Math Tests</p>
+          <h3 id="statTests" class="text-3xl font-extrabold font-outfit mt-2 text-pink-400">0</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-4">SAT / A-Level databases</p>
+      </div>
+
+      <!-- Card 5: Submissions -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden border-l-4 border-l-amber-500">
+        <span class="material-symbols-outlined text-amber-400/20 text-5xl absolute right-3 top-3">history_edu</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Exams Done</p>
+          <h3 id="statSubmissions" class="text-3xl font-extrabold font-outfit mt-2 text-amber-400">0</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-4">Submitted exam results</p>
+      </div>
+
+      <!-- Card 6: Users -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden border-l-4 border-l-blue-500">
+        <span class="material-symbols-outlined text-blue-400/20 text-5xl absolute right-3 top-3">group</span>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accounts</p>
+          <h3 id="statUsers" class="text-3xl font-extrabold font-outfit mt-2 text-blue-400">0</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-4">Registered Admins & Students</p>
+      </div>
+
+    </div>
+
+    <!-- Main Workspace Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Operations, Settings & Server Health -->
+      <div class="lg:col-span-4 flex flex-col gap-6">
+        
+        <!-- Server Status / Health Panel -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+          <div class="flex items-center gap-2 border-b border-white/5 pb-3">
+            <span class="material-symbols-outlined text-indigo-400">dns</span>
+            <h2 class="font-outfit font-bold text-sm uppercase tracking-wider">System Node Metrics</h2>
+          </div>
+
+          <div class="space-y-4 text-xs font-medium">
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+              <span class="text-slate-400">Platform OS</span>
+              <span id="sysOS" class="text-white font-semibold">Windows</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+              <span class="text-slate-400">Architecture</span>
+              <span id="sysArch" class="text-white font-semibold">x64</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+              <span class="text-slate-400">Uptime</span>
+              <span id="sysUptime" class="text-emerald-400 font-semibold">0m 0s</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+              <span class="text-slate-400">Node JS version</span>
+              <span id="sysNode" class="text-indigo-400 font-semibold">v20.0.0</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+              <span class="text-slate-400">Available Memory</span>
+              <span id="sysMemory" class="text-white font-semibold">0 GB / 0 GB</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="text-slate-400">Process Memory Usage</span>
+              <span id="sysProcessMemory" class="text-pink-400 font-semibold">0 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- IPS FireWall Action controls -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+          <div class="flex items-center gap-2 border-b border-white/5 pb-3">
+            <span class="material-symbols-outlined text-rose-500">lock_open</span>
+            <h2 class="font-outfit font-bold text-sm uppercase tracking-wider">Firewall IPS Controls</h2>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <!-- Toggle Maintenance -->
+            <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-white/5">
+              <div>
+                <p class="text-xs font-bold text-white">Maintenance Mode</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Toggle maintenance systemwide</p>
+              </div>
+              <button id="btnMaintenance" onclick="toggleMaintenance()" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-700">
+                <span id="btnMaintenanceToggle" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+              </button>
+            </div>
+
+            <!-- Stricter rate limiting / Clear Logs -->
+            <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-white/5">
+              <div>
+                <p class="text-xs font-bold text-white">Clear Security Logs</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Purge internal threat & API records</p>
+              </div>
+              <button onclick="clearLogs()" class="bg-rose-500/10 hover:bg-rose-500/20 active:scale-95 transition-all text-rose-400 border border-rose-500/20 p-2 rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Real-time Incident logs and Endpoint trace logs -->
+      <div class="lg:col-span-8 flex flex-col gap-6">
+        
+        <!-- Cyber Security Incident Stream -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+          <div class="flex justify-between items-center border-b border-white/5 pb-3">
+            <div class="flex items-center gap-2 text-rose-400">
+              <span class="material-symbols-outlined animate-pulse">lock_person</span>
+              <h2 class="font-outfit font-bold text-sm uppercase tracking-wider">Cyber Security Incident Stream (Real-Time)</h2>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-500/10 text-rose-400 border border-rose-500/25">IPS active</span>
+          </div>
+
+          <div id="securityLogsContainer" class="space-y-3 max-h-[300px] overflow-y-auto pr-1 text-xs">
+            <!-- Security Incident entries go here -->
+            <p class="text-slate-500 text-center py-6 font-semibold">Tizimda hozircha hech qanday kiberhujum yoki shubhali faoliyat aniqlanmadi.</p>
+          </div>
+        </div>
+
+        <!-- Real-time API tracer logs -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col gap-4">
+          <div class="flex justify-between items-center border-b border-white/5 pb-3">
+            <div class="flex items-center gap-2 text-indigo-400">
+              <span class="material-symbols-outlined">api</span>
+              <h2 class="font-outfit font-bold text-sm uppercase tracking-wider">API Controller log feed</h2>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-500/10 text-indigo-400 border border-indigo-500/25">SSE Stream</span>
+          </div>
+
+          <div id="apiLogsContainer" class="space-y-2 max-h-[320px] overflow-y-auto pr-1 text-[11px] font-mono">
+            <!-- API log traces go here -->
+            <p class="text-slate-500 text-center py-6 font-semibold">Trafik kelishi kutilmoqda...</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

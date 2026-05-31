@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MathScore - Exam Results</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config injected from Style Guidance -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#00842e",
+                    "on-tertiary-fixed-variant": "#005319",
+                    "on-secondary-container": "#6b3900",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#e1e0ff",
+                    "primary-container": "#5d5fef",
+                    "on-tertiary-fixed": "#002106",
+                    "on-primary-fixed": "#07006c",
+                    "on-primary-fixed-variant": "#2e2bc2",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-variant": "#dde4e6",
+                    "primary": "#4343d5",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#e8eff1",
+                    "on-tertiary-container": "#e5ffe0",
+                    "on-secondary-fixed-variant": "#6d3a00",
+                    "surface-tint": "#4849da",
+                    "surface": "#f4fafd",
+                    "secondary-container": "#fc9d41",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#55e16b",
+                    "secondary": "#8f4e00",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#006822",
+                    "on-primary-container": "#faf7ff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#eef5f7",
+                    "secondary-fixed-dim": "#ffb77a",
+                    "inverse-surface": "#2b3234",
+                    "on-background": "#161d1f",
+                    "on-secondary-fixed": "#2e1500",
+                    "background": "#f4fafd",
+                    "on-surface": "#161d1f",
+                    "primary-fixed-dim": "#c1c1ff",
+                    "tertiary-fixed": "#73fe84",
+                    "surface-container-high": "#e2e9ec",
+                    "surface-dim": "#d4dbdd",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#dde4e6",
+                    "outline-variant": "#c7c4d7",
+                    "inverse-primary": "#c1c1ff",
+                    "outline": "#767586",
+                    "inverse-on-surface": "#ebf2f4",
+                    "secondary-fixed": "#ffdcc2",
+                    "on-surface-variant": "#464555",
+                    "surface-bright": "#f4fafd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "margin-desktop": "64px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg-mobile": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-sm": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "display-lg": [
+                            "Plus Jakarta Sans"
+                    ]
+            },
+            "fontSize": {
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "28px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "800"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Base styles from config fonts */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col items-center py-margin-mobile md:py-margin-desktop px-margin-mobile text-on-background relative overflow-x-hidden">
+<!-- Top Navigation for Context (Minimal, Transactional Exit) -->
+<nav class="w-full max-w-container-max flex justify-between items-center mb-8">
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+            Back to Dashboard
+        </a>
+</nav>
+<!-- Main Content Container -->
+<main class="w-full max-w-[800px] flex flex-col gap-8 pb-16">
+<!-- Header Area -->
+<header class="text-center space-y-4">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-fixed text-primary mb-2">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface">Test Complete!</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Mathematics Midterm: Algebra &amp; Functions</p>
+</header>
+<!-- Main Hero Score Card -->
+<section class="bg-surface-container-lowest rounded-[24px] border-2 border-tertiary p-6 md:p-10 shadow-[0_4px_0_0_theme(colors.tertiary-fixed-dim)] flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+<!-- Decorative background blob -->
+<div class="absolute -top-20 -right-20 w-64 h-64 bg-tertiary-fixed opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Progress Ring Visualization -->
+<div class="relative flex-shrink-0 flex items-center justify-center">
+<svg class="w-48 h-48 transform -rotate-90 drop-shadow-sm" viewbox="0 0 100 100">
+<!-- Background Track -->
+<circle class="text-surface-variant" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="10"></circle>
+<!-- Progress Arc (85% of 251.2 = 213.52) -->
+<circle class="text-tertiary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="37.68" stroke-linecap="round" stroke-width="10"></circle>
+</svg>
+<!-- Center Text -->
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-display-lg text-display-lg text-tertiary">85<span class="text-2xl">%</span></span>
+</div>
+</div>
+<!-- Score Details -->
+<div class="flex flex-col flex-grow items-center md:items-start text-center md:text-left space-y-4 z-10">
+<div class="inline-flex items-center gap-2 bg-tertiary-container text-on-tertiary-container px-4 py-1.5 rounded-full border border-tertiary font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    STATUS: PASS
+                </div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Total Score: 85/100</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">You exceeded the passing threshold of 70%.</p>
+</div>
+</div>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+<!-- Time Spent -->
+<div class="bg-surface-container-lowest rounded-[24px] border-2 border-primary p-5 flex flex-col items-center justify-center text-center transition-transform hover:translate-y-[2px] shadow-[0_4px_0_0_theme(colors.primary-fixed-dim)]">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl" style="font-variation-settings: 'FILL' 0;">timer</span>
+<span class="font-headline-md text-headline-md text-primary">45:12</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 uppercase tracking-wider">Time Spent</span>
+</div>
+<!-- Correct -->
+<div class="bg-surface-container-lowest rounded-[24px] border-2 border-tertiary p-5 flex flex-col items-center justify-center text-center transition-transform hover:translate-y-[2px] shadow-[0_4px_0_0_theme(colors.tertiary-fixed-dim)]">
+<span class="material-symbols-outlined text-tertiary mb-2 text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-headline-md text-headline-md text-tertiary">17</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 uppercase tracking-wider">Correct</span>
+</div>
+<!-- Incorrect -->
+<div class="bg-surface-container-lowest rounded-[24px] border-2 border-error p-5 flex flex-col items-center justify-center text-center transition-transform hover:translate-y-[2px] shadow-[0_4px_0_0_theme(colors.error-container)]">
+<span class="material-symbols-outlined text-error mb-2 text-3xl" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="font-headline-md text-headline-md text-error">3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 uppercase tracking-wider">Incorrect</span>
+</div>
+<!-- Unanswered -->
+<div class="bg-surface-container-lowest rounded-[24px] border-2 border-outline p-5 flex flex-col items-center justify-center text-center transition-transform hover:translate-y-[2px] shadow-[0_4px_0_0_theme(colors.surface-variant)]">
+<span class="material-symbols-outlined text-outline mb-2 text-3xl" style="font-variation-settings: 'FILL' 0;">help</span>
+<span class="font-headline-md text-headline-md text-on-surface">0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 uppercase tracking-wider">Unanswered</span>
+</div>
+</section>
+<!-- Visual Feedback / Motivational Message -->
+<section class="bg-primary-fixed rounded-[24px] border-2 border-primary-fixed-dim p-6 md:p-8 flex items-start gap-4 shadow-[0_4px_0_0_theme(colors.primary-fixed-dim)]">
+<span class="material-symbols-outlined text-primary text-3xl shrink-0 mt-1" style="font-variation-settings: 'FILL' 1;">tips_and_updates</span>
+<div>
+<h3 class="font-label-md text-label-md text-on-primary-fixed uppercase tracking-wider mb-2">Instructor Feedback</h3>
+<p class="font-body-md text-body-md text-on-primary-fixed">Excellent work! You've demonstrated a strong mastery of quadratic equations and graphing concepts. Review the 3 incorrect answers to solidify your understanding of complex numbers before moving on to the next module.</p>
+</div>
+</section>
+<!-- Action Buttons -->
+<section class="flex flex-col md:flex-row items-center justify-center gap-4 mt-4">
+<button class="w-full md:w-auto bg-primary text-on-primary font-label-md text-label-md py-4 px-8 rounded-lg hover:translate-y-[2px] transition-transform shadow-[0_4px_0_0_theme(colors.on-primary-fixed)] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">play_arrow</span>
+                Continue Course
+            </button>
+<button class="w-full md:w-auto bg-transparent border-2 border-primary text-primary font-label-md text-label-md py-4 px-8 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">rule</span>
+                Review Answers
+            </button>
+<button class="w-full md:w-auto text-on-surface-variant hover:text-primary font-label-md text-label-md py-4 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">refresh</span>
+                Retry Test
+            </button>
+</section>
+</main>
+</body></html>

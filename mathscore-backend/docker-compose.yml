@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  mathscore-backend:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+      - ./dev.db:/usr/src/app/dev.db
+    environment:
+      - PORT=5000
+      - JWT_SECRET=mathscore-production-super-secret-99890
+      - DATABASE_URL=file:./dev.db
+    restart: unless-stopped
