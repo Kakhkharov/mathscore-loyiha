@@ -1,7 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const { execSync } = require('child_process');
 
 const prisma = new PrismaClient();
+
+async function ensureDatabaseSchema() {
+  execSync('npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma', {
+    cwd: __dirname,
+    stdio: 'inherit',
+    shell: true
+  });
+}
 
 const db = {
   get: async (table) => {
@@ -230,6 +239,7 @@ const db = {
 // Initialize DB with default admin if not exists
 async function initDb() {
   try {
+    await ensureDatabaseSchema();
     const adminExists = await prisma.user.findUnique({ where: { email: 'malikatoxirova31@gmail.com' } });
     if (!adminExists) {
       const salt = bcrypt.genSaltSync(10);
@@ -255,6 +265,15 @@ async function initDb() {
       console.log("[DB] Prisma Database initialized with default users.");
     }
   } catch (error) {
+    if (error?.code === 'P2021') {
+      try {
+        await ensureDatabaseSchema();
+        return await initDb();
+      } catch (retryError) {
+        console.error("[DB] Init Error:", retryError);
+      }
+      return;
+    }
     console.error("[DB] Init Error:", error);
   }
 }
