@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const { sendStudentCredentials, sendPasswordReset } = require('./mailer');
@@ -688,10 +689,173 @@ app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   res.json({ success: true });
 });
 
+// ==========================================
+// LANDING PAGE API
+// ==========================================
+const LANDING_DB_FILE = path.join(__dirname, 'db.json');
+const defaultLandingData = {
+  settings: {
+    heroTitle: "SAT Matematikani zamonaviy metodlar yordamida, ingliz tilida tez va samarali o'rganing",
+    heroSubtitle: "Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutish imkoniyatini qo'lga kiriting.",
+    contactPhone: "+998 99 824 46 18",
+    contactAddress: "Toshkent shahri, Sergeli tumani",
+    telegramLink: "https://t.me/math_teacher_m"
+  },
+  results: [
+    { id: 1, score: 'SAT 1520', name: 'Azizbek K.', color: 'text-primary' },
+    { id: 2, score: 'SAT 1480', name: 'Malika O.', color: 'text-tertiary' },
+    { id: 3, score: 'A-Level A*', name: 'Sardor T.', color: 'text-secondary' },
+    { id: 4, score: 'SAT 1550', name: 'Durdona S.', color: 'text-primary' }
+  ],
+  pricing: [
+    { id: 1, title: 'SAT Matematika', description: 'Noldan boshlab yuqori darajagacha intensiv tayyorgarlik. Ingliz tilida masalalar yechish.', price: '600,000', type: 'primary' },
+    { id: 2, title: 'A-Level Math', description: 'Kembrij dasturi asosida chuqurlashtirilgan matematika. Pure Math va Mechanics.', price: '700,000', type: 'tertiary' },
+    { id: 3, title: 'Matematika Foundation', description: 'Asosiy matematik bilimlarni mustahkamlash va ingliz tilidagi terminlarga moslashish.', price: '500,000', type: 'secondary' }
+  ]
+};
+
+function readLandingDB() {
+  if (!fs.existsSync(LANDING_DB_FILE)) {
+    fs.writeFileSync(LANDING_DB_FILE, JSON.stringify(defaultLandingData, null, 2));
+    return defaultLandingData;
+  }
+  return JSON.parse(fs.readFileSync(LANDING_DB_FILE, 'utf8'));
+}
+
+function writeLandingDB(data) {
+  fs.writeFileSync(LANDING_DB_FILE, JSON.stringify(data, null, 2));
+}
+
+app.get('/api/settings', (req, res) => {
+  const db = readLandingDB();
+  res.json(db.settings);
+});
+
+app.put('/api/settings', (req, res) => {
+  const db = readLandingDB();
+  db.settings = { ...db.settings, ...req.body };
+  writeLandingDB(db);
+  res.json(db.settings);
+});
+
+app.get('/api/results', (req, res) => {
+  const db = readLandingDB();
+  res.json(db.results);
+});
+
+app.post('/api/results', (req, res) => {
+  const db = readLandingDB();
+  const newResult = { id: Date.now(), ...req.body };
+  db.results.push(newResult);
+  writeLandingDB(db);
+  res.json(newResult);
+});
+
+app.delete('/api/results/:id', (req, res) => {
+  const db = readLandingDB();
+  db.results = db.results.filter(r => r.id !== parseInt(req.params.id));
+  writeLandingDB(db);
+  res.json({ success: true });
+});
+
+app.put('/api/results/bulk', (req, res) => {
+  const db = readLandingDB();
+  db.results = req.body;
+  writeLandingDB(db);
+  res.json({ success: true });
+});
+
+app.get('/api/pricing', (req, res) => {
+  const db = readLandingDB();
+  res.json(db.pricing);
+});
+
+app.post('/api/pricing', (req, res) => {
+  const db = readLandingDB();
+  const newPricing = { id: Date.now(), ...req.body };
+  db.pricing.push(newPricing);
+  writeLandingDB(db);
+  res.json(newPricing);
+});
+
+app.delete('/api/pricing/:id', (req, res) => {
+  const db = readLandingDB();
+  db.pricing = db.pricing.filter(p => p.id !== parseInt(req.params.id));
+  writeLandingDB(db);
+  res.json({ success: true });
+});
+
+app.put('/api/pricing/bulk', (req, res) => {
+  const db = readLandingDB();
+  db.pricing = req.body;
+  writeLandingDB(db);
+  res.json({ success: true });
+});
+
+
+// ==========================================
+// MUKAMMAL ERROR HANDLER MIDDLEWARE
+// ==========================================
 app.use((err, req, res, next) => {
-  console.error('[SERVER ERROR]', err);
-  db.logSecurityIncident({ type: 'SERVER_INTERNAL_ERROR', severity: 'HIGH', message: `Server Error: ${err.message}`, ip: req.ip });
-  res.status(500).json({ error: 'Serverda ichki xatolik yuz berdi.' });
+  console.error('[SERVER ERROR DETECTED]', err);
+
+  let statusCode = err.status || 500;
+  let errorMessage = err.message || 'Serverda ichki xatolik yuz berdi.';
+  let errorType = 'SERVER_INTERNAL_ERROR';
+
+  if (err.name === 'PrismaClientKnownRequestError') {
+    errorType = 'DATABASE_ERROR';
+    if (err.code === 'P2002') {
+      statusCode = 409;
+      errorMessage = 'Bunday ma\'lumot allaqachon mavjud (Unikallik xatosi).';
+    } else if (err.code === 'P2025') {
+      statusCode = 404;
+      errorMessage = 'So\'ralgan ma\'lumot topilmadi.';
+    } else if (err.code === 'P2021') {
+      statusCode = 500;
+      errorMessage = 'Ma\'lumotlar bazasida kerakli jadval topilmadi. (Prisma db push qilish kerak)';
+    } else {
+      statusCode = 400;
+      errorMessage = 'Ma\'lumotlar bazasi so\'rovida xatolik yuz berdi.';
+    }
+  } else if (err.name === 'PrismaClientValidationError') {
+    errorType = 'DATABASE_VALIDATION_ERROR';
+    statusCode = 400;
+    errorMessage = 'Yuborilgan ma\'lumotlar formati noto\'g\'ri.';
+  }
+
+  if (err.name === 'JsonWebTokenError') {
+    errorType = 'AUTH_TOKEN_ERROR';
+    statusCode = 401;
+    errorMessage = 'Yaroqsiz yoki noto\'g\'ri token.';
+  } else if (err.name === 'TokenExpiredError') {
+    errorType = 'AUTH_TOKEN_EXPIRED';
+    statusCode = 401;
+    errorMessage = 'Token muddati tugagan. Iltimos qaytadan tizimga kiring.';
+  }
+
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    errorType = 'JSON_SYNTAX_ERROR';
+    statusCode = 400;
+    errorMessage = 'Noto\'g\'ri JSON format yuborildi.';
+  }
+
+  try {
+    db.logSecurityIncident({
+      type: errorType,
+      severity: statusCode >= 500 ? 'HIGH' : 'MEDIUM',
+      message: `Xato: ${errorMessage} | Asl sabab: ${err.message}`,
+      ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
+    });
+  } catch (logErr) {
+    console.error('[LOGGING ERROR FAILED]', logErr);
+  }
+
+  res.status(statusCode).json({
+    error: errorMessage,
+    type: errorType,
+    details: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 app.listen(PORT, () => {

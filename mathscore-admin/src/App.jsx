@@ -407,11 +407,11 @@ function App() {
       }
 
       try {
-        const setRes = await fetch('http://localhost:5001/api/settings', { cache: 'no-store' });
+        const setRes = await fetch('http://localhost:5000/api/settings', { cache: 'no-store' });
         if (setRes.ok) setLandingSettings(await setRes.json());
-        const resRes = await fetch('http://localhost:5001/api/results', { cache: 'no-store' });
+        const resRes = await fetch('http://localhost:5000/api/results', { cache: 'no-store' });
         if (resRes.ok) setLandingResults(await resRes.json());
-        const priRes = await fetch('http://localhost:5001/api/pricing', { cache: 'no-store' });
+        const priRes = await fetch('http://localhost:5000/api/pricing', { cache: 'no-store' });
         if (priRes.ok) setLandingPricing(await priRes.json());
       } catch (e) {
         console.error('Landing sync failed:', e);
@@ -1697,7 +1697,7 @@ function App() {
   
   const handleUpdateLandingSettings = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/settings', {
+      const res = await fetch('http://localhost:5000/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(landingSettings)
@@ -1712,7 +1712,7 @@ function App() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5001/api/results', {
+      const res = await fetch('http://localhost:5000/api/results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingResult)
@@ -1726,7 +1726,7 @@ function App() {
 
   const handleDeleteLandingResult = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/results/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://localhost:5000/api/results/${id}`, { method: 'DELETE' });
       if(res.ok) {
         setLandingResults(landingResults.filter(r => r.id !== id));
       }
@@ -1735,7 +1735,7 @@ function App() {
 
   const handleSaveAllResults = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/results/bulk', {
+      const res = await fetch('http://localhost:5000/api/results/bulk', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(landingResults)
@@ -1760,7 +1760,7 @@ function App() {
 
   const handleAddLandingPricing = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/pricing', {
+      const res = await fetch('http://localhost:5000/api/pricing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingPricing)
@@ -1774,7 +1774,7 @@ function App() {
 
   const handleDeleteLandingPricing = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/pricing/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://localhost:5000/api/pricing/${id}`, { method: 'DELETE' });
       if(res.ok) {
         setLandingPricing(landingPricing.filter(p => p.id !== id));
       }
@@ -1789,7 +1789,7 @@ function App() {
     newArr[index + direction] = temp;
     
     try {
-      const res = await fetch('http://localhost:5001/api/pricing/bulk', {
+      const res = await fetch('http://localhost:5000/api/pricing/bulk', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newArr)
