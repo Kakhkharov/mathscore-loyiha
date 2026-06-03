@@ -409,7 +409,7 @@ export default function App() {
       setCurrentPage('reset-password');
     }
   }, []);
-  
+
   // User Profile
   const [profile, setProfile] = useState({
     firstName: 'Alex',
@@ -456,7 +456,7 @@ export default function App() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const response = await fetch(`http://localhost:5000${url}`, {
+    const response = await fetch(`https://api.mathscore.uz${url}`, {
       ...options,
       headers
     });
@@ -476,7 +476,7 @@ export default function App() {
       const meRes = await fetchWithAuth('/api/auth/me');
       if (meRes.ok) {
         const meData = await meRes.json();
-        
+
         if (meData.enrolledCourses && meData.enrolledCourses.length > 0) {
           // Use enrolled courses from the backend (multi-course support)
           const processedCourses = meData.enrolledCourses.map(course => {
@@ -539,9 +539,9 @@ export default function App() {
 
             const currentUser = studentProfile || JSON.parse(localStorage.getItem('student_user') || '{}');
             const currentEnrolledCourse = currentUser.course || '';
-            
-            const filteredCourses = processedCourses.filter(c => 
-              c.title.toLowerCase().includes(currentEnrolledCourse.toLowerCase()) || 
+
+            const filteredCourses = processedCourses.filter(c =>
+              c.title.toLowerCase().includes(currentEnrolledCourse.toLowerCase()) ||
               c.id.toLowerCase().includes(currentEnrolledCourse.toLowerCase())
             );
 
@@ -562,7 +562,7 @@ export default function App() {
           }
         }
       }
-      
+
       const testsRes = await fetchWithAuth('/api/tests');
       if (testsRes.ok) {
         const testsDataVal = await testsRes.json();
@@ -648,7 +648,7 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [activeLesson, currentPage]);
-  
+
   // Test State Variables
   const [activeQuizTest, setActiveQuizTest] = useState(studentTests[0]);
   const [activeQuestion, setActiveQuestion] = useState(0);
@@ -658,14 +658,14 @@ export default function App() {
   const [timerSeconds, setTimerSeconds] = useState(3600);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [showQuizConfirmationModal, setShowQuizConfirmationModal] = useState(false);
-  
+
   // Results panel and Certificates
   const [quizResult, setQuizResult] = useState(null);
   const [showCertificate, setShowCertificate] = useState(false);
-  
+
   // Security / Cheat Shield state
   const [tabSwitchesCount, setTabSwitchesCount] = useState(0);
-  
+
   // Scientific Calculator states
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcInput, setCalcInput] = useState('');
@@ -702,7 +702,7 @@ export default function App() {
       if (document.hidden && currentPage === 'test-interface' && activeQuizTest?.preventTabSwitch) {
         setTabSwitchesCount(prev => {
           const nextCount = prev + 1;
-          
+
           fetchWithAuth('/api/system/cheat-report', {
             method: 'POST',
             body: JSON.stringify({
@@ -712,7 +712,7 @@ export default function App() {
           }).catch(err => console.warn('Cheat alert report failed:', err));
 
           alert(`OGOHLANTIRISH!\nImtihon paytida brauzer oynasini yoki tabini o'zgartirish qat'iyan man etiladi.\nXatti-harakat tizimda qayd etildi (${nextCount}/3).\n3 ta ogohlantirishdan so'ng testingiz avtomatik tarzda yakunlanadi!`);
-          
+
           if (nextCount >= 3) {
             handleSubmitTest();
           }
@@ -758,7 +758,7 @@ export default function App() {
 
   const handleSelectAnswer = (qIndex, optionIndex) => {
     setQuizAnswers(prev => ({ ...prev, [qIndex]: optionIndex }));
-    
+
     // Auto-mark as visited
     if (!visitedQuestions.includes(qIndex)) {
       setVisitedQuestions(prev => [...prev, qIndex]);
@@ -775,7 +775,7 @@ export default function App() {
 
   const handleSubmitTest = async () => {
     setShowQuizConfirmationModal(false);
-    
+
     const spentTimeSecs = activeQuizTest.duration * 60 - timerSeconds;
     const timeSpentStr = formatTimer(spentTimeSecs >= 0 ? spentTimeSecs : 0);
 
@@ -871,7 +871,7 @@ export default function App() {
         expression = expression.replace(/sqrt\(/g, 'Math.sqrt(');
         expression = expression.replace(/log\(/g, 'Math.log10(');
         expression = expression.replace(/π/g, 'Math.PI');
-        
+
         const evalFn = new Function(`return ${expression}`);
         const res = evalFn();
         setCalcResult(Number(res).toFixed(4).replace(/\.?0+$/, ''));
@@ -902,7 +902,7 @@ export default function App() {
     if (!activeQuizTest || !quizResult) return 0;
     const catQuestions = activeQuizTest.questions.filter(q => q.topic === category);
     if (catQuestions.length === 0) return 0;
-    
+
     let correct = 0;
     catQuestions.forEach(q => {
       const originalIdx = activeQuizTest.questions.indexOf(q);
@@ -938,10 +938,10 @@ export default function App() {
         updatedLessons[idx + 1] = { ...updatedLessons[idx + 1], locked: false };
       }
       const updatedCourse = { ...activeCourse, lessons: updatedLessons };
-      
+
       setActiveCourse(updatedCourse);
       setCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
-      
+
       // Agar bu oxirgi dars bo'lmasa, keyingisiga o'tamiz
       if (idx < activeCourse.lessons.length - 1) {
         setActiveLesson(updatedCourse.lessons[idx + 1]);
@@ -962,7 +962,7 @@ export default function App() {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
       alert("Fayl hajmi 5MB dan oshmasligi kerak!");
       return;
@@ -982,38 +982,38 @@ export default function App() {
     try {
       const token = localStorage.getItem('student_token');
       let currentAvatar = profile.avatar;
-      
+
       if (avatarFile) {
         const formData = new FormData();
         formData.append('file', avatarFile, 'avatar.jpg');
-        
-        const uploadRes = await fetch('http://localhost:5000/api/upload', {
+
+        const uploadRes = await fetch('https://api.mathscore.uz/api/upload', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
         });
-        
+
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error || 'Rasmni yuklashda xatolik');
         currentAvatar = uploadData.url;
       }
-      
-      const updateRes = await fetch('http://localhost:5000/api/auth/profile', {
+
+      const updateRes = await fetch('https://api.mathscore.uz/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          ...profile, 
+        body: JSON.stringify({
+          ...profile,
           name: `${profile.firstName} ${profile.lastName}`.trim(),
-          avatar: currentAvatar 
+          avatar: currentAvatar
         })
       });
-      
+
       const updateData = await updateRes.json();
       if (!updateRes.ok) throw new Error(updateData.error || "Profilni yangilashda xatolik");
-      
+
       setProfile(prev => ({ ...prev, avatar: currentAvatar }));
       setAvatarFile(null);
       setShowProfileAlert(false);
@@ -1025,7 +1025,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background text-on-background antialiased flex flex-col font-sans transition-colors duration-200">
-      
+
       {cropModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-surface w-full max-w-md rounded-2xl p-6 shadow-xl flex flex-col gap-4 border border-outline-variant">
@@ -1044,7 +1044,7 @@ export default function App() {
             </div>
             <div className="flex gap-3 justify-end mt-2">
               <button onClick={() => setCropModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-outline hover:text-on-surface transition-colors cursor-pointer">Bekor qilish</button>
-              <button 
+              <button
                 onClick={async () => {
                   try {
                     const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
@@ -1063,12 +1063,12 @@ export default function App() {
           </div>
         </div>
       )}
-      
+
       {/* -------------------- MINIMALIST LOGIN -------------------- */}
       {currentPage === 'login' && (
         <div className="min-h-screen flex items-center justify-center p-6 bg-background">
           <div className="w-full max-w-[420px] bg-surface rounded-2xl border border-outline-variant p-8 shadow-xs flex flex-col gap-6">
-            
+
             {/* Logo */}
             <div className="flex flex-col items-center text-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -1078,14 +1078,14 @@ export default function App() {
               <p className="text-xs text-outline font-medium">Tizimga kirish uchun ma'lumotlarni kiriting</p>
             </div>
 
-            <form 
+            <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 const email = e.target.elements.email.value;
                 const password = e.target.elements.password.value;
 
                 try {
-                  const response = await fetch('http://localhost:5000/api/auth/login', {
+                  const response = await fetch('https://api.mathscore.uz/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -1110,7 +1110,7 @@ export default function App() {
                     course: data.user.course || 'SAT Math Masterclass'
                   };
                   setProfile(studentProfile);
-                  
+
                   if (!data.user.phone || data.user.phone.trim() === '') {
                     setCurrentPage('profile');
                     setShowProfileAlert(true);
@@ -1122,18 +1122,18 @@ export default function App() {
                 } catch (err) {
                   alert(err.message);
                 }
-              }} 
+              }}
               className="space-y-4"
             >
               <div className="space-y-1.5 text-xs font-bold">
                 <label className="text-on-surface" htmlFor="email">Email yoki Telefon</label>
-                <input 
+                <input
                   name="email"
-                  required 
-                  className="w-full h-11 px-4 bg-surface-container rounded-lg border border-outline-variant text-on-surface focus:border-primary focus:outline-none text-xs font-medium placeholder:text-outline/40" 
-                  id="email" 
-                  type="text" 
-                  placeholder="student@mathscore.uz" 
+                  required
+                  className="w-full h-11 px-4 bg-surface-container rounded-lg border border-outline-variant text-on-surface focus:border-primary focus:outline-none text-xs font-medium placeholder:text-outline/40"
+                  id="email"
+                  type="text"
+                  placeholder="student@mathscore.uz"
                 />
               </div>
 
@@ -1143,17 +1143,17 @@ export default function App() {
                   <a onClick={(e) => { e.preventDefault(); setCurrentPage('forgot-password'); }} className="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Unutdingizmi?</a>
                 </div>
                 <div className="relative">
-                  <input 
+                  <input
                     name="password"
-                    required 
-                    className="w-full h-11 pl-4 pr-10 bg-surface-container rounded-lg border border-outline-variant text-on-surface focus:border-primary focus:outline-none text-xs font-medium placeholder:text-outline/40" 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
+                    required
+                    className="w-full h-11 pl-4 pr-10 bg-surface-container rounded-lg border border-outline-variant text-on-surface focus:border-primary focus:outline-none text-xs font-medium placeholder:text-outline/40"
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
                   />
-                  <button 
+                  <button
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary cursor-pointer flex items-center justify-center" 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary cursor-pointer flex items-center justify-center"
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[18px]">
@@ -1167,21 +1167,21 @@ export default function App() {
                 Tizimga kirish
               </button>
 
-              <button 
-                type="button" 
-                onClick={() => { window.location.href = 'http://localhost:5173/'; }} 
+              <button
+                type="button"
+                onClick={() => { window.location.href = 'http://localhost:5173/'; }}
                 className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-all mt-3 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">home</span>
                 <span>Asosiy saytga qaytish</span>
               </button>
 
-              <button 
-                type="button" 
-                onClick={() => { window.open('https://t.me/math_teacher_m', '_blank'); }} 
+              <button
+                type="button"
+                onClick={() => { window.open('https://t.me/math_teacher_m', '_blank'); }}
                 className="w-full h-11 bg-[#229ED9] hover:bg-[#1f8fc4] text-white font-semibold rounded-lg text-xs transition-all mt-3 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.68c.223-.198-.054-.31-.346-.11l-6.4 4.03-2.76-.86c-.6-.188-.61-.6.126-.89l10.81-4.17c.5-.188.943.114.75 1.485z"/></svg>
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.68c.223-.198-.054-.31-.346-.11l-6.4 4.03-2.76-.86c-.6-.188-.61-.6.126-.89l10.81-4.17c.5-.188.943.114.75 1.485z" /></svg>
                 <span>Admin bilan bog'lanish</span>
               </button>
             </form>
@@ -1204,7 +1204,7 @@ export default function App() {
               e.preventDefault();
               const email = e.target.elements.email.value;
               try {
-                const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
+                const res = await fetch('https://api.mathscore.uz/api/auth/forgot-password', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email })
@@ -1243,7 +1243,7 @@ export default function App() {
               const newPassword = e.target.elements.newPassword.value;
               const token = new URLSearchParams(window.location.search).get('token');
               try {
-                const res = await fetch('http://localhost:5000/api/auth/reset-password', {
+                const res = await fetch('https://api.mathscore.uz/api/auth/reset-password', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ token, newPassword })
@@ -1271,19 +1271,19 @@ export default function App() {
       {/* -------------------- MAIN LMS SHELL -------------------- */}
       {currentPage !== 'login' && currentPage !== 'forgot-password' && currentPage !== 'reset-password' && (
         <div className="flex flex-col min-h-screen">
-          
+
           {/* Premium Header */}
           <header className="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-14 bg-surface border-b border-outline-variant shadow-xs">
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="lg:hidden text-on-surface p-1.5 rounded-lg hover:bg-surface-container"
               >
                 <span className="material-symbols-outlined text-[20px]">{isSidebarOpen ? 'close' : 'menu'}</span>
               </button>
-              
-              <div 
-                onClick={() => setCurrentPage('dashboard')} 
+
+              <div
+                onClick={() => setCurrentPage('dashboard')}
                 className="flex items-center gap-2 select-none cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -1294,20 +1294,20 @@ export default function App() {
 
               {/* Horizontal Navbar */}
               <nav className="hidden md:flex gap-5 items-center ml-8 text-xs font-semibold">
-                <button 
-                  onClick={() => setCurrentPage('dashboard')} 
+                <button
+                  onClick={() => setCurrentPage('dashboard')}
                   className={`py-1 transition-colors ${currentPage === 'dashboard' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
                 >
                   Dashboard
                 </button>
-                <button 
-                  onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); } }} 
+                <button
+                  onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); } }}
                   className={`py-1 transition-colors ${currentPage === 'courses' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
                 >
                   Kurslarim
                 </button>
-                <button 
-                  onClick={() => setCurrentPage('test-center')} 
+                <button
+                  onClick={() => setCurrentPage('test-center')}
                   className={`py-1 transition-colors ${currentPage === 'test-center' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
                 >
                   Imtihonlar
@@ -1318,7 +1318,7 @@ export default function App() {
             <div className="flex items-center gap-3">
               {/* Notifications */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                   className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer relative"
                 >
@@ -1338,12 +1338,12 @@ export default function App() {
                         <div className="p-4 text-center text-xs text-outline font-medium">Bildirishnomalar yo'q</div>
                       ) : (
                         notifications.map(n => (
-                          <div 
-                            key={n.id} 
+                          <div
+                            key={n.id}
                             onClick={async () => {
-                              if(!n.isRead) {
+                              if (!n.isRead) {
                                 await fetchWithAuth(`/api/notifications/${n.id}/read`, { method: 'POST' });
-                                setNotifications(prev => prev.map(item => item.id === n.id ? {...item, isRead: true} : item));
+                                setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: true } : item));
                               }
                             }}
                             className={`p-3 border-b border-outline-variant/60 last:border-0 cursor-pointer hover:bg-surface-container transition-colors ${!n.isRead ? 'bg-primary/5' : ''}`}
@@ -1351,7 +1351,7 @@ export default function App() {
                             <div className="flex justify-between items-start mb-1">
                               <h5 className={`text-xs font-bold ${!n.isRead ? 'text-on-surface' : 'text-outline'}`}>{n.title}</h5>
                               <span className="text-[9px] text-outline/80 font-medium whitespace-nowrap ml-2">
-                                {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})}
+                                {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                             <p className="text-[10px] text-outline leading-tight">{n.message}</p>
@@ -1364,7 +1364,7 @@ export default function App() {
               </div>
 
               {/* Dark mode switcher */}
-              <button 
+              <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
               >
@@ -1372,9 +1372,9 @@ export default function App() {
                   {darkMode ? 'light_mode' : 'dark_mode'}
                 </span>
               </button>
-              
+
               {/* User profile dropdown trigger */}
-              <div 
+              <div
                 onClick={() => {
                   setCurrentPage('profile');
                   if (!profile.phone || profile.phone.length < 17) setShowProfileAlert(true);
@@ -1382,7 +1382,7 @@ export default function App() {
                 className="flex items-center gap-2.5 cursor-pointer pl-3 border-l border-outline-variant/60"
               >
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
-                  <img alt="Student Profile" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)}/>
+                  <img alt="Student Profile" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
                 </div>
                 <div className="hidden lg:block text-left">
                   <div className="text-xs font-bold text-on-surface leading-none">{profile.firstName} {profile.lastName}</div>
@@ -1392,7 +1392,7 @@ export default function App() {
           </header>
 
           <div className="flex flex-1 pt-14 relative">
-            
+
             {/* Sidebar Left Navigation */}
             <aside className={`
               fixed lg:sticky top-14 left-0 h-[calc(100vh-56px)] w-60 bg-surface border-r border-outline-variant z-35 transition-transform duration-200
@@ -1417,11 +1417,10 @@ export default function App() {
                       <button
                         key={item.name}
                         onClick={() => { setCurrentPage(item.page); setIsSidebarOpen(false); }}
-                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${
-                          currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
-                            ? 'bg-primary/10 text-primary' 
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
+                            ? 'bg-primary/10 text-primary'
                             : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
-                        }`}
+                          }`}
                       >
                         <span className={`material-symbols-outlined text-[18px] ${currentPage === item.page ? 'fill' : ''}`}>
                           {item.icon}
@@ -1433,13 +1432,13 @@ export default function App() {
                 </div>
 
                 <div className="pt-4 border-t border-outline-variant space-y-3">
-                  <button 
+                  <button
                     onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); setIsSidebarOpen(false); } }}
                     className="w-full bg-primary text-on-primary font-semibold text-xs py-2.5 rounded-lg hover:bg-primary/95 transition-colors cursor-pointer"
                   >
                     Darslarni boshlash
                   </button>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-3 py-2 w-full text-error/85 hover:bg-error-container/10 transition-colors rounded-lg font-semibold text-xs cursor-pointer"
                   >
@@ -1452,7 +1451,7 @@ export default function App() {
 
             {/* Mobile Sidebar backdrop */}
             {isSidebarOpen && (
-              <div 
+              <div
                 onClick={() => setIsSidebarOpen(false)}
                 className="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-xs z-30 lg:hidden"
               ></div>
@@ -1461,7 +1460,7 @@ export default function App() {
             {/* Primary content area */}
             <main className="flex-1 bg-background overflow-y-auto px-6 py-6 relative">
               <div className="max-w-[1000px] mx-auto">
-                
+
                 {/* -------------------- DASHBOARD VIEW -------------------- */}
                 {currentPage === 'dashboard' && (
                   <div className="space-y-6 animate-fade-in">
@@ -1503,7 +1502,7 @@ export default function App() {
                         <div>
                           <p className="text-[10px] font-bold text-outline uppercase tracking-wider">O'rtacha Ball</p>
                           <p className="font-outfit text-base font-bold text-on-surface">
-                            {submissions.length > 0 
+                            {submissions.length > 0
                               ? Math.round(submissions.reduce((acc, sub) => acc + sub.score, 0) / submissions.length) + '% natija'
                               : '0% natija'}
                           </p>
@@ -1516,7 +1515,7 @@ export default function App() {
                       <div className="flex justify-between items-center">
                         <h2 className="font-outfit text-lg font-bold text-on-surface">Mening Kurslarim</h2>
                         {courses.length > 0 && (
-                          <button 
+                          <button
                             onClick={() => { setActiveCourse(courses[0]); setCurrentPage('courses'); }}
                             className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
                           >
@@ -1530,18 +1529,18 @@ export default function App() {
                         {courses.map((course) => (
                           <article key={course.id} className="bg-surface rounded-xl border border-outline-variant overflow-hidden flex flex-col hover:border-primary/50 transition-colors group shadow-xs">
                             <div className="relative h-36 w-full bg-surface-container overflow-hidden">
-                              <img alt={course.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" src={course.image}/>
+                              <img alt={course.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" src={course.image} />
                               <div className="absolute top-3 left-3 bg-surface/90 text-on-surface border border-outline-variant font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded">
                                 {course.category}
                               </div>
                             </div>
-                            
+
                             <div className="p-5 flex flex-col flex-1 gap-4">
                               <div className="space-y-1">
                                 <h3 className="font-outfit text-sm font-bold text-on-surface leading-tight group-hover:text-primary transition-colors">{course.title}</h3>
                                 <p className="text-[11px] text-outline line-clamp-2 leading-relaxed font-medium">{course.description}</p>
                               </div>
-                              
+
                               <div className="space-y-1 mt-auto">
                                 <div className="flex justify-between items-center text-[10px] font-bold">
                                   <span className="text-outline uppercase tracking-wider">O'zlashtirish</span>
@@ -1552,7 +1551,7 @@ export default function App() {
                                 </div>
                               </div>
 
-                              <button 
+                              <button
                                 onClick={() => { setActiveCourse(course); setActiveLesson((course.lessons && course.lessons.length > 0) ? course.lessons[0] : null); setCurrentPage('courses'); }}
                                 className="w-full bg-surface-container hover:bg-primary hover:text-on-primary font-semibold text-xs py-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
                               >
@@ -1570,19 +1569,19 @@ export default function App() {
                 {/* -------------------- LMS COURSE PLAYER VIEW -------------------- */}
                 {currentPage === 'courses' && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
-                    
+
                     <div className="lg:col-span-8 flex flex-col gap-4">
-                      
+
                       <div className="flex justify-between items-center">
-                        <button 
+                        <button
                           onClick={() => setCurrentPage('dashboard')}
                           className="flex items-center gap-0.5 text-xs font-bold text-outline hover:text-on-surface transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[15px]">chevron_left</span>
                           Dashboard
                         </button>
-                        
-                        <button 
+
+                        <button
                           onClick={() => setCurrentPage('test-center')}
                           className="bg-secondary-container text-secondary px-4 py-2 rounded-lg font-bold text-xs hover:opacity-90 transition-opacity flex items-center gap-1 border border-secondary/20"
                         >
@@ -1604,10 +1603,10 @@ export default function App() {
                               allowFullScreen
                             ></iframe>
                           ) : (
-                            <video 
+                            <video
                               key={activeLesson?.id}
-                              src={getVideoSrc(activeLesson.videoUrl)} 
-                              controls 
+                              src={getVideoSrc(activeLesson.videoUrl)}
+                              controls
                               controlsList="nodownload"
                               onContextMenu={(e) => e.preventDefault()}
                               className="w-full h-full object-contain bg-black"
@@ -1637,11 +1636,10 @@ export default function App() {
                         <button
                           onClick={handlePrevLesson}
                           disabled={getLessonIndex() === 0}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
-                            getLessonIndex() === 0
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${getLessonIndex() === 0
                               ? 'bg-surface-container text-outline cursor-not-allowed border border-outline-variant'
                               : 'bg-surface border border-outline-variant text-on-surface hover:border-primary/50 cursor-pointer'
-                          }`}
+                            }`}
                         >
                           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                           Oldingi dars
@@ -1650,11 +1648,10 @@ export default function App() {
                         <button
                           onClick={handleNextLesson}
                           disabled={!canProceedToNext}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                            !canProceedToNext
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!canProceedToNext
                               ? 'bg-surface-container text-outline cursor-not-allowed border border-outline-variant'
                               : 'bg-primary text-on-primary hover:scale-105 shadow-md cursor-pointer'
-                          }`}
+                            }`}
                         >
                           Keyingi dars
                           <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -1672,7 +1669,7 @@ export default function App() {
                         <p className="text-xs text-outline leading-relaxed font-medium">
                           Ushbu dars doirasida biz o'rganilgan mavzularning chuqur nazariy va amaliy tahlilini ko'rib chiqamiz. Masalalarni optimal yechish yo'llari, formulalarni isbotlash va ularni SAT quantitative bo'limida qo'llash sirlarini o'rganasiz.
                         </p>
-                        
+
                         <div className="pt-4 border-t border-outline-variant flex flex-wrap gap-3">
                           <a href="#" className="flex items-center gap-1.5 p-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 transition-colors text-[10px] font-bold text-outline">
                             <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
@@ -1726,13 +1723,11 @@ export default function App() {
                               key={lesson.id}
                               disabled={lesson.locked}
                               onClick={() => setActiveLesson(lesson)}
-                              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                                lesson.locked ? 'opacity-40 cursor-not-allowed border-transparent' : 'cursor-pointer'
-                              } ${
-                                activeLesson && activeLesson.id === lesson.id 
-                                  ? 'bg-primary/5 border-primary text-primary font-bold' 
+                              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${lesson.locked ? 'opacity-40 cursor-not-allowed border-transparent' : 'cursor-pointer'
+                                } ${activeLesson && activeLesson.id === lesson.id
+                                  ? 'bg-primary/5 border-primary text-primary font-bold'
                                   : 'border-outline-variant hover:bg-surface-container-low text-on-surface'
-                              }`}
+                                }`}
                             >
                               {lesson.completed ? (
                                 <span className="material-symbols-outlined text-tertiary fill shrink-0 text-[16px]">check_circle</span>
@@ -1790,16 +1785,15 @@ export default function App() {
                               <span className="px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded font-bold text-[9px] uppercase tracking-wider">
                                 {test.category}
                               </span>
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
-                                test.difficulty === 'Easy' ? 'bg-tertiary-container text-tertiary' :
-                                test.difficulty === 'Medium' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${test.difficulty === 'Easy' ? 'bg-tertiary-container text-tertiary' :
+                                  test.difficulty === 'Medium' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
+                                }`}>
                                 {test.difficulty}
                               </span>
                             </div>
                             <h3 className="font-outfit text-base font-bold text-on-surface group-hover:text-primary transition-colors">{test.title}</h3>
                             <p className="text-xs text-outline font-medium line-clamp-3 leading-relaxed">{test.description}</p>
-                            
+
                             <div className="flex items-center gap-4 text-[10px] text-outline font-bold pt-2">
                               <div className="flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[15px]">assignment</span>
@@ -1844,7 +1838,7 @@ export default function App() {
                 {currentPage === 'test-start' && (
                   <div className="max-w-2xl mx-auto animate-fade-in">
                     <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden flex flex-col shadow-xs">
-                      
+
                       {/* Banner */}
                       <div className="bg-gradient-to-r from-primary to-primary/80 text-on-primary p-6 text-center space-y-2">
                         <span className="inline-block px-2.5 py-0.5 bg-white/10 text-white font-bold text-[9px] uppercase tracking-wider rounded border border-white/20">
@@ -1907,7 +1901,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <button 
+                          <button
                             onClick={handleResetQuiz}
                             className="w-full bg-primary text-on-primary font-semibold text-xs py-3 rounded-lg hover:bg-primary/95 transition-all cursor-pointer shadow-sm text-center"
                           >
@@ -1921,12 +1915,12 @@ export default function App() {
 
                 {/* -------------------- TEST INTERFACE VIEW -------------------- */}
                 {currentPage === 'test-interface' && (
-                  <div 
+                  <div
                     className={`grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in relative ${activeQuizTest?.preventCopyPaste ? 'select-none' : ''}`}
                     onCopy={activeQuizTest?.preventCopyPaste ? (e) => { e.preventDefault(); alert("Diqqat! Test savollaridan nusxa ko'chirish taqiqlangan."); } : undefined}
                     onPaste={activeQuizTest?.preventCopyPaste ? (e) => { e.preventDefault(); } : undefined}
                   >
-                    
+
                     {/* Left Sidebar 30-Question Navigator */}
                     <div className="lg:col-span-3">
                       <div className="bg-surface rounded-xl p-4 border border-outline-variant flex flex-col gap-4 shadow-xs sticky top-20">
@@ -1943,7 +1937,7 @@ export default function App() {
                             const isAnswered = quizAnswers[idx] !== undefined;
                             const isCurrent = idx === activeQuestion;
                             const isFlagged = markedForReview.includes(idx);
-                            
+
                             let btnClass = "bg-surface border border-outline-variant text-outline hover:bg-surface-container";
                             if (isAnswered) btnClass = "bg-tertiary/10 border-tertiary/30 text-tertiary font-bold";
                             if (isFlagged) btnClass = "bg-primary/10 border-primary/30 text-primary font-bold";
@@ -1989,23 +1983,22 @@ export default function App() {
 
                         {/* Interactive actions */}
                         <div className="pt-3 border-t border-outline-variant space-y-2">
-                          <button 
+                          <button
                             onClick={() => handleToggleFlag(activeQuestion)}
                             className="w-full bg-surface-container border border-outline-variant text-outline font-semibold text-[10px] py-2 rounded-lg flex items-center justify-center gap-1 cursor-pointer hover:text-on-surface"
                           >
                             <span className="material-symbols-outlined text-[14px]">flag</span>
                             {markedForReview.includes(activeQuestion) ? "Belgini olib tashlash" : "Ko'rib chiqish belgisi"}
                           </button>
-                          
+
                           <div className="flex flex-col items-center p-2.5 bg-surface-container rounded-lg border border-outline-variant/50">
                             <span className="text-[9px] font-bold text-outline uppercase tracking-wider">Qolgan vaqt</span>
-                            <div className={`flex items-center gap-1 font-outfit text-base font-bold transition-all ${
-                              timerSeconds < 300 ? 'text-error animate-pulse text-lg' : 'text-secondary'
-                            }`}>
+                            <div className={`flex items-center gap-1 font-outfit text-base font-bold transition-all ${timerSeconds < 300 ? 'text-error animate-pulse text-lg' : 'text-secondary'
+                              }`}>
                               <span className="material-symbols-outlined text-[16px]">timer</span>
                               {formatTimer(timerSeconds)}
                             </div>
-                            
+
                             {/* Auto-save light */}
                             <div className="flex items-center gap-1 mt-1 text-[8px] text-tertiary font-bold">
                               <span className="w-1.5 h-1.5 bg-tertiary rounded-full animate-ping"></span>
@@ -2018,7 +2011,7 @@ export default function App() {
 
                     {/* Central Question Workspace */}
                     <div className="lg:col-span-9 flex flex-col gap-4">
-                      
+
                       {/* Premium Top Bar */}
                       <div className="bg-surface border border-outline-variant p-4 rounded-xl flex justify-between items-center shadow-xs">
                         <div className="flex items-center gap-2.5">
@@ -2052,7 +2045,7 @@ export default function App() {
 
                       {/* Main Question Sheet */}
                       <div className="bg-surface rounded-2xl p-6 border border-outline-variant flex flex-col gap-6 shadow-xs min-h-[300px]">
-                        
+
                         {/* Question Text with Live LaTeX parsed values */}
                         <div className="space-y-4">
                           <h2 className="text-[11px] font-bold text-outline uppercase tracking-wider">Masala Sharti:</h2>
@@ -2061,7 +2054,7 @@ export default function App() {
                           </div>
                           {activeQuizTest.questions[activeQuestion]?.imageUrl && (
                             <div className="mt-4 flex justify-center">
-                              <img src={getVideoSrc(activeQuizTest.questions[activeQuestion].imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-xl border border-outline-variant shadow-sm object-contain" style={{maxHeight: '300px'}} />
+                              <img src={getVideoSrc(activeQuizTest.questions[activeQuestion].imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-xl border border-outline-variant shadow-sm object-contain" style={{ maxHeight: '300px' }} />
                             </div>
                           )}
                         </div>
@@ -2074,17 +2067,15 @@ export default function App() {
                               <button
                                 key={oIdx}
                                 onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
-                                className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${
-                                  isChecked 
-                                    ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs' 
+                                className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
+                                    ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
                                     : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
-                                }`}
+                                  }`}
                               >
-                                <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all ${
-                                  isChecked 
-                                    ? 'bg-primary border-primary text-on-primary' 
+                                <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
+                                    ? 'bg-primary border-primary text-on-primary'
                                     : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
-                                }`}>
+                                  }`}>
                                   {String.fromCharCode(65 + oIdx)}
                                 </div>
                                 <span className="text-xs font-semibold leading-relaxed">
@@ -2114,7 +2105,7 @@ export default function App() {
                         <div className="text-[10px] text-outline font-bold">
                           Savol {activeQuestion + 1} / {activeQuizTest.questions.length}
                         </div>
-                        
+
                         {activeQuestion === activeQuizTest.questions.length - 1 ? (
                           <button
                             onClick={() => setShowQuizConfirmationModal(true)}
@@ -2148,7 +2139,7 @@ export default function App() {
                             <span className="material-symbols-outlined text-secondary text-[16px]">calculate</span>
                             Muxandislik Kalkulyatori
                           </h4>
-                          <button 
+                          <button
                             onClick={() => setShowCalculator(false)}
                             className="w-5 h-5 rounded-full hover:bg-surface-container flex items-center justify-center text-outline cursor-pointer"
                           >
@@ -2178,10 +2169,9 @@ export default function App() {
                             <button
                               key={btn}
                               onClick={() => handleCalcPress(btn)}
-                              className={`py-2 rounded-lg cursor-pointer ${
-                                btn === 'C' ? 'bg-error-container text-error' :
-                                btn === '=' ? 'bg-tertiary text-on-tertiary col-span-2' : 'bg-surface-container hover:bg-surface-container-high'
-                              }`}
+                              className={`py-2 rounded-lg cursor-pointer ${btn === 'C' ? 'bg-error-container text-error' :
+                                  btn === '=' ? 'bg-tertiary text-on-tertiary col-span-2' : 'bg-surface-container hover:bg-surface-container-high'
+                                }`}
                             >
                               {btn}
                             </button>
@@ -2208,7 +2198,7 @@ export default function App() {
                     <span className="material-symbols-outlined text-4xl text-outline block">query_stats</span>
                     <h2 className="font-outfit text-lg font-bold text-on-surface">Topshirilgan testlar topilmadi</h2>
                     <p className="text-xs text-outline font-medium">Imtihonlar markazidan testlarni topshiring va sertifikatga ega bo'ling.</p>
-                    <button 
+                    <button
                       onClick={() => setCurrentPage('test-center')}
                       className="bg-primary text-on-primary font-semibold text-xs py-2 px-5 rounded-lg hover:opacity-90 cursor-pointer"
                     >
@@ -2229,18 +2219,18 @@ export default function App() {
 
                     {/* Bento Results Layout */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                      
+
                       {/* Circle Gauge Chart */}
                       <div className="md:col-span-4 bg-surface rounded-2xl border border-outline-variant p-6 flex flex-col items-center justify-center gap-4 shadow-xs text-center">
                         <div className="relative w-32 h-32 flex items-center justify-center">
                           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                            <path className="text-surface-container" stroke="currentColor" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                            <path 
-                              className={quizResult.score >= activeQuizTest.passingScore ? "text-tertiary" : "text-error"} 
-                              stroke="currentColor" 
-                              strokeWidth="3" 
-                              strokeDasharray={`${quizResult.score}, 100`} 
-                              fill="none" 
+                            <path className="text-surface-container" stroke="currentColor" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path
+                              className={quizResult.score >= activeQuizTest.passingScore ? "text-tertiary" : "text-error"}
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              strokeDasharray={`${quizResult.score}, 100`}
+                              fill="none"
                               strokeLinecap="round"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             />
@@ -2252,11 +2242,10 @@ export default function App() {
                         </div>
 
                         <div className="space-y-1">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[9px] font-bold ${
-                            quizResult.score >= activeQuizTest.passingScore 
-                              ? 'bg-tertiary-container border-tertiary/20 text-tertiary' 
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[9px] font-bold ${quizResult.score >= activeQuizTest.passingScore
+                              ? 'bg-tertiary-container border-tertiary/20 text-tertiary'
                               : 'bg-error-container border-error/20 text-error'
-                          }`}>
+                            }`}>
                             <span className="material-symbols-outlined text-[12px]">{quizResult.score >= activeQuizTest.passingScore ? 'verified' : 'cancel'}</span>
                             {quizResult.score >= activeQuizTest.passingScore ? 'MUVAFFAQIYATLI O\'TDI' : 'YIQILDI'}
                           </span>
@@ -2294,7 +2283,7 @@ export default function App() {
                     {/* Domain Category Accuracy Chart */}
                     <div className="bg-surface rounded-2xl border border-outline-variant p-6 space-y-4 shadow-xs">
                       <h3 className="font-outfit text-sm font-bold text-on-surface">Mavzular bo'yicha o'zlashtirish tahlili</h3>
-                      
+
                       <div className="space-y-3 text-xs font-bold">
                         {['Algebra', 'Geometry', 'Calculus', 'Trigonometry', 'Statistics'].map((cat) => {
                           const acc = getCategoryAccuracy(cat);
@@ -2305,11 +2294,10 @@ export default function App() {
                                 <span className="text-primary">{acc}%</span>
                               </div>
                               <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full transition-all duration-500 ${
-                                    acc >= 80 ? 'bg-tertiary' :
-                                    acc >= 50 ? 'bg-secondary' : 'bg-error'
-                                  }`} 
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${acc >= 80 ? 'bg-tertiary' :
+                                      acc >= 50 ? 'bg-secondary' : 'bg-error'
+                                    }`}
                                   style={{ width: `${acc}%` }}
                                 ></div>
                               </div>
@@ -2321,7 +2309,7 @@ export default function App() {
 
                     {/* Results Actions */}
                     <div className="flex flex-wrap gap-4 items-center justify-center p-4 bg-surface border border-outline-variant rounded-2xl shadow-xs">
-                      <button 
+                      <button
                         onClick={() => setCurrentPage('test-center')}
                         className="bg-primary text-on-primary font-bold text-xs py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-xs flex items-center gap-1"
                       >
@@ -2330,7 +2318,7 @@ export default function App() {
                       </button>
 
                       {quizResult.score >= activeQuizTest.passingScore && (
-                        <button 
+                        <button
                           onClick={() => setShowCertificate(true)}
                           className="bg-secondary text-on-secondary font-bold text-xs py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-xs flex items-center gap-1 border border-secondary/20"
                         >
@@ -2339,7 +2327,7 @@ export default function App() {
                         </button>
                       )}
 
-                      <button 
+                      <button
                         onClick={handleResetQuiz}
                         className="bg-transparent border border-outline text-outline font-bold text-xs py-2.5 px-6 rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
                       >
@@ -2350,20 +2338,19 @@ export default function App() {
                     {/* Complete 30-Question Review Panel (Tahlil) */}
                     <div className="space-y-4">
                       <h3 className="font-outfit text-base font-bold text-on-surface">Savollar tahlili va yechimlari</h3>
-                      
+
                       <div className="space-y-4">
                         {activeQuizTest.questions.map((q, qIdx) => {
                           const studentAns = quizResult.answers[qIdx];
                           const isCorrect = studentAns === q.correct;
-                          
+
                           return (
                             <details key={q.id || qIdx} className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-xs group">
                               <summary className="p-4 flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors select-none font-bold text-xs">
                                 <div className="flex items-center gap-2">
-                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                    studentAns === undefined ? 'bg-zinc-200 text-zinc-600' :
-                                    isCorrect ? 'bg-tertiary/20 text-tertiary' : 'bg-error/20 text-error'
-                                  }`}>
+                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${studentAns === undefined ? 'bg-zinc-200 text-zinc-600' :
+                                      isCorrect ? 'bg-tertiary/20 text-tertiary' : 'bg-error/20 text-error'
+                                    }`}>
                                     {qIdx + 1}
                                   </span>
                                   <span className="text-on-surface text-left line-clamp-1">{renderMathContent(q.question)}</span>
@@ -2382,7 +2369,7 @@ export default function App() {
                                   </p>
                                   {q.imageUrl && (
                                     <div className="mt-3 flex justify-center">
-                                      <img src={getVideoSrc(q.imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-lg border border-outline-variant shadow-sm object-contain" style={{maxHeight: '200px'}} />
+                                      <img src={getVideoSrc(q.imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-lg border border-outline-variant shadow-sm object-contain" style={{ maxHeight: '200px' }} />
                                     </div>
                                   )}
                                 </div>
@@ -2392,17 +2379,16 @@ export default function App() {
                                   {q.options.map((opt, oIdx) => {
                                     const isChoice = studentAns === oIdx;
                                     const isRight = q.correct === oIdx;
-                                    
+
                                     let cardStyle = "border-outline-variant bg-surface text-on-surface";
                                     if (isChoice && !isRight) cardStyle = "border-error/40 bg-error/5 text-error";
                                     if (isRight) cardStyle = "border-tertiary/40 bg-tertiary/5 text-tertiary font-bold";
 
                                     return (
                                       <div key={oIdx} className={`p-3 rounded-lg border flex items-center gap-2.5 ${cardStyle}`}>
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border ${
-                                          isRight ? 'bg-tertiary text-on-tertiary border-tertiary' :
-                                          isChoice ? 'bg-error text-on-error border-error' : 'bg-surface-container text-outline border-outline-variant'
-                                        }`}>
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border ${isRight ? 'bg-tertiary text-on-tertiary border-tertiary' :
+                                            isChoice ? 'bg-error text-on-error border-error' : 'bg-surface-container text-outline border-outline-variant'
+                                          }`}>
                                           {String.fromCharCode(65 + oIdx)}
                                         </div>
                                         <span>{renderMathContent(opt)}</span>
@@ -2462,12 +2448,12 @@ export default function App() {
 
                         <div className="flex flex-col sm:flex-row gap-6 items-start">
                           <div className="relative group cursor-pointer w-16 h-16">
-                            <img alt="Avatar" className="w-16 h-16 rounded-full border border-outline-variant object-cover" src={getVideoSrc(profile.avatar)}/>
+                            <img alt="Avatar" className="w-16 h-16 rounded-full border border-outline-variant object-cover" src={getVideoSrc(profile.avatar)} />
                             <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="material-symbols-outlined text-white text-[18px]">edit</span>
                             </div>
-                            <input 
-                              type="file" 
+                            <input
+                              type="file"
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                               accept="image/*"
                               onChange={handleAvatarChange}
@@ -2477,27 +2463,27 @@ export default function App() {
                           <form className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold">
                             <div className="flex flex-col gap-1.5">
                               <label className="text-outline">Ismingiz</label>
-                              <input 
-                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-medium focus:border-primary focus:outline-none text-on-surface" 
-                                type="text" 
+                              <input
+                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-medium focus:border-primary focus:outline-none text-on-surface"
+                                type="text"
                                 value={profile.firstName}
                                 onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
                               <label className="text-outline">Familiyangiz</label>
-                              <input 
-                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-medium focus:border-primary focus:outline-none text-on-surface" 
-                                type="text" 
+                              <input
+                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-medium focus:border-primary focus:outline-none text-on-surface"
+                                type="text"
                                 value={profile.lastName}
                                 onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
                               />
                             </div>
                             <div className="flex flex-col gap-1.5 sm:col-span-2">
                               <label className="text-outline">Elektron pochta manzili</label>
-                              <input 
-                                className="h-10 px-3 bg-surface-container/50 rounded-lg border border-outline-variant text-xs font-medium text-outline cursor-not-allowed focus:outline-none" 
-                                type="email" 
+                              <input
+                                className="h-10 px-3 bg-surface-container/50 rounded-lg border border-outline-variant text-xs font-medium text-outline cursor-not-allowed focus:outline-none"
+                                type="email"
                                 value={profile.email}
                                 readOnly
                                 disabled
@@ -2505,9 +2491,9 @@ export default function App() {
                             </div>
                             <div className="flex flex-col gap-1.5 sm:col-span-2">
                               <label className="text-outline">Telefon raqami <span className="text-rose-500">*</span></label>
-                              <input 
-                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-bold focus:border-primary focus:outline-none text-on-surface" 
-                                type="tel" 
+                              <input
+                                className="h-10 px-3 bg-surface-container rounded-lg border border-outline-variant text-xs font-bold focus:border-primary focus:outline-none text-on-surface"
+                                type="tel"
                                 placeholder="+998 90 123 45 67"
                                 required
                                 value={profile.phone}
@@ -2528,9 +2514,9 @@ export default function App() {
                                 }}
                               />
                             </div>
-                            
+
                             <div className="sm:col-span-2 flex justify-end">
-                              <button 
+                              <button
                                 onClick={(e) => {
                                   if (!profile.phone || profile.phone.length < 17) {
                                     e.preventDefault();
@@ -2539,7 +2525,7 @@ export default function App() {
                                   }
                                   handleProfileSave(e);
                                 }}
-                                className="bg-primary text-on-primary font-semibold text-xs py-2 px-4 rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-xs" 
+                                className="bg-primary text-on-primary font-semibold text-xs py-2 px-4 rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
                                 type="button"
                               >
                                 Saqlash
@@ -2557,11 +2543,11 @@ export default function App() {
                           </h2>
                           <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant/60">
                             <span className="text-[11px] font-bold text-on-surface">Tungi rejim (Dark Mode)</span>
-                            
+
                             <label className="relative inline-flex items-center cursor-pointer select-none">
-                              <input 
-                                className="sr-only peer" 
-                                type="checkbox" 
+                              <input
+                                className="sr-only peer"
+                                type="checkbox"
                                 checked={darkMode}
                                 onChange={() => setDarkMode(!darkMode)}
                               />
@@ -2587,7 +2573,7 @@ export default function App() {
             <div className="w-12 h-12 bg-error-container text-error rounded-full flex items-center justify-center mx-auto">
               <span className="material-symbols-outlined text-2xl">error</span>
             </div>
-            
+
             <div className="space-y-2">
               <h3 className="font-outfit text-base font-bold text-on-surface">Imtihonni yakunlaysizmi?</h3>
               <p className="text-xs text-outline leading-relaxed font-medium">
@@ -2597,14 +2583,14 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 font-semibold text-xs pt-2">
-              <button 
+              <button
                 onClick={() => setShowQuizConfirmationModal(false)}
                 className="bg-surface-container border border-outline-variant text-outline py-2.5 rounded-lg hover:text-on-surface cursor-pointer"
               >
                 Yo'q, qaytish
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleSubmitTest}
                 className="bg-primary text-on-primary py-2.5 rounded-lg hover:opacity-95 cursor-pointer shadow-xs"
               >
@@ -2619,7 +2605,7 @@ export default function App() {
       {showCertificate && quizResult && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white text-zinc-900 rounded-3xl p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/30 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
-            
+
             {/* Elegant Background Watermark Pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none flex items-center justify-center font-bold text-[180px] font-serif text-amber-900">
               ∫
@@ -2641,11 +2627,11 @@ export default function App() {
             {/* Certificate Main Text */}
             <div className="space-y-4 z-10 max-w-md">
               <p className="font-serif italic text-zinc-500 text-xs">Ushbu hujjat mamnuniyat bilan topshiriladi:</p>
-              
+
               <h3 className="font-outfit text-xl font-black text-amber-800 border-b border-amber-200 pb-1 px-4 inline-block tracking-wide">
                 {profile.firstName} {profile.lastName}
               </h3>
-              
+
               <p className="text-xs text-zinc-600 leading-relaxed font-serif font-medium">
                 talabaning <strong>{quizResult.testTitle}</strong> bo'limidagi barcha murakkab algebraic va geometrik hisob-kitoblar hamda test sinovlaridan muvaffaqiyatli o'tganligini va <strong>{quizResult.score}%</strong> yuqori ko'rsatkich qayd etganligini tasdiqlaydi.
               </p>
@@ -2653,7 +2639,7 @@ export default function App() {
 
             {/* Signatures & Seal */}
             <div className="w-full grid grid-cols-3 items-end pt-6 z-10 text-[10px] font-bold">
-              
+
               {/* Left Sign */}
               <div className="flex flex-col items-center">
                 <span className="font-serif italic text-zinc-400 text-xs block h-6">Malika Opa</span>
@@ -2679,15 +2665,15 @@ export default function App() {
 
             {/* Bottom Actions */}
             <div className="pt-4 flex gap-3 z-10 text-xs font-semibold">
-              <button 
+              <button
                 onClick={() => { window.print(); }}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
               >
                 <span className="material-symbols-outlined text-[15px]">print</span>
                 Chop etish
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setShowCertificate(false)}
                 className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2 rounded-lg cursor-pointer transition-colors"
               >

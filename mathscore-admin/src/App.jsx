@@ -67,7 +67,7 @@ function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  
+
   const [courses, setCourses] = useState(initialCourses);
   const [students, setStudents] = useState(initialStudents);
   const [activities, setActivities] = useState(initialActivities);
@@ -77,10 +77,10 @@ function App() {
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
   const [deleteCourseTarget, setDeleteCourseTarget] = useState(null);
   const [deleteCourseInput, setDeleteCourseInput] = useState('');
-  
+
   const [salesTimeframe, setSalesTimeframe] = useState('Oylik');
   const [revenueTimeframe, setRevenueTimeframe] = useState('Haftalik');
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newCourse, setNewCourse] = useState({
@@ -106,13 +106,13 @@ function App() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('https://api.mathscore.uz/api/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
       const data = await response.json();
-      
+
       setPromoUploadProgress(100);
       setTimeout(() => {
         setIsUploadingPromo(false);
@@ -136,13 +136,13 @@ function App() {
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('https://api.mathscore.uz/api/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
       const data = await response.json();
-      
+
       setLessonUploadProgress(100);
       setTimeout(() => {
         setIsUploadingLesson(false);
@@ -166,7 +166,7 @@ function App() {
   const generateMockQuestions = () => {
     const topics = ['Algebra', 'Geometry', 'Calculus', 'Trigonometry', 'Statistics'];
     const questions = [];
-    
+
     // Question 1: Algebra (LaTeX math)
     questions.push({
       id: 1,
@@ -268,7 +268,7 @@ function App() {
     }
   ]);
 
-  const [activeTest, setActiveTest] = useState(null); 
+  const [activeTest, setActiveTest] = useState(null);
   const [isBuildingTest, setIsBuildingTest] = useState(false);
   const [testBuilderTab, setTestBuilderTab] = useState('general'); // general, questions, advanced
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
@@ -339,7 +339,7 @@ function App() {
   });
 
   const [createdStudentCredentials, setCreatedStudentCredentials] = useState(null);
-  
+
   const [landingSettings, setLandingSettings] = useState({ heroTitle: '', heroSubtitle: '', contactPhone: '', contactAddress: '', telegramLink: '' });
   const [landingResults, setLandingResults] = useState([]);
   const [newLandingResult, setNewLandingResult] = useState({ score: '', name: '', color: 'text-primary', imageUrl: '', imagePosition: 'object-center' });
@@ -358,7 +358,7 @@ function App() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const response = await fetch(`http://localhost:5000${url}`, {
+    const response = await fetch(`https://api.mathscore.uz${url}`, {
       ...options,
       headers,
       cache: 'no-store'
@@ -378,13 +378,13 @@ function App() {
         const coursesData = await coursesRes.json();
         setCourses(coursesData);
       }
-      
+
       const studentsRes = await fetchWithAuth('/api/students');
       if (studentsRes.ok) {
         const studentsData = await studentsRes.json();
         setStudents(studentsData);
       }
-      
+
       const statsRes = await fetchWithAuth('/api/system/stats');
       if (statsRes.ok) {
         const statsData = await statsRes.json();
@@ -407,11 +407,11 @@ function App() {
       }
 
       try {
-        const setRes = await fetch('http://localhost:5000/api/settings', { cache: 'no-store' });
+        const setRes = await fetch('https://api.mathscore.uz/api/settings', { cache: 'no-store' });
         if (setRes.ok) setLandingSettings(await setRes.json());
-        const resRes = await fetch('http://localhost:5000/api/results', { cache: 'no-store' });
+        const resRes = await fetch('https://api.mathscore.uz/api/results', { cache: 'no-store' });
         if (resRes.ok) setLandingResults(await resRes.json());
-        const priRes = await fetch('http://localhost:5000/api/pricing', { cache: 'no-store' });
+        const priRes = await fetch('https://api.mathscore.uz/api/pricing', { cache: 'no-store' });
         if (priRes.ok) setLandingPricing(await priRes.json());
       } catch (e) {
         console.error('Landing sync failed:', e);
@@ -496,7 +496,7 @@ function App() {
   const handleCreateTestSubmit = async (statusVal) => {
     const finalStatus = statusVal || newTest.status;
     if (!newTest.title) return alert("Iltimos, test nomini kiriting!");
-    
+
     const testData = {
       ...newTest,
       status: finalStatus,
@@ -614,7 +614,7 @@ function App() {
       formData.append('file', file);
 
       try {
-        const res = await fetch('http://localhost:5000/api/upload', {
+        const res = await fetch('https://api.mathscore.uz/api/upload', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
@@ -625,11 +625,11 @@ function App() {
         if (!res.ok) throw new Error("Rasm yuklashda xatolik yuz berdi");
 
         const data = await res.json();
-        
+
         const qIndex = activeQuestionIndex;
         const currentQ = newTest.questions[qIndex];
         const updatedQuestions = [...newTest.questions];
-        
+
         updatedQuestions[qIndex] = {
           ...currentQ,
           imageUrl: data.url
@@ -698,7 +698,7 @@ function App() {
     const password = e.target.elements.password.value;
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('https://api.mathscore.uz/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -804,21 +804,21 @@ function App() {
     try {
       const mammoth = await import('mammoth');
       const reader = new FileReader();
-      
+
       reader.onload = async (event) => {
         const arrayBuffer = event.target.result;
         try {
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           const text = result.value;
           const parsedQuestions = parseTestText(text);
-          
+
           if (parsedQuestions.length === 0) {
             alert("Hech qanday test savoli topilmadi. Iltimos, faylda savollar '1. ...' va variantlar 'A) ...' yoki '+A) ...' formatida ekanligini tekshiring.");
             return;
           }
-          
+
           const updatedQuestions = [...newTest.questions];
-          
+
           parsedQuestions.forEach((pq, idx) => {
             const mappedQuestion = {
               id: idx + 1,
@@ -1018,7 +1018,7 @@ function App() {
       alert("Xatolik: Fayl o'lchami 10 MB dan oshmasligi lozim!");
       return;
     }
-    
+
     if (!file.name.endsWith('.docx')) {
       alert("Xatolik: Faqat .docx formatidagi Word fayllarini yuklashingiz mumkin!");
       return;
@@ -1032,11 +1032,11 @@ function App() {
     setTimeout(() => {
       setImportProgressPercent(15);
       setImportProgressStep("Reading DOCX...");
-      
+
       setTimeout(() => {
         setImportProgressPercent(30);
         setImportProgressStep("Extracting questions...");
-        
+
         const reader = new FileReader();
         reader.onload = async (event) => {
           const arrayBuffer = event.target.result;
@@ -1044,28 +1044,28 @@ function App() {
             const mammoth = await import('mammoth');
             const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
             const text = result.value;
-            
+
             setTimeout(() => {
               setImportProgressPercent(50);
               setImportProgressStep("Detecting correct answers...");
-              
+
               const parsed = parseTestText(text);
-              
+
               setTimeout(() => {
                 setImportProgressPercent(70);
                 setImportProgressStep("Converting math formulas...");
-                
+
                 const finalQuestions = parsed.map((pq, idx) => {
                   const convertedText = convertPlainTextMathToLaTeX(pq.questionText);
                   const convertedOptions = pq.options.map(opt => convertPlainTextMathToLaTeX(opt));
-                  
+
                   const errors = [];
                   if (pq.correctAnswer === null) {
                     errors.push(`Question ${idx + 1} has no marked correct answer.`);
                   } else if (Array.isArray(pq.correctAnswer) ? pq.correctAnswer.length > 1 : false) {
                     errors.push(`Question ${idx + 1} has multiple marked correct answers.`);
                   }
-                  
+
                   if (pq.options.length === 0) {
                     errors.push(`Question ${idx + 1} has no answer options.`);
                   }
@@ -1093,18 +1093,18 @@ function App() {
                 setTimeout(() => {
                   setImportProgressPercent(90);
                   setImportProgressStep("Generating preview...");
-                  
+
                   setTimeout(() => {
                     setImportProgressPercent(100);
                     setImportProgressStep("Done");
                     setImportedQuestions(finalQuestions);
-                    
+
                     const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
                     setDocxSettings(prev => ({
                       ...prev,
                       title: baseName + " Practice Test"
                     }));
-                    
+
                     setTimeout(() => {
                       setIsProcessingImport(false);
                       setImportStep(2);
@@ -1138,14 +1138,14 @@ function App() {
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Word hujjatidagi savollarni avtomatik ravishda onlayn test rejimiga o'tkazish.</p>
           </div>
-          <button 
+          <button
             onClick={() => {
               setShowWordImportView(false);
               setImportStep(1);
               setImportFileName('');
               setImportedQuestions([]);
               setIsBuildingTest(false);
-            }} 
+            }}
             className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
             title="Bekor qilish"
           >
@@ -1179,11 +1179,11 @@ function App() {
               <div className="space-y-4">
                 {/* Drag and Drop Zone */}
                 <div className="border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-2xl p-10 text-center hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-500/5 transition-all relative">
-                  <input 
-                    type="file" 
-                    accept=".docx" 
+                  <input
+                    type="file"
+                    accept=".docx"
                     onChange={handleDocxWizardImport}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <span className="material-symbols-outlined text-5xl text-indigo-500 mb-3 block">upload_file</span>
                   <h3 className="font-bold text-slate-800 dark:text-white text-base">Drag & Drop your .docx file here</h3>
@@ -1201,7 +1201,7 @@ function App() {
                       <p className="text-[10px] text-slate-400 font-medium">To'g'ri integratsiya bo'lishi uchun namuna faylni yuklab oling.</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={handleDownloadTemplate}
                     className="px-4 py-2 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer select-none"
                   >
@@ -1219,7 +1219,7 @@ function App() {
                   <h3 className="font-bold text-slate-800 dark:text-white text-base">{importProgressStep}</h3>
                   <p className="text-xs text-slate-400 font-semibold">Tizim Word hujjatini o'qib, formulalarni LaTeXga aylantirmoqda...</p>
                 </div>
-                
+
                 {/* Progress bar */}
                 <div className="max-w-md mx-auto space-y-2">
                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2">
@@ -1284,22 +1284,22 @@ function App() {
 
                         {/* Question text textarea */}
                         <td className="py-4 px-4 align-top space-y-2">
-                          <textarea 
+                          <textarea
                             value={q.text}
                             onChange={e => {
                               const updated = [...importedQuestions];
                               updated[idx].text = e.target.value;
-                              
+
                               // Recalculate validation errors
                               const errors = [];
                               if (updated[idx].correctAnswer === null) errors.push(`Question ${q.id} has no marked correct answer.`);
                               if (e.target.value.includes('/') && !e.target.value.includes('\\frac')) errors.push("Math formula could not be rendered correctly.");
                               updated[idx].validationErrors = errors;
-                              
+
                               setImportedQuestions(updated);
                             }}
                             rows={3}
-                            className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-xs text-slate-800 dark:text-white outline-none focus:border-indigo-500" 
+                            className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-xs text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                           />
                           {q.validationErrors.map((err, errIdx) => (
                             <span key={errIdx} className="inline-block text-[9px] font-bold bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded border border-amber-500/20">{err}</span>
@@ -1312,11 +1312,11 @@ function App() {
                             const isCorrect = q.correctAnswer === optIdx;
                             return (
                               <div key={optIdx} className="flex items-center gap-2">
-                                <button 
+                                <button
                                   onClick={() => {
                                     const updated = [...importedQuestions];
                                     updated[idx].correctAnswer = optIdx;
-                                    
+
                                     // Remove "no correct answer" warning
                                     updated[idx].validationErrors = updated[idx].validationErrors.filter(e => !e.includes("correct answer"));
                                     setImportedQuestions(updated);
@@ -1325,14 +1325,14 @@ function App() {
                                 >
                                   <span className="material-symbols-outlined text-[12px] font-black">check</span>
                                 </button>
-                                <input 
+                                <input
                                   value={opt}
                                   onChange={e => {
                                     const updated = [...importedQuestions];
                                     updated[idx].options[optIdx] = e.target.value;
                                     setImportedQuestions(updated);
                                   }}
-                                  className="flex-1 p-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-bold text-[11px] text-slate-800 dark:text-white outline-none focus:border-indigo-500" 
+                                  className="flex-1 p-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-bold text-[11px] text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                                 />
                               </div>
                             );
@@ -1361,7 +1361,7 @@ function App() {
 
                         {/* Actions */}
                         <td className="py-4 px-4 align-top text-center">
-                          <button 
+                          <button
                             onClick={() => {
                               const updated = importedQuestions.filter(item => item.id !== q.id).map((item, index) => ({ ...item, id: index + 1 }));
                               setImportedQuestions(updated);
@@ -1381,7 +1381,7 @@ function App() {
 
             {/* Bottom Actions Row */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <button 
+              <button
                 onClick={() => {
                   const newQ = {
                     id: importedQuestions.length + 1,
@@ -1416,17 +1416,17 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1 sm:col-span-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Test Nomi (Title)</label>
-                <input 
+                <input
                   value={docxSettings.title}
                   onChange={e => setDocxSettings({ ...docxSettings, title: e.target.value })}
-                  placeholder="SAT Math practice test" 
-                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
+                  placeholder="SAT Math practice test"
+                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Kurs yo'nalishi (Course)</label>
-                <select 
+                <select
                   value={docxSettings.course}
                   onChange={e => setDocxSettings({ ...docxSettings, course: e.target.value })}
                   className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
@@ -1438,7 +1438,7 @@ function App() {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya (Category)</label>
-                <select 
+                <select
                   value={docxSettings.category}
                   onChange={e => setDocxSettings({ ...docxSettings, category: e.target.value })}
                   className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
@@ -1451,17 +1451,17 @@ function App() {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Vaqt limiti (Minut)</label>
-                <input 
+                <input
                   type="number"
                   value={docxSettings.timeLimit}
                   onChange={e => setDocxSettings({ ...docxSettings, timeLimit: Number(e.target.value) })}
-                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
+                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Qiyinchilik darajasi</label>
-                <select 
+                <select
                   value={docxSettings.difficulty}
                   onChange={e => setDocxSettings({ ...docxSettings, difficulty: e.target.value })}
                   className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
@@ -1475,13 +1475,13 @@ function App() {
               {/* Shuffling Options Toggles */}
               <div className="sm:col-span-2 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Kengaytirilgan variantlar</span>
-                
+
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300">Savollarni tasodifiy almashtirish (Shuffle Questions)</h4>
                     <p className="text-[9px] text-slate-400 font-medium">Har bir o'quvchiga savollar alohida tartibda chiqadi.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setDocxSettings({ ...docxSettings, shuffleQuestions: !docxSettings.shuffleQuestions })}
                     className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${docxSettings.shuffleQuestions ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-800'}`}
                   >
@@ -1494,7 +1494,7 @@ function App() {
                     <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300">Javob variantlarini almashtirish (Shuffle Answers)</h4>
                     <p className="text-[9px] text-slate-400 font-medium">Savol variantlari (A, B, C, D) tartibi tasodifiy almashtiriladi.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setDocxSettings({ ...docxSettings, shuffleAnswers: !docxSettings.shuffleAnswers })}
                     className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${docxSettings.shuffleAnswers ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-800'}`}
                   >
@@ -1529,7 +1529,7 @@ function App() {
   const handleCreateCourseSubmit = async (e) => {
     e.preventDefault();
     if (!newCourse.title || !newCourse.price) return alert("Iltimos, barcha zaruriy maydonlarni to'ldiring!");
-    
+
     try {
       const bodyPayload = {
         ...newCourse,
@@ -1589,7 +1589,7 @@ function App() {
     const target = courses.find(c => c.id === courseId);
     if (!target) return;
     const nextStatus = target.status === "Active" ? "Draft" : "Active";
-    
+
     try {
       const response = await fetchWithAuth(`/api/courses/${courseId}`, {
         method: 'PUT',
@@ -1694,16 +1694,16 @@ function App() {
   };
 
   const toggleStudentStatus = (studentId) => setStudents(prev => prev.map(s => s.id === studentId ? { ...s, status: s.status === 'Online' ? 'Offline' : 'Online' } : s));
-  
+
   const handleUpdateLandingSettings = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/settings', {
+      const res = await fetch('https://api.mathscore.uz/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(landingSettings)
       });
-      if(res.ok) alert("Landing sozlamalari yangilandi!");
-    } catch(e) { alert("Xatolik!"); }
+      if (res.ok) alert("Landing sozlamalari yangilandi!");
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleAddLandingResult = async () => {
@@ -1712,38 +1712,38 @@ function App() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5000/api/results', {
+      const res = await fetch('https://api.mathscore.uz/api/results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingResult)
       });
-      if(res.ok) {
+      if (res.ok) {
         setLandingResults([...landingResults, await res.json()]);
-        setNewLandingResult({score:'', name:'', color:'text-primary'});
+        setNewLandingResult({ score: '', name: '', color: 'text-primary' });
       }
-    } catch(e) { alert("Xatolik!"); }
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleDeleteLandingResult = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/results/${id}`, { method: 'DELETE' });
-      if(res.ok) {
+      const res = await fetch(`https://api.mathscore.uz/api/results/${id}`, { method: 'DELETE' });
+      if (res.ok) {
         setLandingResults(landingResults.filter(r => r.id !== id));
       }
-    } catch(e) { alert("Xatolik!"); }
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleSaveAllResults = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/results/bulk', {
+      const res = await fetch('https://api.mathscore.uz/api/results/bulk', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(landingResults)
       });
-      if(res.ok) {
+      if (res.ok) {
         alert("Barcha natijalar va sertifikatlar muvaffaqiyatli saqlandi va asosiy Landing sahifaga integratsiya qilindi!");
       }
-    } catch(e) { alert("Xatolik!"); }
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleLandingImageUpload = async (file) => {
@@ -1753,32 +1753,32 @@ function App() {
       method: 'POST',
       body: formData
     });
-    if(!res.ok) throw new Error("Upload failed");
+    if (!res.ok) throw new Error("Upload failed");
     const data = await res.json();
     return data.url;
   };
 
   const handleAddLandingPricing = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/pricing', {
+      const res = await fetch('https://api.mathscore.uz/api/pricing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingPricing)
       });
-      if(res.ok) {
+      if (res.ok) {
         setLandingPricing([...landingPricing, await res.json()]);
         setNewLandingPricing({ title: '', description: '', price: '', type: 'primary', imageUrl: '' });
       }
-    } catch(e) { alert("Xatolik!"); }
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleDeleteLandingPricing = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/pricing/${id}`, { method: 'DELETE' });
-      if(res.ok) {
+      const res = await fetch(`https://api.mathscore.uz/api/pricing/${id}`, { method: 'DELETE' });
+      if (res.ok) {
         setLandingPricing(landingPricing.filter(p => p.id !== id));
       }
-    } catch(e) { alert("Xatolik!"); }
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleMovePricing = async (index, direction) => {
@@ -1787,15 +1787,15 @@ function App() {
     const temp = newArr[index];
     newArr[index] = newArr[index + direction];
     newArr[index + direction] = temp;
-    
+
     try {
-      const res = await fetch('http://localhost:5000/api/pricing/bulk', {
+      const res = await fetch('https://api.mathscore.uz/api/pricing/bulk', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newArr)
       });
-      if(res.ok) setLandingPricing(newArr);
-    } catch(e) { alert("Xatolik!"); }
+      if (res.ok) setLandingPricing(newArr);
+    } catch (e) { alert("Xatolik!"); }
   };
 
   const handleDeleteStudent = async (studentId) => {
@@ -1873,18 +1873,18 @@ function App() {
   });
 
   const filteredCourses = courses.filter(c => (c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.instructor.toLowerCase().includes(searchQuery.toLowerCase())) && (categoryFilter === 'All' || c.category === categoryFilter));
-  
+
   const filteredStudents = students.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.course.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Course Filter
     const matchesCourse = studentFilterCourse === 'Barchasi' || (s.courses && s.courses.some(c => c.title === studentFilterCourse)) || s.course === studentFilterCourse;
-    
+
     // Status Filter
     let matchesStatus = true;
     const now = new Date();
     const deadlineDate = s.deadline ? new Date(s.deadline) : null;
-    
+
     if (studentFilterStatus === 'Faqat aktivlar') {
       matchesStatus = s.status === 'Aktiv' || s.status === 'Online';
     } else if (studentFilterStatus === 'Faqat muddati tugaganlar') {
@@ -1896,8 +1896,8 @@ function App() {
     } else if (studentFilterStatus === 'Chetlashtirilganlar') {
       matchesStatus = s.status === 'Chetlashtirilgan';
     }
-    
-    
+
+
     return matchesSearch && matchesCourse && matchesStatus;
   });
 
@@ -1928,7 +1928,7 @@ function App() {
     doc.setFontSize(11);
     doc.setTextColor(100);
     doc.text(`Umumiy soni: ${filteredStudents.length} ta o'quvchi`, 14, 30);
-    
+
     const tableColumn = ["F.I.SH.", "Email", "Telefon", "Kursi", "Qo'shilgan sana", "Tugash muddati", "Holati"];
     const tableRows = [];
 
@@ -1952,7 +1952,7 @@ function App() {
       styles: { fontSize: 9 },
       headStyles: { fillColor: [79, 70, 229] }
     });
-    
+
     doc.save("Oquvchilar_hisoboti.pdf");
   };
 
@@ -1962,12 +1962,12 @@ function App() {
   const handleAdminAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
       alert("Fayl hajmi 5MB dan oshmasligi kerak!");
       return;
     }
-    
+
     const reader = new FileReader();
     reader.addEventListener('load', () => {
       setImageSrc(reader.result);
@@ -1982,28 +1982,28 @@ function App() {
     try {
       const token = localStorage.getItem('admin_token');
       let currentAvatar = adminProfile.avatar;
-      
+
       if (avatarFile) {
         const formData = new FormData();
         formData.append('file', avatarFile);
-        
-        const uploadRes = await fetch('http://localhost:5000/api/upload', {
+
+        const uploadRes = await fetch('https://api.mathscore.uz/api/upload', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
         });
-        
+
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error || 'Rasmni yuklashda xatolik');
         currentAvatar = uploadData.url;
       }
-      
+
       const payload = { avatar: currentAvatar, name: settings.adminName };
       if (settings.newPassword && settings.newPassword.trim().length > 0) {
         payload.newPassword = settings.newPassword;
       }
 
-      const updateRes = await fetch('http://localhost:5000/api/auth/profile', {
+      const updateRes = await fetch('https://api.mathscore.uz/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2011,10 +2011,10 @@ function App() {
         },
         body: JSON.stringify(payload)
       });
-      
+
       const updateData = await updateRes.json();
       if (!updateRes.ok) throw new Error(updateData.error || "Profilni yangilashda xatolik");
-      
+
       setAdminProfile(prev => ({ ...prev, avatar: currentAvatar, name: settings.adminName }));
       setAvatarFile(null);
       if (payload.newPassword) {
@@ -2084,7 +2084,7 @@ function App() {
             </div>
             <div className="flex gap-3 justify-end mt-2">
               <button onClick={() => setCropModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer">Bekor qilish</button>
-              <button 
+              <button
                 onClick={async () => {
                   try {
                     const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
@@ -2104,7 +2104,7 @@ function App() {
         </div>
       )}
 
-      
+
       {/* -------------------- ANIMATED GRADIENT BACKGROUND -------------------- */}
       <div className="animated-gradient-bg"></div>
 
@@ -2134,19 +2134,19 @@ function App() {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parol</label>
-                  <span 
+                  <span
                     onClick={async () => {
                       const emailInput = document.querySelector('input[name="email"]').value;
-                      if(!emailInput) return alert("Iltimos, avval email manzilingizni kiriting!");
+                      if (!emailInput) return alert("Iltimos, avval email manzilingizni kiriting!");
                       try {
-                        const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
+                        const res = await fetch('https://api.mathscore.uz/api/auth/forgot-password', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: emailInput })
                         });
                         const data = await res.json();
                         alert(data.message || "Tiklash xati yuborildi!");
-                      } catch(e) {
+                      } catch (e) {
                         alert("Xatolik yuz berdi!");
                       }
                     }}
@@ -2175,7 +2175,7 @@ function App() {
       {/* -------------------- MAIN DASHBOARD SHELL -------------------- */}
       {currentPage !== 'login' && (
         <div className="flex flex-col min-h-screen bg-transparent relative z-10">
-          
+
           {/* Header */}
           <header className="modern-card fixed top-4 left-4 right-4 h-16 flex items-center justify-between px-6 z-40 rounded-2xl">
             <div className="flex items-center gap-3">
@@ -2211,9 +2211,9 @@ function App() {
               <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all">
                 <span className="material-symbols-outlined text-[20px]">{darkMode ? 'light_mode' : 'dark_mode'}</span>
               </button>
-              
+
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{adminProfile.name}</p>
@@ -2227,7 +2227,7 @@ function App() {
           </header>
 
           <div className="flex flex-1 pt-24 px-4 pb-4 gap-6">
-            
+
             {/* Modern Sidebar */}
             <aside className="w-56 modern-card h-[calc(100vh-7rem)] sticky top-24 flex flex-col p-3 gap-1 z-30 overflow-y-auto hidden lg:flex">
               {[
@@ -2241,21 +2241,20 @@ function App() {
                 { id: 'students', icon: 'group', label: 'Talabalar' },
                 { id: 'landing', icon: 'web', label: 'Lending' }
               ].map(item => (
-                <button 
+                <button
                   key={item.id}
                   onClick={() => { setCurrentPage(item.id); setSearchQuery(''); syncData(); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                    currentPage === item.id 
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' 
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${currentPage === item.id
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               ))}
 
-              <button 
+              <button
                 onClick={() => setCurrentPage('login')}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-auto rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/20"
               >
@@ -2270,7 +2269,7 @@ function App() {
                 {/* VIEW 1: DASHBOARD */}
                 {currentPage === 'dashboard' && (
                   <div className="space-y-6 animate-fade-in">
-                    
+
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="modern-card modern-card-hover p-6">
@@ -2366,13 +2365,13 @@ function App() {
                             <AreaChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                               <defs>
                                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4}/>
-                                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                                 </linearGradient>
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" opacity={0.3} />
                               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => value >= 1000000 ? (value/1000000) + 'M' : value} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => value >= 1000000 ? (value / 1000000) + 'M' : value} />
                               <Tooltip content={<CustomTooltip />} />
                               <Area type="monotone" dataKey="daromad" name="Daromad (UZS)" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                             </AreaChart>
@@ -2386,7 +2385,7 @@ function App() {
                       <div className="modern-card p-6 space-y-5">
                         <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-3">Harakatlar Jurnali</h4>
                         <div className="space-y-4">
-                          {activities.slice(0,4).map(a => (
+                          {activities.slice(0, 4).map(a => (
                             <div key={a.id} className="flex gap-4 items-center">
                               <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-indigo-500">
                                 <span className="material-symbols-outlined text-[18px]">info</span>
@@ -2403,7 +2402,7 @@ function App() {
                       <div className="modern-card p-6 space-y-5">
                         <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-3">Yangi Talabalar</h4>
                         <div className="space-y-4">
-                          {students.slice(0,4).map(s => (
+                          {students.slice(0, 4).map(s => (
                             <div key={s.id} className="flex items-center gap-4">
                               <img src={getAuthMediaUrl(s.avatar)} alt={s.name} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover" />
                               <div>
@@ -2473,36 +2472,36 @@ function App() {
                       <form onSubmit={handleCreateCourseSubmit} className="space-y-5">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Kurs Nomi</label>
-                          <input required value={newCourse.title} onChange={e=>setNewCourse({...newCourse, title: e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none text-slate-900 dark:text-white" />
+                          <input required value={newCourse.title} onChange={e => setNewCourse({ ...newCourse, title: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none text-slate-900 dark:text-white" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Kategoriya</label>
-                            <select value={newCourse.category} onChange={e=>setNewCourse({...newCourse, category: e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white">
+                            <select value={newCourse.category} onChange={e => setNewCourse({ ...newCourse, category: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white">
                               <option>SAT Prep</option><option>A-Level</option><option>Foundation</option>
                             </select>
                           </div>
                           <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Narxi (UZS)</label>
-                            <input required type="number" value={newCourse.price} onChange={e=>setNewCourse({...newCourse, price: e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none text-slate-900 dark:text-white" />
+                            <input required type="number" value={newCourse.price} onChange={e => setNewCourse({ ...newCourse, price: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none text-slate-900 dark:text-white" />
                           </div>
                         </div>
 
                         {/* Course Promo Video Upload */}
                         <div className="space-y-3 p-5 bg-white/30 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 rounded-2xl">
                           <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Kurs Muqaddimasi (Promo Video)</label>
-                          
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <span className="text-[11px] font-bold text-slate-500">Video Havolasi (URL)</span>
-                              <input 
-                                placeholder="https://example.com/promo.mp4" 
-                                value={newCourse.promoVideoUrl || ''} 
-                                onChange={e=>setNewCourse({...newCourse, promoVideoUrl: e.target.value})} 
-                                className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs focus:border-indigo-500 outline-none text-slate-900 dark:text-white" 
+                              <input
+                                placeholder="https://example.com/promo.mp4"
+                                value={newCourse.promoVideoUrl || ''}
+                                onChange={e => setNewCourse({ ...newCourse, promoVideoUrl: e.target.value })}
+                                className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
                               />
                             </div>
-                            
+
                             <div className="space-y-1">
                               <span className="text-[11px] font-bold text-slate-500">Video Fayli Yuklash</span>
                               <label className="flex items-center justify-center w-full h-[38px] bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-xl cursor-pointer transition-colors relative overflow-hidden">
@@ -2517,9 +2516,9 @@ function App() {
                                       <span className="material-symbols-outlined text-emerald-500 text-sm shrink-0">check_circle</span>
                                       <span className="text-xs font-bold text-emerald-500 truncate max-w-[100px]">{newCourse.promoVideoFile}</span>
                                     </div>
-                                    <button 
-                                      type="button" 
-                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNewCourse({...newCourse, promoVideoFile: ''}); }} 
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNewCourse({ ...newCourse, promoVideoFile: '' }); }}
                                       className="text-slate-400 hover:text-rose-500 p-0.5"
                                     >
                                       <span className="material-symbols-outlined text-xs">close</span>
@@ -2547,23 +2546,23 @@ function App() {
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Kurs tarkibidagi darslar ro'yxati.</p>
                       </div>
                       <div className="p-5 bg-white/30 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-4">
-                        <input value={tempLesson.title} onChange={e=>setTempLesson({...tempLesson, title: e.target.value})} placeholder="Dars nomi" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white" />
-                        <input value={tempLesson.duration} onChange={e=>setTempLesson({...tempLesson, duration: e.target.value})} placeholder="Davomiyligi (masalan: 45 min)" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white" />
-                        
+                        <input value={tempLesson.title} onChange={e => setTempLesson({ ...tempLesson, title: e.target.value })} placeholder="Dars nomi" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white" />
+                        <input value={tempLesson.duration} onChange={e => setTempLesson({ ...tempLesson, duration: e.target.value })} placeholder="Davomiyligi (masalan: 45 min)" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white" />
+
                         {/* Lesson Video Upload */}
                         <div className="p-4 bg-white/20 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
                           <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Dars Videosi</label>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <span className="text-[10px] font-bold text-slate-400">Video Havolasi (URL)</span>
-                              <input 
-                                placeholder="YouTube, Vimeo yoki MP4" 
-                                value={tempLesson.videoUrl || ''} 
-                                onChange={e=>setTempLesson({...tempLesson, videoUrl: e.target.value})} 
-                                className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs focus:border-indigo-500 outline-none text-slate-900 dark:text-white" 
+                              <input
+                                placeholder="YouTube, Vimeo yoki MP4"
+                                value={tempLesson.videoUrl || ''}
+                                onChange={e => setTempLesson({ ...tempLesson, videoUrl: e.target.value })}
+                                className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
                               />
                             </div>
-                            
+
                             <div className="space-y-1">
                               <span className="text-[10px] font-bold text-slate-400">Yoki Fayl Yuklash</span>
                               <label className="flex items-center justify-center w-full h-[38px] bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-xl cursor-pointer transition-colors relative overflow-hidden">
@@ -2578,9 +2577,9 @@ function App() {
                                       <span className="material-symbols-outlined text-emerald-500 text-sm shrink-0">check_circle</span>
                                       <span className="text-xs font-bold text-emerald-500 truncate max-w-[100px]">{tempLesson.videoFile}</span>
                                     </div>
-                                    <button 
-                                      type="button" 
-                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTempLesson({...tempLesson, videoFile: ''}); }} 
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTempLesson({ ...tempLesson, videoFile: '' }); }}
                                       className="text-slate-400 hover:text-rose-500 p-0.5"
                                     >
                                       <span className="material-symbols-outlined text-xs">close</span>
@@ -2606,7 +2605,7 @@ function App() {
                         {newCourse.curriculum.map((l, i) => (
                           <div key={l.id} className="flex justify-between items-center p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white">
                             <div className="flex flex-col gap-1">
-                              <span>{i+1}. {l.title} ({l.duration})</span>
+                              <span>{i + 1}. {l.title} ({l.duration})</span>
                               {(l.videoUrl || l.videoFile) && (
                                 <div className="flex items-center gap-1 text-[11px] text-indigo-500 font-semibold">
                                   <span className="material-symbols-outlined text-xs">smart_display</span>
@@ -2614,7 +2613,7 @@ function App() {
                                 </div>
                               )}
                             </div>
-                            <button onClick={()=>handleDeleteLesson(l.id)} className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg"><span className="material-symbols-outlined text-[18px]">delete</span></button>
+                            <button onClick={() => handleDeleteLesson(l.id)} className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg"><span className="material-symbols-outlined text-[18px]">delete</span></button>
                           </div>
                         ))}
                       </div>
@@ -2671,15 +2670,15 @@ function App() {
                       <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                         <div className="relative flex-1 sm:flex-none">
                           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                          <input 
-                            type="text" 
-                            placeholder="Ism yoki familiya qidirish..." 
+                          <input
+                            type="text"
+                            placeholder="Ism yoki familiya qidirish..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="h-10 w-full sm:w-auto pl-10 pr-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[200px]"
                           />
                         </div>
-                        <select 
+                        <select
                           value={studentFilterCourse}
                           onChange={(e) => setStudentFilterCourse(e.target.value)}
                           className="h-10 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[150px]"
@@ -2688,7 +2687,7 @@ function App() {
                           {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
                         </select>
 
-                        <select 
+                        <select
                           value={studentFilterStatus}
                           onChange={(e) => setStudentFilterStatus(e.target.value)}
                           className="h-10 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[200px]"
@@ -2701,7 +2700,7 @@ function App() {
                           <option value="Chetlashtirilganlar">Chetlashtirilganlar</option>
                         </select>
                       </div>
-                      
+
                       <div className="flex items-center gap-3">
                         <button onClick={exportStudentsToExcel} className="h-10 px-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors border border-emerald-500/20">
                           <span className="material-symbols-outlined text-[18px]">table_chart</span> Excel (.xlsx)
@@ -2726,9 +2725,9 @@ function App() {
                           {filteredStudents.map(std => (
                             <div key={std.id} className="p-5 grid grid-cols-7 items-center hover:bg-white/30 dark:hover:bg-slate-800/30 transition-colors gap-4">
                               <div className="col-span-2 flex items-center gap-4">
-                                <img 
-                                  src={getAuthMediaUrl(std.avatar)} 
-                                  className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-700 object-cover" 
+                                <img
+                                  src={getAuthMediaUrl(std.avatar)}
+                                  className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-700 object-cover"
                                   alt={std.name}
                                 />
                                 <div>
@@ -2763,17 +2762,17 @@ function App() {
                                     <span className="material-symbols-outlined text-[16px]">block</span>
                                   </div>
                                 )}
-                                <button 
+                                <button
                                   onClick={() => {
                                     setAssignCourseData({ name: std.name, email: std.email.replace(/\.archived\.\d+/, ''), course: '', deadline: std.deadline ? new Date(std.deadline).toISOString().split('T')[0] : '' });
                                     setShowAssignCourseModal(true);
-                                  }} 
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all cursor-pointer" 
+                                  }}
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all cursor-pointer"
                                   title="Yangi kursga ruxsat berish"
                                 >
                                   <span className="material-symbols-outlined text-[16px]">add_task</span>
                                 </button>
-                                <button onClick={()=>handleDeleteStudent(std.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all cursor-pointer" title="Chetlashtirish"><span className="material-symbols-outlined text-[16px]">close</span></button>
+                                <button onClick={() => handleDeleteStudent(std.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all cursor-pointer" title="Chetlashtirish"><span className="material-symbols-outlined text-[16px]">close</span></button>
                               </div>
                             </div>
                           ))}
@@ -2872,8 +2871,8 @@ function App() {
                             <span className="material-symbols-outlined text-3xl text-indigo-500">{cat.icon}</span>
                             <div className="flex items-center gap-2">
                               <span className="px-3 py-1 bg-white/80 dark:bg-slate-800 text-[10px] font-bold rounded-full text-slate-700 dark:text-slate-300 shadow-sm">{cat.count} ta kurs</span>
-                              <button 
-                                onClick={() => handleDeleteCategory(cat.id)} 
+                              <button
+                                onClick={() => handleDeleteCategory(cat.id)}
                                 className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                                 title="Kategoriyani o'chirish"
                               >
@@ -2906,22 +2905,22 @@ function App() {
                           <form onSubmit={handleAddCategory} className="space-y-4">
                             <div className="space-y-1">
                               <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya Nomi</label>
-                              <input 
-                                required 
-                                value={newCategory.title} 
-                                onChange={e => setNewCategory({...newCategory, title: e.target.value})} 
-                                placeholder="Masalan: IELTS Mathematics" 
-                                className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" 
+                              <input
+                                required
+                                value={newCategory.title}
+                                onChange={e => setNewCategory({ ...newCategory, title: e.target.value })}
+                                placeholder="Masalan: IELTS Mathematics"
+                                className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
                               />
                             </div>
                             <div className="space-y-1">
                               <label className="text-xs font-bold text-slate-500 uppercase">Ikonka</label>
                               <div className="grid grid-cols-4 gap-2">
                                 {categoryIcons.map(ic => (
-                                  <button 
-                                    type="button" 
-                                    key={ic.value} 
-                                    onClick={() => setNewCategory({...newCategory, icon: ic.value})}
+                                  <button
+                                    type="button"
+                                    key={ic.value}
+                                    onClick={() => setNewCategory({ ...newCategory, icon: ic.value })}
                                     className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${newCategory.icon === ic.value ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400'}`}
                                   >
                                     <span className="material-symbols-outlined text-[20px]">{ic.value}</span>
@@ -2951,15 +2950,15 @@ function App() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <form onSubmit={handleSaveSettings} className="modern-card p-6 space-y-5 lg:col-span-2">
                         <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-3">Tizim va Xavfsizlik Sozlamalari</h3>
-                        
+
                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                           <div className="relative group cursor-pointer w-20 h-20 shrink-0">
                             <img alt="Admin Avatar" className="w-20 h-20 rounded-full object-cover ring-4 ring-white dark:ring-slate-900 shadow-md" src={getAuthMediaUrl(adminProfile.avatar)} />
                             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="material-symbols-outlined text-white text-[20px]">photo_camera</span>
                             </div>
-                            <input 
-                              type="file" 
+                            <input
+                              type="file"
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                               accept="image/*"
                               onChange={handleAdminAvatarChange}
@@ -2974,15 +2973,15 @@ function App() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1 sm:col-span-2">
                             <label className="text-xs font-bold text-slate-500 uppercase">F.I.SH. (Admin ismi)</label>
-                            <input value={settings.adminName} onChange={e=>setSettings({...settings, adminName:e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
+                            <input value={settings.adminName} onChange={e => setSettings({ ...settings, adminName: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
                           </div>
                           <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-500 uppercase">Tizim nomi (Brand)</label>
-                            <input value={settings.brandName} onChange={e=>setSettings({...settings, brandName:e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
+                            <input value={settings.brandName} onChange={e => setSettings({ ...settings, brandName: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
                           </div>
                           <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-500 uppercase">Asosiy rang mavzusi</label>
-                            <select value={settings.primaryColor} onChange={e=>setSettings({...settings, primaryColor:e.target.value})} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+                            <select value={settings.primaryColor} onChange={e => setSettings({ ...settings, primaryColor: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
                               <option value="Ko'k (Royal Indigo)">Ko'k (Royal Indigo)</option>
                               <option value="Yashil (Forest Emerald)">Yashil (Forest Emerald)</option>
                               <option value="Qizil (Sunset Rose)">Qizil (Sunset Rose)</option>
@@ -2990,7 +2989,7 @@ function App() {
                           </div>
                           <div className="space-y-1 sm:col-span-2">
                             <label className="text-xs font-bold text-slate-500 uppercase">Kirish uchun yangi parol</label>
-                            <input type="password" value={settings.newPassword} onChange={e=>setSettings({...settings, newPassword:e.target.value})} placeholder="••••••••" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
+                            <input type="password" value={settings.newPassword} onChange={e => setSettings({ ...settings, newPassword: e.target.value })} placeholder="••••••••" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
                           </div>
                         </div>
                         <button type="submit" className="px-5 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-all">O'zgarishlarni Saqlash</button>
@@ -3002,13 +3001,13 @@ function App() {
                           <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl space-y-2">
                             <h4 className="font-bold text-xs text-indigo-500 uppercase tracking-wider">Supabase Video Storage</h4>
                             <p className="text-[10px] text-slate-500">Video fayllarini bulutga to'g'ridan-to'g'ri yuklash uchun API kaliti konfiguratsiyasi.</p>
-                            <input type="password" value={settings.supabaseKey} onChange={e=>setSettings({...settings, supabaseKey:e.target.value})} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
+                            <input type="password" value={settings.supabaseKey} onChange={e => setSettings({ ...settings, supabaseKey: e.target.value })} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
                           </div>
 
                           <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl space-y-2">
                             <h4 className="font-bold text-xs text-purple-500 uppercase tracking-wider">Vimeo API Config</h4>
                             <p className="text-[10px] text-slate-500">Dars videolarini o'quvchilarga oqimli va xavfsiz (stream) uzatish kaliti.</p>
-                            <input placeholder="Vimeo Access Token" value={settings.vimeoToken} onChange={e=>setSettings({...settings, vimeoToken:e.target.value})} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
+                            <input placeholder="Vimeo Access Token" value={settings.vimeoToken} onChange={e => setSettings({ ...settings, vimeoToken: e.target.value })} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
                           </div>
                         </div>
                       </div>
@@ -3019,11 +3018,11 @@ function App() {
                 {/* VIEW 9: TESTS (TEST DASHBOARD & TEST BUILDER) */}
                 {currentPage === 'tests' && (
                   <div className="space-y-6 animate-fade-in">
-                    
+
                     {/* TEST DASHBOARD LIST VIEW (when not in builder) */}
                     {!isBuildingTest ? (
                       <div className="space-y-6">
-                        
+
                         {/* Summary Metrics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="modern-card p-6 flex items-center gap-4">
@@ -3036,7 +3035,7 @@ function App() {
                               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Yaratilgan sinov jami</p>
                             </div>
                           </div>
-                          
+
                           <div className="modern-card p-6 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                               <span className="material-symbols-outlined text-[24px]">verified</span>
@@ -3065,14 +3064,14 @@ function App() {
                           <div className="flex-1 flex flex-col sm:flex-row items-center gap-3 w-full">
                             <div className="relative w-full sm:max-w-xs">
                               <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">search</span>
-                              <input 
+                              <input
                                 value={testSearch}
                                 onChange={e => setTestSearch(e.target.value)}
-                                placeholder="Test nomini qidirish..." 
-                                className="w-full pl-9 pr-4 py-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
+                                placeholder="Test nomini qidirish..."
+                                className="w-full pl-9 pr-4 py-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                               />
                             </div>
-                            <select 
+                            <select
                               value={testStatusFilter}
                               onChange={e => setTestStatusFilter(e.target.value)}
                               className="w-full sm:w-auto p-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
@@ -3081,7 +3080,7 @@ function App() {
                               <option value="Published">Nashr Etilgan</option>
                               <option value="Draft">Qoralama</option>
                             </select>
-                            <select 
+                            <select
                               value={testSort}
                               onChange={e => setTestSort(e.target.value)}
                               className="w-full sm:w-auto p-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
@@ -3091,7 +3090,7 @@ function App() {
                             </select>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-                            <button 
+                            <button
                               onClick={() => {
                                 setShowWordImportView(true);
                                 setImportStep(1);
@@ -3103,7 +3102,7 @@ function App() {
                             >
                               <span className="material-symbols-outlined">upload_file</span> Word (.docx) Fayldan Import
                             </button>
-                            <button 
+                            <button
                               onClick={triggerNewTest}
                               className="w-full sm:w-auto bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 hover:opacity-90 transition-all select-none cursor-pointer"
                             >
@@ -3120,7 +3119,7 @@ function App() {
                               const matchStatus = testStatusFilter === 'All' || t.status === testStatusFilter;
                               return matchSearch && matchStatus;
                             })
-                            .sort((a,b) => testSort === 'newest' ? b.id - a.id : a.id - b.id)
+                            .sort((a, b) => testSort === 'newest' ? b.id - a.id : a.id - b.id)
                             .map(test => (
                               <div key={test.id} className="modern-card p-6 flex flex-col justify-between space-y-4 hover:scale-[1.01] transition-all border border-slate-200 dark:border-slate-700/50">
                                 <div className="space-y-2">
@@ -3150,14 +3149,14 @@ function App() {
                                 <div className="flex justify-between items-center pt-2">
                                   <span className="text-[10px] font-bold text-slate-400">Muddati: {test.startDate} - {test.endDate}</span>
                                   <div className="flex gap-2">
-                                    <button 
-                                      onClick={() => handleDuplicateTest(test)} 
+                                    <button
+                                      onClick={() => handleDuplicateTest(test)}
                                       title="Nusxalash"
                                       className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-500 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-all"
                                     >
                                       <span className="material-symbols-outlined text-[18px]">content_copy</span>
                                     </button>
-                                    <button 
+                                    <button
                                       onClick={() => {
                                         setNewTest({ ...test });
                                         setActiveQuestionIndex(0);
@@ -3169,8 +3168,8 @@ function App() {
                                     >
                                       <span className="material-symbols-outlined text-[18px]">edit</span>
                                     </button>
-                                    <button 
-                                      onClick={() => handleDeleteTest(test.id)} 
+                                    <button
+                                      onClick={() => handleDeleteTest(test.id)}
                                       title="O'chirish"
                                       className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
                                     >
@@ -3188,790 +3187,789 @@ function App() {
                       ) : (
                         /* POWERFUL ONLINE TEST BUILDER VIEW */
                         <div className="modern-card p-8 space-y-6 animate-fade-in">
-                        
-                        {/* Builder Header */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 dark:border-slate-700 pb-4 gap-4">
-                          <div>
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Test Quruvchi (Test Builder)</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platforma o'quvchilari uchun test rejimini sozlashingiz mumkin.</p>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => handleCreateTestSubmit('Draft')} 
-                              className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            >
-                              Qoralama sifatida saqlash
-                            </button>
-                            <button 
-                              onClick={() => handleCreateTestSubmit('Published')} 
-                              className="px-5 py-2.5 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md hover:opacity-90 transition-colors"
-                            >
-                              Testni Chop Etish (Nashr)
-                            </button>
-                            <button 
-                              onClick={() => setIsBuildingTest(false)} 
-                              className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors border border-slate-200 dark:border-slate-700"
-                              title="Yopish"
-                            >
-                              <span className="material-symbols-outlined">close</span>
-                            </button>
-                          </div>
-                        </div>
 
-                        {/* Builder Tab Navigation */}
-                        <div className="flex border-b border-slate-200 dark:border-slate-800">
-                          {[
-                            { id: 'general', label: '1. Umumiy sozlamalar', icon: 'settings' },
-                            { id: 'questions', label: '2. Savollar boshqaruvchisi', icon: 'list_alt' },
-                            { id: 'advanced', label: '3. Kengaytirilgan sozlamalar', icon: 'shield_lock' }
-                          ].map(t => (
-                            <button 
-                              key={t.id}
-                              onClick={() => setTestBuilderTab(t.id)}
-                              className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-xs transition-all ${testBuilderTab === t.id ? 'border-indigo-500 text-indigo-500' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
-                            >
-                              <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
-                              <span>{t.label}</span>
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* TAB 1: GENERAL TEST SETTINGS */}
-                        {testBuilderTab === 'general' && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                            <div className="space-y-4">
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Test Nomi / Sarlavhasi</label>
-                                <input 
-                                  required 
-                                  value={newTest.title} 
-                                  onChange={e => setNewTest({ ...newTest, title: e.target.value })}
-                                  placeholder="Masalan: SAT Matematika Kirish Imtihoni 1"
-                                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Kurs yo'nalishi</label>
-                                  <select 
-                                    value={newTest.course} 
-                                    onChange={e => setNewTest({ ...newTest, course: e.target.value })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
-                                  >
-                                    <option value="">Kursni tanlang</option>
-                                    {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
-                                  </select>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya</label>
-                                  <select 
-                                    value={newTest.category} 
-                                    onChange={e => setNewTest({ ...newTest, category: e.target.value })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
-                                  >
-                                    <option value="">Kategoriyani tanlang</option>
-                                    {Array.from(new Set(courses.map(c => c.category))).map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
-                                  </select>
-                                </div>
-                              </div>
-
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Test Izohi (Tavsifi)</label>
-                                <textarea 
-                                  value={newTest.description}
-                                  onChange={e => setNewTest({ ...newTest, description: e.target.value })}
-                                  placeholder="Test bo'yicha yo'riqnoma yoki qisqacha ma'lumot..."
-                                  rows={4}
-                                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
-                                />
-                              </div>
+                          {/* Builder Header */}
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 dark:border-slate-700 pb-4 gap-4">
+                            <div>
+                              <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Test Quruvchi (Test Builder)</h2>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platforma o'quvchilari uchun test rejimini sozlashingiz mumkin.</p>
                             </div>
 
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Qiyinchilik Darajasi</label>
-                                  <select 
-                                    value={newTest.difficulty} 
-                                    onChange={e => setNewTest({ ...newTest, difficulty: e.target.value })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
-                                  >
-                                    <option>Easy</option>
-                                    <option>Medium</option>
-                                    <option>Hard</option>
-                                  </select>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Vaqt Limiti (daqiqa)</label>
-                                  <input 
-                                    type="number" 
-                                    value={newTest.duration} 
-                                    onChange={e => setNewTest({ ...newTest, duration: Number(e.target.value) })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">O'tish foizi (%)</label>
-                                  <input 
-                                    type="number" 
-                                    value={newTest.passingPercentage} 
-                                    onChange={e => setNewTest({ ...newTest, passingPercentage: Number(e.target.value) })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Savollar soni</label>
-                                  <input 
-                                    type="number" 
-                                    min="1"
-                                    max="200"
-                                    value={newTest.questions?.length || 30} 
-                                    onChange={(e) => {
-                                      const newCount = parseInt(e.target.value) || 1;
-                                      if (newCount < 1 || newCount > 200) return;
-                                      let updatedQs = [...(newTest.questions || [])];
-                                      if (newCount > updatedQs.length) {
-                                        const toAdd = newCount - updatedQs.length;
-                                        const extraQs = Array.from({ length: toAdd }, () => ({
-                                          id: generateUUID(),
-                                          type: 'multiple',
-                                          text: '',
-                                          imageUrl: null,
-                                          options: ['', '', '', ''],
-                                          correctAnswer: 0,
-                                          points: 1,
-                                          difficulty: 'medium',
-                                          explanation: ''
-                                        }));
-                                        updatedQs = [...updatedQs, ...extraQs];
-                                      } else if (newCount < updatedQs.length) {
-                                        updatedQs = updatedQs.slice(0, newCount);
-                                      }
-                                      setNewTest({ ...newTest, questions: updatedQs });
-                                    }}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Boshlanish vaqti</label>
-                                  <input 
-                                    type="date" 
-                                    value={newTest.startDate} 
-                                    onChange={e => setNewTest({ ...newTest, startDate: e.target.value })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Tugash vaqti</label>
-                                  <input 
-                                    type="date" 
-                                    value={newTest.endDate} 
-                                    onChange={e => setNewTest({ ...newTest, endDate: e.target.value })}
-                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500" 
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="md:col-span-2 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-                              <button onClick={() => setTestBuilderTab('questions')} className="px-6 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 flex items-center gap-1">Keyingi qadam <span className="material-symbols-outlined text-[16px]">arrow_forward</span></button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleCreateTestSubmit('Draft')}
+                                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                              >
+                                Qoralama sifatida saqlash
+                              </button>
+                              <button
+                                onClick={() => handleCreateTestSubmit('Published')}
+                                className="px-5 py-2.5 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md hover:opacity-90 transition-colors"
+                              >
+                                Testni Chop Etish (Nashr)
+                              </button>
+                              <button
+                                onClick={() => setIsBuildingTest(false)}
+                                className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors border border-slate-200 dark:border-slate-700"
+                                title="Yopish"
+                              >
+                                <span className="material-symbols-outlined">close</span>
+                              </button>
                             </div>
                           </div>
-                        )}
 
-                        {/* TAB 2: QUESTIONS BUILDER (30 QUESTIONS INTERACTIVE GRID & FORM) */}
-                        {testBuilderTab === 'questions' && (
-                          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in">
-                            
-                            {/* 30 Questions Navigation Sidebar */}
-                            <div className="space-y-4 lg:col-span-1 border-r border-slate-200 dark:border-slate-800 pr-4">
-                              <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Savollar Listi (1 - 30)</h3>
-                              
-                              {/* Word (.docx) Import Card */}
-                              <div className="p-4 bg-indigo-500/5 dark:bg-slate-900/50 border border-dashed border-indigo-300 dark:border-indigo-800 rounded-xl space-y-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="material-symbols-outlined text-[16px] text-indigo-500">description</span>
-                                  <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">MS Word (.docx) Import</span>
-                                </div>
-                                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold leading-normal">
-                                  Hujjatdagi to'g'ri javob oldiga <code className="bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded font-black">+</code> belgisini qo'ying. Savollar avtomatik shakllantiriladi.
-                                </p>
-                                <label className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg cursor-pointer active:translate-y-px transition-all text-[10px] font-black shadow-md shadow-indigo-600/10 select-none">
-                                  <span className="material-symbols-outlined text-[14px]">upload_file</span>
-                                  <span>Faylni yuklash</span>
-                                  <input 
-                                    type="file" 
-                                    accept=".docx" 
-                                    onChange={handleDocxImport} 
-                                    className="hidden" 
+                          {/* Builder Tab Navigation */}
+                          <div className="flex border-b border-slate-200 dark:border-slate-800">
+                            {[
+                              { id: 'general', label: '1. Umumiy sozlamalar', icon: 'settings' },
+                              { id: 'questions', label: '2. Savollar boshqaruvchisi', icon: 'list_alt' },
+                              { id: 'advanced', label: '3. Kengaytirilgan sozlamalar', icon: 'shield_lock' }
+                            ].map(t => (
+                              <button
+                                key={t.id}
+                                onClick={() => setTestBuilderTab(t.id)}
+                                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-xs transition-all ${testBuilderTab === t.id ? 'border-indigo-500 text-indigo-500' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+                              >
+                                <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
+                                <span>{t.label}</span>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* TAB 1: GENERAL TEST SETTINGS */}
+                          {testBuilderTab === 'general' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                              <div className="space-y-4">
+                                <div className="space-y-1">
+                                  <label className="text-xs font-bold text-slate-500 uppercase">Test Nomi / Sarlavhasi</label>
+                                  <input
+                                    required
+                                    value={newTest.title}
+                                    onChange={e => setNewTest({ ...newTest, title: e.target.value })}
+                                    placeholder="Masalan: SAT Matematika Kirish Imtihoni 1"
+                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                   />
-                                </label>
-                              </div>
-                              <div className="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto pr-1">
-                                {newTest.questions.map((q, idx) => {
-                                  const isActive = idx === activeQuestionIndex;
-                                  const hasText = (q.text || "").trim().length > 0;
-                                  return (
-                                    <button 
-                                      key={q.id}
-                                      onClick={() => setActiveQuestionIndex(idx)}
-                                      className={`h-10 w-full flex items-center justify-center font-bold text-xs rounded-lg transition-all ${
-                                        isActive 
-                                          ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20' 
-                                          : hasText 
-                                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' 
-                                            : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-400'
-                                      }`}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Kurs yo'nalishi</label>
+                                    <select
+                                      value={newTest.course}
+                                      onChange={e => setNewTest({ ...newTest, course: e.target.value })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                                     >
-                                      {idx + 1}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl space-y-1.5 text-[10px] font-bold text-slate-500">
-                                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Tanlangan</div>
-                                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> To'ldirilgan</div>
-                                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> Bo'sh savol</div>
-                              </div>
-                            </div>
-
-                            {/* Active Question Editor Area */}
-                            <div className="lg:col-span-3 space-y-5">
-                              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">quiz</span> Savol #{activeQuestionIndex + 1} ni Tahrirlash</h3>
-                                <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'Tayyor' : 'Matn yo\'q'}</span>
-                              </div>
-
-                              {/* Question Settings Row */}
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-slate-500 uppercase">Savol Turi</label>
-                                  <select 
-                                    value={newTest.questions[activeQuestionIndex].type}
-                                    onChange={e => {
-                                      const updated = [...newTest.questions];
-                                      updated[activeQuestionIndex] = {
-                                        ...updated[activeQuestionIndex],
-                                        type: e.target.value,
-                                        correctAnswer: e.target.value === 'multiple' ? [0] : (e.target.value === 'truefalse' ? true : 0)
-                                      };
-                                      setNewTest({ ...newTest, questions: updated });
-                                    }}
-                                    className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
-                                  >
-                                    <option value="single">Yagona variant (MCQ)</option>
-                                    <option value="multiple">Ko'p variantli (MCQ)</option>
-                                    <option value="truefalse">Rost / Yolg'on</option>
-                                    <option value="short">Qisqa matn javob</option>
-                                    <option value="math">Matematik formula yechimi</option>
-                                  </select>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-slate-500 uppercase">Ajratiladigan ball</label>
-                                  <input 
-                                    type="number"
-                                    value={newTest.questions[activeQuestionIndex].score}
-                                    onChange={e => {
-                                      const updated = [...newTest.questions];
-                                      updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], score: Number(e.target.value) };
-                                      setNewTest({ ...newTest, questions: updated });
-                                    }}
-                                    className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-slate-500 uppercase">Savol qiyinchiligi</label>
-                                  <select 
-                                    value={newTest.questions[activeQuestionIndex].difficulty || 'Medium'}
-                                    onChange={e => {
-                                      const updated = [...newTest.questions];
-                                      updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], difficulty: e.target.value };
-                                      setNewTest({ ...newTest, questions: updated });
-                                    }}
-                                    className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
-                                  >
-                                    <option value="Easy">Oson (Easy)</option>
-                                    <option value="Medium">O'rtacha (Medium)</option>
-                                    <option value="Hard">Qiyin (Hard)</option>
-                                  </select>
-                                </div>
-                              </div>
-
-                              {/* Question Rich Text & Math Equations Formatting Toolbar */}
-                              <div className="space-y-2">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase block">Savol matni va formula muharriri</span>
-                                
-                                <div className="p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-xl flex flex-wrap gap-1.5 items-center">
-                                  {/* Rich Text controls */}
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('bold')} title="Qalin" className="w-8 h-8 font-extrabold hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">B</button>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('italic')} title="Kursiv" className="w-8 h-8 italic font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">I</button>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('underline')} title="Ostiga chizilgan" className="w-8 h-8 underline hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">U</button>
-                                  <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('bullet')} title="Belgili ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_bulleted</span></button>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('number')} title="Raqamli ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_numbered</span></button>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('table')} title="Jadval" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">table</span></button>
-                                  <button type="button" onClick={() => handleQuestionTextToolbarClick('link')} title="Havola" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">link</span></button>
-                                  <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
-                                  
-                                  {/* Special LaTeX quick formulas */}
-                                  <button type="button" onClick={() => handleMathSymbolClick('\\frac{a}{b}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Kasr formulasi">a/b</button>
-                                  <button type="button" onClick={() => handleMathSymbolClick('\\int_{a}^{b}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Integral">∫</button>
-                                  <button type="button" onClick={() => handleMathSymbolClick('\\frac{d}{dx}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Hosila">d/dx</button>
-                                  <button type="button" onClick={() => handleMathSymbolClick('\\sum')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Yig'indi (Sigma)">∑</button>
-                                  <button type="button" onClick={() => handleMathSymbolClick('\\sqrt{x}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Kvadrat Ildiz">√x</button>
-                                  <button type="button" onClick={() => handleMathSymbolClick('x^2')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Daraja">x²</button>
-                                </div>
-
-                                <textarea 
-                                  value={newTest.questions[activeQuestionIndex].text}
-                                  onChange={e => {
-                                    const updated = [...newTest.questions];
-                                    updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], text: e.target.value };
-                                    setNewTest({ ...newTest, questions: updated });
-                                  }}
-                                  placeholder="Savol matnini bu yerga yozing... (Formulalarni $ belgisi ichiga yozing: $\frac{a}{b}$, $\sqrt{x}$, $x^2$)"
-                                  rows={5}
-                                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-t-0 border-slate-200 dark:border-slate-800 rounded-b-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
-                                />
-
-                                {/* Live Formula Preview Box */}
-                                <div className="space-y-1.5">
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase">Formula va savolning jonli ko'rinishi (Live Rendered LaTeX Preview)</span>
-                                  {renderMathPreview(newTest.questions[activeQuestionIndex].text)}
-                                </div>
-                              </div>
-
-                              {/* Question Image Upload (Dropzone & simulated action) */}
-                              <div className="space-y-2">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase block">Geometriya chizmasi yoki Matematik diagramma yuklash</span>
-                                
-                                {newTest.questions[activeQuestionIndex].imageUrl ? (
-                                  <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
-                                    <div className="flex items-center gap-3">
-                                      <img src={getAuthMediaUrl(newTest.questions[activeQuestionIndex].imageUrl)} className="w-20 h-14 object-cover rounded-lg border border-slate-300 dark:border-slate-700 shadow-sm" alt="Diagramma" />
-                                      <div>
-                                        <p className="text-xs font-bold text-slate-800 dark:text-white">{newTest.questions[activeQuestionIndex].imageUrl.split('/').pop() || 'diagramma.png'}</p>
-                                        <p className="text-[10px] text-slate-400 font-semibold">Chizma olchamlari: 100% moslashuvchan</p>
-                                      </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <button type="button" onClick={() => alert("Diagramma qirqildi (Crop success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">Qirqish (Crop)</button>
-                                      <button type="button" onClick={() => alert("Diagramma olchami ozgartirildi (Resize success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">O'lcham (Resize)</button>
-                                      <button 
-                                        type="button" 
-                                        onClick={() => {
-                                          const updated = [...newTest.questions];
-                                          updated[activeQuestionIndex].imageUrl = '';
-                                          setNewTest({ ...newTest, questions: updated });
-                                        }} 
-                                        className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
-                                      >
-                                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                                      </button>
-                                    </div>
+                                      <option value="">Kursni tanlang</option>
+                                      {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
+                                    </select>
                                   </div>
-                                ) : (
-                                  <div 
-                                    onClick={handleQuestionImageUpload}
-                                    className="p-6 bg-white/30 dark:bg-slate-900/30 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-xl text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-500/5 transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">upload_file</span>
-                                    <p className="text-xs font-bold text-slate-800 dark:text-white">Rasm yuklash / Sudrab tashlash</p>
-                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Geometrik shakllar, funksiya grafiklari yoki diagrammalar (JPG, PNG)</p>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* MCQ Options Configuration */}
-                              {(newTest.questions[activeQuestionIndex].type === 'single' || newTest.questions[activeQuestionIndex].type === 'multiple') && (
-                                <div className="space-y-3">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va to'g'ri javobni belgilash</span>
-                                    <button 
-                                      type="button" 
-                                      onClick={() => {
-                                        const updated = [...newTest.questions];
-                                        updated[activeQuestionIndex].options.push(`Yangi variant ${String.fromCharCode(65 + updated[activeQuestionIndex].options.length)}`);
-                                        setNewTest({ ...newTest, questions: updated });
-                                      }}
-                                      className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white flex items-center gap-0.5"
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya</label>
+                                    <select
+                                      value={newTest.category}
+                                      onChange={e => setNewTest({ ...newTest, category: e.target.value })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                                     >
-                                      <span className="material-symbols-outlined text-xs">add</span> Variant Qo'shish
-                                    </button>
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    {newTest.questions[activeQuestionIndex].options.map((opt, optIdx) => {
-                                      const isCorrect = newTest.questions[activeQuestionIndex].type === 'multiple' 
-                                        ? (newTest.questions[activeQuestionIndex].correctAnswer || []).includes(optIdx)
-                                        : newTest.questions[activeQuestionIndex].correctAnswer === optIdx;
-                                      
-                                      return (
-                                        <div key={optIdx} className="flex items-center gap-3 animate-fade-in">
-                                          {/* Mark Correct Radio/Checkbox Button */}
-                                          <button 
-                                            type="button"
-                                            onClick={() => {
-                                              const updated = [...newTest.questions];
-                                              if (newTest.questions[activeQuestionIndex].type === 'multiple') {
-                                                let arr = [...(updated[activeQuestionIndex].correctAnswer || [])];
-                                                if (arr.includes(optIdx)) arr = arr.filter(v => v !== optIdx);
-                                                else arr.push(optIdx);
-                                                updated[activeQuestionIndex].correctAnswer = arr;
-                                              } else {
-                                                updated[activeQuestionIndex].correctAnswer = optIdx;
-                                              }
-                                              setNewTest({ ...newTest, questions: updated });
-                                            }}
-                                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border transition-all ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-transparent'}`}
-                                            title="To'g'ri javob deb belgilash"
-                                          >
-                                            <span className="material-symbols-outlined text-[14px]">check</span>
-                                          </button>
-
-                                          {/* Drag and Reorder Up/Down */}
-                                          <div className="flex flex-col gap-0.5">
-                                            <button 
-                                              type="button"
-                                              disabled={optIdx === 0}
-                                              onClick={() => {
-                                                const updated = [...newTest.questions];
-                                                const arr = [...updated[activeQuestionIndex].options];
-                                                const temp = arr[optIdx];
-                                                arr[optIdx] = arr[optIdx - 1];
-                                                arr[optIdx - 1] = temp;
-                                                updated[activeQuestionIndex].options = arr;
-                                                setNewTest({ ...newTest, questions: updated });
-                                              }}
-                                              className="w-5 h-5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-30"
-                                            >
-                                              <span className="material-symbols-outlined text-xs">keyboard_arrow_up</span>
-                                            </button>
-                                            <button 
-                                              type="button"
-                                              disabled={optIdx === newTest.questions[activeQuestionIndex].options.length - 1}
-                                              onClick={() => {
-                                                const updated = [...newTest.questions];
-                                                const arr = [...updated[activeQuestionIndex].options];
-                                                const temp = arr[optIdx];
-                                                arr[optIdx] = arr[optIdx + 1];
-                                                arr[optIdx + 1] = temp;
-                                                updated[activeQuestionIndex].options = arr;
-                                                setNewTest({ ...newTest, questions: updated });
-                                              }}
-                                              className="w-5 h-5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-30"
-                                            >
-                                              <span className="material-symbols-outlined text-xs">keyboard_arrow_down</span>
-                                            </button>
-                                          </div>
-
-                                          <div className="flex-1 flex flex-col gap-1.5">
-                                            <input 
-                                              value={opt}
-                                              onChange={e => {
-                                                const updated = [...newTest.questions];
-                                                updated[activeQuestionIndex].options[optIdx] = e.target.value;
-                                                setNewTest({ ...newTest, questions: updated });
-                                              }}
-                                              placeholder={`Variant matni yoki LaTeX formulasi, masalan: \\frac{1}{2} yoki x^2`}
-                                              className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all"
-                                            />
-                                            {opt && (opt.includes('\\') || opt.includes('^') || opt.includes('_')) && (
-                                              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 pl-1 flex items-center gap-1.5 animate-fade-in">
-                                                <span className="material-symbols-outlined text-[12px] text-indigo-500">functions</span>
-                                                <span>Formula ko'rinishi:</span>
-                                                <span className="bg-indigo-500/5 dark:bg-slate-900 px-2 py-0.5 rounded border border-indigo-500/10 dark:border-slate-800 text-slate-700 dark:text-indigo-400">
-                                                  {renderMathInline(opt)}
-                                                </span>
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          <button 
-                                            type="button"
-                                            onClick={() => {
-                                              const updated = [...newTest.questions];
-                                              updated[activeQuestionIndex].options = updated[activeQuestionIndex].options.filter((_, idx) => idx !== optIdx);
-                                              setNewTest({ ...newTest, questions: updated });
-                                            }}
-                                            className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
-                                            title="Variantni o'chirish"
-                                          >
-                                            <span className="material-symbols-outlined text-[16px]">close</span>
-                                          </button>
-                                        </div>
-                                      );
-                                    })}
+                                      <option value="">Kategoriyani tanlang</option>
+                                      {Array.from(new Set(courses.map(c => c.category))).map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
+                                    </select>
                                   </div>
                                 </div>
-                              )}
 
-                              {/* True/False Configuration */}
-                              {newTest.questions[activeQuestionIndex].type === 'truefalse' && (
-                                <div className="space-y-3">
-                                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Rost yoki Yolg'on holatidagi javob</span>
-                                  <div className="grid grid-cols-2 gap-4">
-                                    {['Rost', 'Yolg\'on'].map((tf, tfIdx) => {
-                                      const isCorrect = newTest.questions[activeQuestionIndex].correctAnswer === (tfIdx === 0);
-                                      return (
-                                        <button
-                                          key={tfIdx}
-                                          type="button"
-                                          onClick={() => {
-                                            const updated = [...newTest.questions];
-                                            updated[activeQuestionIndex].correctAnswer = tfIdx === 0;
-                                            setNewTest({ ...newTest, questions: updated });
-                                          }}
-                                          className={`py-4 font-black rounded-xl border text-sm transition-all flex items-center justify-center gap-2 ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300'}`}
-                                        >
-                                          <span className="material-symbols-outlined text-[16px]">{isCorrect?'check_circle':'circle'}</span>
-                                          {tf}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Short / Math text answer configuration */}
-                              {(newTest.questions[activeQuestionIndex].type === 'short' || newTest.questions[activeQuestionIndex].type === 'math') && (
-                                <div className="space-y-2">
-                                  <span className="text-[10px] font-bold text-slate-500 uppercase block">To'g'ri javob matni / qiymati (Student kiritishi shart)</span>
-                                  <input 
-                                    value={newTest.questions[activeQuestionIndex].correctAnswer || ""}
-                                    onChange={e => {
-                                      const updated = [...newTest.questions];
-                                      updated[activeQuestionIndex].correctAnswer = e.target.value;
-                                      setNewTest({ ...newTest, questions: updated });
-                                    }}
-                                    placeholder={newTest.questions[activeQuestionIndex].type === 'math' ? "Tenglama javobi, masalan: x=7 yoki 4" : "Kutilayotgan javob matni..."}
+                                <div className="space-y-1">
+                                  <label className="text-xs font-bold text-slate-500 uppercase">Test Izohi (Tavsifi)</label>
+                                  <textarea
+                                    value={newTest.description}
+                                    onChange={e => setNewTest({ ...newTest, description: e.target.value })}
+                                    placeholder="Test bo'yicha yo'riqnoma yoki qisqacha ma'lumot..."
+                                    rows={4}
                                     className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                   />
                                 </div>
-                              )}
+                              </div>
 
-                              {/* Question Explanation, Hint, and Settings */}
-                              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Javob tushuntirishi (Explanation)</label>
-                                    <textarea 
-                                      value={newTest.questions[activeQuestionIndex].explanation || ""}
-                                      onChange={e => {
-                                        const updated = [...newTest.questions];
-                                        updated[activeQuestionIndex].explanation = e.target.value;
-                                        setNewTest({ ...newTest, questions: updated });
-                                      }}
-                                      placeholder="Talaba testni topshirib bo'lgach ko'rinadigan qadam-baqadam yechim izohi..."
-                                      rows={3}
-                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
-                                    />
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Qiyinchilik Darajasi</label>
+                                    <select
+                                      value={newTest.difficulty}
+                                      onChange={e => setNewTest({ ...newTest, difficulty: e.target.value })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                                    >
+                                      <option>Easy</option>
+                                      <option>Medium</option>
+                                      <option>Hard</option>
+                                    </select>
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Kichik yordam (Optional Hint)</label>
-                                    <textarea 
-                                      value={newTest.questions[activeQuestionIndex].hint || ""}
-                                      onChange={e => {
-                                        const updated = [...newTest.questions];
-                                        updated[activeQuestionIndex].hint = e.target.value;
-                                        setNewTest({ ...newTest, questions: updated });
-                                      }}
-                                      placeholder="Talabaga dars jarayonida ko'rsatiladigan kichik maslahat..."
-                                      rows={3}
-                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Vaqt Limiti (daqiqa)</label>
+                                    <input
+                                      type="number"
+                                      value={newTest.duration}
+                                      onChange={e => setNewTest({ ...newTest, duration: Number(e.target.value) })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                     />
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-6 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-                                  <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-slate-700 dark:text-slate-300">
-                                    <input 
-                                      type="checkbox" 
-                                      checked={newTest.questions[activeQuestionIndex].negativeMarking || false}
-                                      onChange={e => {
-                                        const updated = [...newTest.questions];
-                                        updated[activeQuestionIndex].negativeMarking = e.target.checked;
-                                        setNewTest({ ...newTest, questions: updated });
-                                      }}
-                                      className="w-4 h-4 text-indigo-500 border-slate-300 dark:border-slate-700 rounded" 
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">O'tish foizi (%)</label>
+                                    <input
+                                      type="number"
+                                      value={newTest.passingPercentage}
+                                      onChange={e => setNewTest({ ...newTest, passingPercentage: Number(e.target.value) })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                     />
-                                    <span>Salbiy ball tizimi (Negative marking)</span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Savollar soni</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="200"
+                                      value={newTest.questions?.length || 30}
+                                      onChange={(e) => {
+                                        const newCount = parseInt(e.target.value) || 1;
+                                        if (newCount < 1 || newCount > 200) return;
+                                        let updatedQs = [...(newTest.questions || [])];
+                                        if (newCount > updatedQs.length) {
+                                          const toAdd = newCount - updatedQs.length;
+                                          const extraQs = Array.from({ length: toAdd }, () => ({
+                                            id: generateUUID(),
+                                            type: 'multiple',
+                                            text: '',
+                                            imageUrl: null,
+                                            options: ['', '', '', ''],
+                                            correctAnswer: 0,
+                                            points: 1,
+                                            difficulty: 'medium',
+                                            explanation: ''
+                                          }));
+                                          updatedQs = [...updatedQs, ...extraQs];
+                                        } else if (newCount < updatedQs.length) {
+                                          updatedQs = updatedQs.slice(0, newCount);
+                                        }
+                                        setNewTest({ ...newTest, questions: updatedQs });
+                                      }}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Boshlanish vaqti</label>
+                                    <input
+                                      type="date"
+                                      value={newTest.startDate}
+                                      onChange={e => setNewTest({ ...newTest, startDate: e.target.value })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Tugash vaqti</label>
+                                    <input
+                                      type="date"
+                                      value={newTest.endDate}
+                                      onChange={e => setNewTest({ ...newTest, endDate: e.target.value })}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="md:col-span-2 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                                <button onClick={() => setTestBuilderTab('questions')} className="px-6 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 flex items-center gap-1">Keyingi qadam <span className="material-symbols-outlined text-[16px]">arrow_forward</span></button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* TAB 2: QUESTIONS BUILDER (30 QUESTIONS INTERACTIVE GRID & FORM) */}
+                          {testBuilderTab === 'questions' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in">
+
+                              {/* 30 Questions Navigation Sidebar */}
+                              <div className="space-y-4 lg:col-span-1 border-r border-slate-200 dark:border-slate-800 pr-4">
+                                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Savollar Listi (1 - 30)</h3>
+
+                                {/* Word (.docx) Import Card */}
+                                <div className="p-4 bg-indigo-500/5 dark:bg-slate-900/50 border border-dashed border-indigo-300 dark:border-indigo-800 rounded-xl space-y-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[16px] text-indigo-500">description</span>
+                                    <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">MS Word (.docx) Import</span>
+                                  </div>
+                                  <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold leading-normal">
+                                    Hujjatdagi to'g'ri javob oldiga <code className="bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded font-black">+</code> belgisini qo'ying. Savollar avtomatik shakllantiriladi.
+                                  </p>
+                                  <label className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg cursor-pointer active:translate-y-px transition-all text-[10px] font-black shadow-md shadow-indigo-600/10 select-none">
+                                    <span className="material-symbols-outlined text-[14px]">upload_file</span>
+                                    <span>Faylni yuklash</span>
+                                    <input
+                                      type="file"
+                                      accept=".docx"
+                                      onChange={handleDocxImport}
+                                      className="hidden"
+                                    />
                                   </label>
                                 </div>
+                                <div className="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto pr-1">
+                                  {newTest.questions.map((q, idx) => {
+                                    const isActive = idx === activeQuestionIndex;
+                                    const hasText = (q.text || "").trim().length > 0;
+                                    return (
+                                      <button
+                                        key={q.id}
+                                        onClick={() => setActiveQuestionIndex(idx)}
+                                        className={`h-10 w-full flex items-center justify-center font-bold text-xs rounded-lg transition-all ${isActive
+                                            ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                                            : hasText
+                                              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30'
+                                              : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                                          }`}
+                                      >
+                                        {idx + 1}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl space-y-1.5 text-[10px] font-bold text-slate-500">
+                                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Tanlangan</div>
+                                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> To'ldirilgan</div>
+                                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> Bo'sh savol</div>
+                                </div>
                               </div>
 
-                              <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800">
-                                <button 
-                                  disabled={activeQuestionIndex === 0}
-                                  onClick={() => setActiveQuestionIndex(activeQuestionIndex - 1)}
-                                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl disabled:opacity-30 flex items-center gap-1 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-[16px]">arrow_back</span> Oldingi savol
-                                </button>
-                                <div className="flex items-center gap-2">
-                                  <button 
-                                    onClick={() => {
-                                      if (newTest.questions.length > 1) {
+                              {/* Active Question Editor Area */}
+                              <div className="lg:col-span-3 space-y-5">
+                                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                                  <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">quiz</span> Savol #{activeQuestionIndex + 1} ni Tahrirlash</h3>
+                                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'Tayyor' : 'Matn yo\'q'}</span>
+                                </div>
+
+                                {/* Question Settings Row */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Savol Turi</label>
+                                    <select
+                                      value={newTest.questions[activeQuestionIndex].type}
+                                      onChange={e => {
                                         const updated = [...newTest.questions];
-                                        updated.splice(activeQuestionIndex, 1);
+                                        updated[activeQuestionIndex] = {
+                                          ...updated[activeQuestionIndex],
+                                          type: e.target.value,
+                                          correctAnswer: e.target.value === 'multiple' ? [0] : (e.target.value === 'truefalse' ? true : 0)
+                                        };
                                         setNewTest({ ...newTest, questions: updated });
-                                        if (activeQuestionIndex >= updated.length) {
-                                          setActiveQuestionIndex(updated.length - 1);
-                                        }
-                                      }
-                                    }}
-                                    disabled={newTest.questions.length <= 1}
-                                    className="px-4 py-2 bg-rose-500/10 text-rose-500 text-xs font-bold rounded-xl hover:bg-rose-500 hover:text-white transition-colors flex items-center gap-1 disabled:opacity-30"
-                                  >
-                                    <span className="material-symbols-outlined text-[16px]">delete</span> O'chirish
-                                  </button>
-                                  {activeQuestionIndex === newTest.questions.length - 1 ? (
-                                    <button 
-                                      onClick={() => {
-                                        const updated = [...newTest.questions];
-                                        updated.push({
-                                          id: updated.length + 1,
-                                          type: 'single',
-                                          text: '',
-                                          options: ['A-javob', 'B-javob', 'C-javob', 'D-javob'],
-                                          correctAnswer: 0,
-                                          score: 4,
-                                          difficulty: 'Medium',
-                                          explanation: '',
-                                          hint: '',
-                                          negativeMarking: false,
-                                          imageUrl: ''
-                                        });
-                                        setNewTest({ ...newTest, questions: updated });
-                                        setActiveQuestionIndex(activeQuestionIndex + 1);
                                       }}
-                                      className="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-1"
+                                      className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                                     >
-                                      Savol Qo'shish <span className="material-symbols-outlined text-[16px]">add</span>
-                                    </button>
+                                      <option value="single">Yagona variant (MCQ)</option>
+                                      <option value="multiple">Ko'p variantli (MCQ)</option>
+                                      <option value="truefalse">Rost / Yolg'on</option>
+                                      <option value="short">Qisqa matn javob</option>
+                                      <option value="math">Matematik formula yechimi</option>
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ajratiladigan ball</label>
+                                    <input
+                                      type="number"
+                                      value={newTest.questions[activeQuestionIndex].score}
+                                      onChange={e => {
+                                        const updated = [...newTest.questions];
+                                        updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], score: Number(e.target.value) };
+                                        setNewTest({ ...newTest, questions: updated });
+                                      }}
+                                      className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Savol qiyinchiligi</label>
+                                    <select
+                                      value={newTest.questions[activeQuestionIndex].difficulty || 'Medium'}
+                                      onChange={e => {
+                                        const updated = [...newTest.questions];
+                                        updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], difficulty: e.target.value };
+                                        setNewTest({ ...newTest, questions: updated });
+                                      }}
+                                      className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                                    >
+                                      <option value="Easy">Oson (Easy)</option>
+                                      <option value="Medium">O'rtacha (Medium)</option>
+                                      <option value="Hard">Qiyin (Hard)</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                {/* Question Rich Text & Math Equations Formatting Toolbar */}
+                                <div className="space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Savol matni va formula muharriri</span>
+
+                                  <div className="p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-xl flex flex-wrap gap-1.5 items-center">
+                                    {/* Rich Text controls */}
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('bold')} title="Qalin" className="w-8 h-8 font-extrabold hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">B</button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('italic')} title="Kursiv" className="w-8 h-8 italic font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">I</button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('underline')} title="Ostiga chizilgan" className="w-8 h-8 underline hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">U</button>
+                                    <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('bullet')} title="Belgili ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_bulleted</span></button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('number')} title="Raqamli ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_numbered</span></button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('table')} title="Jadval" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">table</span></button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('link')} title="Havola" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">link</span></button>
+                                    <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+
+                                    {/* Special LaTeX quick formulas */}
+                                    <button type="button" onClick={() => handleMathSymbolClick('\\frac{a}{b}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Kasr formulasi">a/b</button>
+                                    <button type="button" onClick={() => handleMathSymbolClick('\\int_{a}^{b}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Integral">∫</button>
+                                    <button type="button" onClick={() => handleMathSymbolClick('\\frac{d}{dx}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Hosila">d/dx</button>
+                                    <button type="button" onClick={() => handleMathSymbolClick('\\sum')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Yig'indi (Sigma)">∑</button>
+                                    <button type="button" onClick={() => handleMathSymbolClick('\\sqrt{x}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Kvadrat Ildiz">√x</button>
+                                    <button type="button" onClick={() => handleMathSymbolClick('x^2')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Daraja">x²</button>
+                                  </div>
+
+                                  <textarea
+                                    value={newTest.questions[activeQuestionIndex].text}
+                                    onChange={e => {
+                                      const updated = [...newTest.questions];
+                                      updated[activeQuestionIndex] = { ...updated[activeQuestionIndex], text: e.target.value };
+                                      setNewTest({ ...newTest, questions: updated });
+                                    }}
+                                    placeholder="Savol matnini bu yerga yozing... (Formulalarni $ belgisi ichiga yozing: $\frac{a}{b}$, $\sqrt{x}$, $x^2$)"
+                                    rows={5}
+                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-t-0 border-slate-200 dark:border-slate-800 rounded-b-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+                                  />
+
+                                  {/* Live Formula Preview Box */}
+                                  <div className="space-y-1.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Formula va savolning jonli ko'rinishi (Live Rendered LaTeX Preview)</span>
+                                    {renderMathPreview(newTest.questions[activeQuestionIndex].text)}
+                                  </div>
+                                </div>
+
+                                {/* Question Image Upload (Dropzone & simulated action) */}
+                                <div className="space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Geometriya chizmasi yoki Matematik diagramma yuklash</span>
+
+                                  {newTest.questions[activeQuestionIndex].imageUrl ? (
+                                    <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
+                                      <div className="flex items-center gap-3">
+                                        <img src={getAuthMediaUrl(newTest.questions[activeQuestionIndex].imageUrl)} className="w-20 h-14 object-cover rounded-lg border border-slate-300 dark:border-slate-700 shadow-sm" alt="Diagramma" />
+                                        <div>
+                                          <p className="text-xs font-bold text-slate-800 dark:text-white">{newTest.questions[activeQuestionIndex].imageUrl.split('/').pop() || 'diagramma.png'}</p>
+                                          <p className="text-[10px] text-slate-400 font-semibold">Chizma olchamlari: 100% moslashuvchan</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <button type="button" onClick={() => alert("Diagramma qirqildi (Crop success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">Qirqish (Crop)</button>
+                                        <button type="button" onClick={() => alert("Diagramma olchami ozgartirildi (Resize success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">O'lcham (Resize)</button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = [...newTest.questions];
+                                            updated[activeQuestionIndex].imageUrl = '';
+                                            setNewTest({ ...newTest, questions: updated });
+                                          }}
+                                          className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                                        </button>
+                                      </div>
+                                    </div>
                                   ) : (
-                                    <button 
-                                      onClick={() => setActiveQuestionIndex(activeQuestionIndex + 1)}
-                                      className="px-4 py-2 bg-indigo-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-1"
+                                    <div
+                                      onClick={handleQuestionImageUpload}
+                                      className="p-6 bg-white/30 dark:bg-slate-900/30 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-xl text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-500/5 transition-all"
                                     >
-                                      Keyingi savol <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                                    </button>
+                                      <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">upload_file</span>
+                                      <p className="text-xs font-bold text-slate-800 dark:text-white">Rasm yuklash / Sudrab tashlash</p>
+                                      <p className="text-[10px] text-slate-400 font-medium mt-1">Geometrik shakllar, funksiya grafiklari yoki diagrammalar (JPG, PNG)</p>
+                                    </div>
                                   )}
                                 </div>
+
+                                {/* MCQ Options Configuration */}
+                                {(newTest.questions[activeQuestionIndex].type === 'single' || newTest.questions[activeQuestionIndex].type === 'multiple') && (
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va to'g'ri javobni belgilash</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = [...newTest.questions];
+                                          updated[activeQuestionIndex].options.push(`Yangi variant ${String.fromCharCode(65 + updated[activeQuestionIndex].options.length)}`);
+                                          setNewTest({ ...newTest, questions: updated });
+                                        }}
+                                        className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white flex items-center gap-0.5"
+                                      >
+                                        <span className="material-symbols-outlined text-xs">add</span> Variant Qo'shish
+                                      </button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      {newTest.questions[activeQuestionIndex].options.map((opt, optIdx) => {
+                                        const isCorrect = newTest.questions[activeQuestionIndex].type === 'multiple'
+                                          ? (newTest.questions[activeQuestionIndex].correctAnswer || []).includes(optIdx)
+                                          : newTest.questions[activeQuestionIndex].correctAnswer === optIdx;
+
+                                        return (
+                                          <div key={optIdx} className="flex items-center gap-3 animate-fade-in">
+                                            {/* Mark Correct Radio/Checkbox Button */}
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = [...newTest.questions];
+                                                if (newTest.questions[activeQuestionIndex].type === 'multiple') {
+                                                  let arr = [...(updated[activeQuestionIndex].correctAnswer || [])];
+                                                  if (arr.includes(optIdx)) arr = arr.filter(v => v !== optIdx);
+                                                  else arr.push(optIdx);
+                                                  updated[activeQuestionIndex].correctAnswer = arr;
+                                                } else {
+                                                  updated[activeQuestionIndex].correctAnswer = optIdx;
+                                                }
+                                                setNewTest({ ...newTest, questions: updated });
+                                              }}
+                                              className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border transition-all ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-transparent'}`}
+                                              title="To'g'ri javob deb belgilash"
+                                            >
+                                              <span className="material-symbols-outlined text-[14px]">check</span>
+                                            </button>
+
+                                            {/* Drag and Reorder Up/Down */}
+                                            <div className="flex flex-col gap-0.5">
+                                              <button
+                                                type="button"
+                                                disabled={optIdx === 0}
+                                                onClick={() => {
+                                                  const updated = [...newTest.questions];
+                                                  const arr = [...updated[activeQuestionIndex].options];
+                                                  const temp = arr[optIdx];
+                                                  arr[optIdx] = arr[optIdx - 1];
+                                                  arr[optIdx - 1] = temp;
+                                                  updated[activeQuestionIndex].options = arr;
+                                                  setNewTest({ ...newTest, questions: updated });
+                                                }}
+                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-30"
+                                              >
+                                                <span className="material-symbols-outlined text-xs">keyboard_arrow_up</span>
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={optIdx === newTest.questions[activeQuestionIndex].options.length - 1}
+                                                onClick={() => {
+                                                  const updated = [...newTest.questions];
+                                                  const arr = [...updated[activeQuestionIndex].options];
+                                                  const temp = arr[optIdx];
+                                                  arr[optIdx] = arr[optIdx + 1];
+                                                  arr[optIdx + 1] = temp;
+                                                  updated[activeQuestionIndex].options = arr;
+                                                  setNewTest({ ...newTest, questions: updated });
+                                                }}
+                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-30"
+                                              >
+                                                <span className="material-symbols-outlined text-xs">keyboard_arrow_down</span>
+                                              </button>
+                                            </div>
+
+                                            <div className="flex-1 flex flex-col gap-1.5">
+                                              <input
+                                                value={opt}
+                                                onChange={e => {
+                                                  const updated = [...newTest.questions];
+                                                  updated[activeQuestionIndex].options[optIdx] = e.target.value;
+                                                  setNewTest({ ...newTest, questions: updated });
+                                                }}
+                                                placeholder={`Variant matni yoki LaTeX formulasi, masalan: \\frac{1}{2} yoki x^2`}
+                                                className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all"
+                                              />
+                                              {opt && (opt.includes('\\') || opt.includes('^') || opt.includes('_')) && (
+                                                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 pl-1 flex items-center gap-1.5 animate-fade-in">
+                                                  <span className="material-symbols-outlined text-[12px] text-indigo-500">functions</span>
+                                                  <span>Formula ko'rinishi:</span>
+                                                  <span className="bg-indigo-500/5 dark:bg-slate-900 px-2 py-0.5 rounded border border-indigo-500/10 dark:border-slate-800 text-slate-700 dark:text-indigo-400">
+                                                    {renderMathInline(opt)}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = [...newTest.questions];
+                                                updated[activeQuestionIndex].options = updated[activeQuestionIndex].options.filter((_, idx) => idx !== optIdx);
+                                                setNewTest({ ...newTest, questions: updated });
+                                              }}
+                                              className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
+                                              title="Variantni o'chirish"
+                                            >
+                                              <span className="material-symbols-outlined text-[16px]">close</span>
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* True/False Configuration */}
+                                {newTest.questions[activeQuestionIndex].type === 'truefalse' && (
+                                  <div className="space-y-3">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Rost yoki Yolg'on holatidagi javob</span>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      {['Rost', 'Yolg\'on'].map((tf, tfIdx) => {
+                                        const isCorrect = newTest.questions[activeQuestionIndex].correctAnswer === (tfIdx === 0);
+                                        return (
+                                          <button
+                                            key={tfIdx}
+                                            type="button"
+                                            onClick={() => {
+                                              const updated = [...newTest.questions];
+                                              updated[activeQuestionIndex].correctAnswer = tfIdx === 0;
+                                              setNewTest({ ...newTest, questions: updated });
+                                            }}
+                                            className={`py-4 font-black rounded-xl border text-sm transition-all flex items-center justify-center gap-2 ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300'}`}
+                                          >
+                                            <span className="material-symbols-outlined text-[16px]">{isCorrect ? 'check_circle' : 'circle'}</span>
+                                            {tf}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Short / Math text answer configuration */}
+                                {(newTest.questions[activeQuestionIndex].type === 'short' || newTest.questions[activeQuestionIndex].type === 'math') && (
+                                  <div className="space-y-2">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase block">To'g'ri javob matni / qiymati (Student kiritishi shart)</span>
+                                    <input
+                                      value={newTest.questions[activeQuestionIndex].correctAnswer || ""}
+                                      onChange={e => {
+                                        const updated = [...newTest.questions];
+                                        updated[activeQuestionIndex].correctAnswer = e.target.value;
+                                        setNewTest({ ...newTest, questions: updated });
+                                      }}
+                                      placeholder={newTest.questions[activeQuestionIndex].type === 'math' ? "Tenglama javobi, masalan: x=7 yoki 4" : "Kutilayotgan javob matni..."}
+                                      className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Question Explanation, Hint, and Settings */}
+                                <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                      <label className="text-[10px] font-bold text-slate-500 uppercase">Javob tushuntirishi (Explanation)</label>
+                                      <textarea
+                                        value={newTest.questions[activeQuestionIndex].explanation || ""}
+                                        onChange={e => {
+                                          const updated = [...newTest.questions];
+                                          updated[activeQuestionIndex].explanation = e.target.value;
+                                          setNewTest({ ...newTest, questions: updated });
+                                        }}
+                                        placeholder="Talaba testni topshirib bo'lgach ko'rinadigan qadam-baqadam yechim izohi..."
+                                        rows={3}
+                                        className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-[10px] font-bold text-slate-500 uppercase">Kichik yordam (Optional Hint)</label>
+                                      <textarea
+                                        value={newTest.questions[activeQuestionIndex].hint || ""}
+                                        onChange={e => {
+                                          const updated = [...newTest.questions];
+                                          updated[activeQuestionIndex].hint = e.target.value;
+                                          setNewTest({ ...newTest, questions: updated });
+                                        }}
+                                        placeholder="Talabaga dars jarayonida ko'rsatiladigan kichik maslahat..."
+                                        rows={3}
+                                        className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-6 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                    <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-slate-700 dark:text-slate-300">
+                                      <input
+                                        type="checkbox"
+                                        checked={newTest.questions[activeQuestionIndex].negativeMarking || false}
+                                        onChange={e => {
+                                          const updated = [...newTest.questions];
+                                          updated[activeQuestionIndex].negativeMarking = e.target.checked;
+                                          setNewTest({ ...newTest, questions: updated });
+                                        }}
+                                        className="w-4 h-4 text-indigo-500 border-slate-300 dark:border-slate-700 rounded"
+                                      />
+                                      <span>Salbiy ball tizimi (Negative marking)</span>
+                                    </label>
+                                  </div>
+                                </div>
+
+                                <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800">
+                                  <button
+                                    disabled={activeQuestionIndex === 0}
+                                    onClick={() => setActiveQuestionIndex(activeQuestionIndex - 1)}
+                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl disabled:opacity-30 flex items-center gap-1 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">arrow_back</span> Oldingi savol
+                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => {
+                                        if (newTest.questions.length > 1) {
+                                          const updated = [...newTest.questions];
+                                          updated.splice(activeQuestionIndex, 1);
+                                          setNewTest({ ...newTest, questions: updated });
+                                          if (activeQuestionIndex >= updated.length) {
+                                            setActiveQuestionIndex(updated.length - 1);
+                                          }
+                                        }
+                                      }}
+                                      disabled={newTest.questions.length <= 1}
+                                      className="px-4 py-2 bg-rose-500/10 text-rose-500 text-xs font-bold rounded-xl hover:bg-rose-500 hover:text-white transition-colors flex items-center gap-1 disabled:opacity-30"
+                                    >
+                                      <span className="material-symbols-outlined text-[16px]">delete</span> O'chirish
+                                    </button>
+                                    {activeQuestionIndex === newTest.questions.length - 1 ? (
+                                      <button
+                                        onClick={() => {
+                                          const updated = [...newTest.questions];
+                                          updated.push({
+                                            id: updated.length + 1,
+                                            type: 'single',
+                                            text: '',
+                                            options: ['A-javob', 'B-javob', 'C-javob', 'D-javob'],
+                                            correctAnswer: 0,
+                                            score: 4,
+                                            difficulty: 'Medium',
+                                            explanation: '',
+                                            hint: '',
+                                            negativeMarking: false,
+                                            imageUrl: ''
+                                          });
+                                          setNewTest({ ...newTest, questions: updated });
+                                          setActiveQuestionIndex(activeQuestionIndex + 1);
+                                        }}
+                                        className="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-1"
+                                      >
+                                        Savol Qo'shish <span className="material-symbols-outlined text-[16px]">add</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => setActiveQuestionIndex(activeQuestionIndex + 1)}
+                                        className="px-4 py-2 bg-indigo-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-1"
+                                      >
+                                        Keyingi savol <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* TAB 3: ADVANCED PREVENTIVE AND CHEAT-PROOF TEST SETTINGS */}
-                        {testBuilderTab === 'advanced' && (
-                          <div className="space-y-6 animate-fade-in">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              
-                              <div className="modern-card p-6 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
-                                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">lock</span> Firibgarlikka Qarshi Himoya (Cheat-proof)</h3>
-                                
-                                <div className="space-y-3">
-                                  {[
-                                    { stateName: 'fullscreenMode', label: "To'liq ekran rejasi (Fullscreen taking)", desc: "Student testni to'liq ekranda yechadi, chiqishga ruxsat yo'q" },
-                                    { stateName: 'preventCopyPaste', label: "Nusxa ko'chirishni taqiqlash (Prevent copy/paste)", desc: "Savollar matnini nusxalash va javoblarni tashqi manbadan kiritish bloklanadi" },
-                                    { stateName: 'preventTabSwitch', label: "Tab almashtirishni cheklash (Prevent tab switching)", desc: "Brauzerda boshqa sahifaga o'tsa test avtomatik ravishda yakunlanadi" }
-                                  ].map(item => (
-                                    <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
-                                      <input 
-                                        type="checkbox"
-                                        checked={newTest[item.stateName]}
-                                        onChange={e => setNewTest({ ...newTest, [item.stateName]: e.target.checked })}
-                                        className="w-4 h-4 text-indigo-500 rounded border-slate-300 mt-0.5" 
-                                      />
-                                      <div>
-                                        <span className="text-xs font-black text-slate-900 dark:text-white block">{item.label}</span>
-                                        <span className="text-[10px] text-slate-400 font-semibold">{item.desc}</span>
-                                      </div>
-                                    </label>
-                                  ))}
+                          {/* TAB 3: ADVANCED PREVENTIVE AND CHEAT-PROOF TEST SETTINGS */}
+                          {testBuilderTab === 'advanced' && (
+                            <div className="space-y-6 animate-fade-in">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                <div className="modern-card p-6 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
+                                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">lock</span> Firibgarlikka Qarshi Himoya (Cheat-proof)</h3>
+
+                                  <div className="space-y-3">
+                                    {[
+                                      { stateName: 'fullscreenMode', label: "To'liq ekran rejasi (Fullscreen taking)", desc: "Student testni to'liq ekranda yechadi, chiqishga ruxsat yo'q" },
+                                      { stateName: 'preventCopyPaste', label: "Nusxa ko'chirishni taqiqlash (Prevent copy/paste)", desc: "Savollar matnini nusxalash va javoblarni tashqi manbadan kiritish bloklanadi" },
+                                      { stateName: 'preventTabSwitch', label: "Tab almashtirishni cheklash (Prevent tab switching)", desc: "Brauzerda boshqa sahifaga o'tsa test avtomatik ravishda yakunlanadi" }
+                                    ].map(item => (
+                                      <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={newTest[item.stateName]}
+                                          onChange={e => setNewTest({ ...newTest, [item.stateName]: e.target.checked })}
+                                          className="w-4 h-4 text-indigo-500 rounded border-slate-300 mt-0.5"
+                                        />
+                                        <div>
+                                          <span className="text-xs font-black text-slate-900 dark:text-white block">{item.label}</span>
+                                          <span className="text-[10px] text-slate-400 font-semibold">{item.desc}</span>
+                                        </div>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="modern-card p-6 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
+                                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">construction</span> Tizim Imkoniyatlari (Features)</h3>
+
+                                  <div className="space-y-3">
+                                    {[
+                                      { stateName: 'randomizeQuestions', label: "Savollarni tasodifiy tartiblash (Shuffle questions)", desc: "Har bir student uchun savollar har xil ketma-ketlikda chiqadi" },
+                                      { stateName: 'randomizeAnswers', label: "Javoblarni tasodifiy tartiblash (Shuffle answers)", desc: "MCQ variantlari har bir o'quvchida aralashtiriladi" },
+                                      { stateName: 'enableCalculator', label: "Kalkulyatorni yoqish (Calculator sheet)", desc: "Student pleyerida interaktiv hisob-kitob kalkulyatori ko'rinadi" },
+                                      { stateName: 'enableFormulaSheet', label: "Matematik formulalar varog'ini taqdim etish", desc: "Test jarayonida tayyor SAT formulalar varag'ini ochish imkoniyati" }
+                                    ].map(item => (
+                                      <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={newTest[item.stateName]}
+                                          onChange={e => setNewTest({ ...newTest, [item.stateName]: e.target.checked })}
+                                          className="w-4 h-4 text-indigo-500 rounded border-slate-300 mt-0.5"
+                                        />
+                                        <div>
+                                          <span className="text-xs font-black text-slate-900 dark:text-white block">{item.label}</span>
+                                          <span className="text-[10px] text-slate-400 font-semibold">{item.desc}</span>
+                                        </div>
+                                      </label>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="modern-card p-6 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
-                                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">construction</span> Tizim Imkoniyatlari (Features)</h3>
-                                
-                                <div className="space-y-3">
-                                  {[
-                                    { stateName: 'randomizeQuestions', label: "Savollarni tasodifiy tartiblash (Shuffle questions)", desc: "Har bir student uchun savollar har xil ketma-ketlikda chiqadi" },
-                                    { stateName: 'randomizeAnswers', label: "Javoblarni tasodifiy tartiblash (Shuffle answers)", desc: "MCQ variantlari har bir o'quvchida aralashtiriladi" },
-                                    { stateName: 'enableCalculator', label: "Kalkulyatorni yoqish (Calculator sheet)", desc: "Student pleyerida interaktiv hisob-kitob kalkulyatori ko'rinadi" },
-                                    { stateName: 'enableFormulaSheet', label: "Matematik formulalar varog'ini taqdim etish", desc: "Test jarayonida tayyor SAT formulalar varag'ini ochish imkoniyati" }
-                                  ].map(item => (
-                                    <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
-                                      <input 
-                                        type="checkbox"
-                                        checked={newTest[item.stateName]}
-                                        onChange={e => setNewTest({ ...newTest, [item.stateName]: e.target.checked })}
-                                        className="w-4 h-4 text-indigo-500 rounded border-slate-300 mt-0.5" 
-                                      />
-                                      <div>
-                                        <span className="text-xs font-black text-slate-900 dark:text-white block">{item.label}</span>
-                                        <span className="text-[10px] text-slate-400 font-semibold">{item.desc}</span>
-                                      </div>
-                                    </label>
-                                  ))}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1">
+                                  <label className="text-xs font-bold text-slate-500 uppercase">Urinishlar soni (Attempt limit)</label>
+                                  <select
+                                    value={newTest.attemptLimit}
+                                    onChange={e => setNewTest({ ...newTest, attemptLimit: Number(e.target.value) })}
+                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                                  >
+                                    <option value={1}>1 ta urinish (Qattiq nazorat)</option>
+                                    <option value={2}>2 ta urinish</option>
+                                    <option value={3}>3 ta urinish</option>
+                                    <option value={999}>Cheksiz urinishlar</option>
+                                  </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-xs font-bold text-slate-500 uppercase">Natijalarni darhol ko'rsatish (Instant result)</label>
+                                  <select
+                                    value={newTest.instantResult ? "true" : "false"}
+                                    onChange={e => setNewTest({ ...newTest, instantResult: e.target.value === 'true' })}
+                                    className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                                  >
+                                    <option value="true">Darhol natija va yechim izohlarini ko'rsatish</option>
+                                    <option value="false">Faqat test muddati yakunlangach ko'rsatish</option>
+                                  </select>
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Urinishlar soni (Attempt limit)</label>
-                                <select 
-                                  value={newTest.attemptLimit}
-                                  onChange={e => setNewTest({ ...newTest, attemptLimit: Number(e.target.value) })}
-                                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+                                <button
+                                  onClick={() => handleCreateTestSubmit('Draft')}
+                                  className="px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                 >
-                                  <option value={1}>1 ta urinish (Qattiq nazorat)</option>
-                                  <option value={2}>2 ta urinish</option>
-                                  <option value={3}>3 ta urinish</option>
-                                  <option value={999}>Cheksiz urinishlar</option>
-                                </select>
-                              </div>
-
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Natijalarni darhol ko'rsatish (Instant result)</label>
-                                <select 
-                                  value={newTest.instantResult ? "true" : "false"}
-                                  onChange={e => setNewTest({ ...newTest, instantResult: e.target.value === 'true' })}
-                                  className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
+                                  Qoralama saqlash
+                                </button>
+                                <button
+                                  onClick={() => handleCreateTestSubmit('Published')}
+                                  className="px-6 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-colors"
                                 >
-                                  <option value="true">Darhol natija va yechim izohlarini ko'rsatish</option>
-                                  <option value="false">Faqat test muddati yakunlangach ko'rsatish</option>
-                                </select>
+                                  Testni nashr qilish
+                                </button>
                               </div>
                             </div>
-
-                            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
-                              <button 
-                                onClick={() => handleCreateTestSubmit('Draft')} 
-                                className="px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                              >
-                                Qoralama saqlash
-                              </button>
-                              <button 
-                                onClick={() => handleCreateTestSubmit('Published')} 
-                                className="px-6 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-colors"
-                              >
-                                Testni nashr qilish
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
                       )
                     )}
                   </div>
@@ -3993,25 +3991,25 @@ function App() {
                       <div className="space-y-4">
                         <div>
                           <label className="text-xs font-bold text-slate-500 mb-1 block">Hero Sarlavha</label>
-                          <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.heroTitle} onChange={(e) => setLandingSettings({...landingSettings, heroTitle: e.target.value})} />
+                          <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.heroTitle} onChange={(e) => setLandingSettings({ ...landingSettings, heroTitle: e.target.value })} />
                         </div>
                         <div>
                           <label className="text-xs font-bold text-slate-500 mb-1 block">Hero Qisqa Matn</label>
-                          <textarea className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.heroSubtitle} onChange={(e) => setLandingSettings({...landingSettings, heroSubtitle: e.target.value})} rows="3"></textarea>
+                          <textarea className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.heroSubtitle} onChange={(e) => setLandingSettings({ ...landingSettings, heroSubtitle: e.target.value })} rows="3"></textarea>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-xs font-bold text-slate-500 mb-1 block">Telefon</label>
-                            <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.contactPhone} onChange={(e) => setLandingSettings({...landingSettings, contactPhone: e.target.value})} />
+                            <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.contactPhone} onChange={(e) => setLandingSettings({ ...landingSettings, contactPhone: e.target.value })} />
                           </div>
                           <div>
                             <label className="text-xs font-bold text-slate-500 mb-1 block">Manzil</label>
-                            <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.contactAddress} onChange={(e) => setLandingSettings({...landingSettings, contactAddress: e.target.value})} />
+                            <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.contactAddress} onChange={(e) => setLandingSettings({ ...landingSettings, contactAddress: e.target.value })} />
                           </div>
                         </div>
                         <div>
                           <label className="text-xs font-bold text-slate-500 mb-1 block">Telegram Link</label>
-                          <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.telegramLink} onChange={(e) => setLandingSettings({...landingSettings, telegramLink: e.target.value})} />
+                          <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.telegramLink} onChange={(e) => setLandingSettings({ ...landingSettings, telegramLink: e.target.value })} />
                         </div>
                         <button onClick={handleUpdateLandingSettings} className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all">Saqlash</button>
                       </div>
@@ -4020,31 +4018,31 @@ function App() {
                     {/* Results / Certificates */}
                     <div className="modern-card p-6">
                       <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500">military_tech</span> Natijalar / Sertifikatlar</h3>
-                      
+
                       <div className="flex flex-col gap-3 mb-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                         <div className="flex gap-2">
-                          <input placeholder="Ism (Masalan: Azizbek)" className="flex-1 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingResult.name} onChange={e=>setNewLandingResult({...newLandingResult, name: e.target.value})} />
-                          <input placeholder="Natija/Ball (Masalan: SAT 1520)" className="flex-1 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingResult.score} onChange={e=>setNewLandingResult({...newLandingResult, score: e.target.value})} />
+                          <input placeholder="Ism (Masalan: Azizbek)" className="flex-1 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingResult.name} onChange={e => setNewLandingResult({ ...newLandingResult, name: e.target.value })} />
+                          <input placeholder="Natija/Ball (Masalan: SAT 1520)" className="flex-1 bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingResult.score} onChange={e => setNewLandingResult({ ...newLandingResult, score: e.target.value })} />
                         </div>
                         <div className="flex flex-wrap gap-2 items-center w-full">
                           <label className="flex items-center justify-center gap-2 cursor-pointer bg-white dark:bg-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-600 p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 transition-all flex-1 min-w-[150px]">
                             <span className="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-300">upload_file</span>
                             <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Sertifikat yuklash</span>
                             <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                              if(e.target.files[0]) {
+                              if (e.target.files[0]) {
                                 try {
                                   const url = await handleLandingImageUpload(e.target.files[0]);
-                                  setNewLandingResult({...newLandingResult, imageUrl: url});
-                                } catch(err) { alert("Rasm yuklashda xatolik!"); }
+                                  setNewLandingResult({ ...newLandingResult, imageUrl: url });
+                                } catch (err) { alert("Rasm yuklashda xatolik!"); }
                               }
                             }} />
                           </label>
-                          <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-2.5 rounded-lg text-slate-900 dark:text-white flex-1 min-w-[120px] focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingResult.imagePosition} onChange={e=>setNewLandingResult({...newLandingResult, imagePosition: e.target.value})}>
+                          <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-2.5 rounded-lg text-slate-900 dark:text-white flex-1 min-w-[120px] focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingResult.imagePosition} onChange={e => setNewLandingResult({ ...newLandingResult, imagePosition: e.target.value })}>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="object-center">Markaz (Center)</option>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="object-top">Teparoq (Top)</option>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="object-bottom">Pastroq (Bottom)</option>
                           </select>
-                          <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-2.5 rounded-lg text-slate-900 dark:text-white flex-1 min-w-[120px] focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingResult.color} onChange={e=>setNewLandingResult({...newLandingResult, color: e.target.value})}>
+                          <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-2.5 rounded-lg text-slate-900 dark:text-white flex-1 min-w-[120px] focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingResult.color} onChange={e => setNewLandingResult({ ...newLandingResult, color: e.target.value })}>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="text-primary">Kok</option>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="text-secondary">Yashil</option>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="text-tertiary">Qizgish</option>
@@ -4072,14 +4070,14 @@ function App() {
                           </div>
                         ))}
                       </div>
-                      
+
                       {/* Save Button for Results */}
                       <div className="pt-4 mt-2 border-t border-slate-200 dark:border-slate-700">
-                        <button 
-                          onClick={handleSaveAllResults} 
+                        <button
+                          onClick={handleSaveAllResults}
                           className="bg-emerald-500 text-white w-full py-2.5 rounded-lg hover:bg-emerald-600 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition-all"
                         >
-                          <span className="material-symbols-outlined text-[20px]">save</span> 
+                          <span className="material-symbols-outlined text-[20px]">save</span>
                           Ma'lumotlarni saqlash va Integratsiya qilish
                         </button>
                       </div>
@@ -4088,16 +4086,16 @@ function App() {
                     {/* Pricing */}
                     <div className="modern-card p-6 lg:col-span-2">
                       <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-amber-500">payments</span> Tariflar / Kurslar</h3>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                         <div className="space-y-3">
-                          <input placeholder="Kurs nomi (Masalan: SAT Matematika)" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingPricing.title} onChange={e=>setNewLandingPricing({...newLandingPricing, title: e.target.value})} />
-                          <textarea placeholder="Kurs ta'rifi" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all resize-none" rows="2" value={newLandingPricing.description} onChange={e=>setNewLandingPricing({...newLandingPricing, description: e.target.value})}></textarea>
+                          <input placeholder="Kurs nomi (Masalan: SAT Matematika)" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingPricing.title} onChange={e => setNewLandingPricing({ ...newLandingPricing, title: e.target.value })} />
+                          <textarea placeholder="Kurs ta'rifi" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all resize-none" rows="2" value={newLandingPricing.description} onChange={e => setNewLandingPricing({ ...newLandingPricing, description: e.target.value })}></textarea>
                         </div>
                         <div className="space-y-3">
-                          <input placeholder="Narxi (Masalan: 600,000)" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingPricing.price} onChange={e=>setNewLandingPricing({...newLandingPricing, price: e.target.value})} />
+                          <input placeholder="Narxi (Masalan: 600,000)" className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 outline-none text-sm font-bold p-3 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all" value={newLandingPricing.price} onChange={e => setNewLandingPricing({ ...newLandingPricing, price: e.target.value })} />
                           <div className="flex gap-2">
-                            <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-3 rounded-lg flex-1 text-slate-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingPricing.type} onChange={e=>setNewLandingPricing({...newLandingPricing, type: e.target.value})}>
+                            <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-3 rounded-lg flex-1 text-slate-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingPricing.type} onChange={e => setNewLandingPricing({ ...newLandingPricing, type: e.target.value })}>
                               <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="primary">Asosiy (Primary)</option>
                               <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="secondary">Ikkilamchi (Secondary)</option>
                               <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="tertiary">Qo'shimcha (Tertiary)</option>
@@ -4106,11 +4104,11 @@ function App() {
                               <span className="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-300">image</span>
                               <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Muqova rasmi</span>
                               <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                                if(e.target.files[0]) {
+                                if (e.target.files[0]) {
                                   try {
                                     const url = await handleLandingImageUpload(e.target.files[0]);
-                                    setNewLandingPricing({...newLandingPricing, imageUrl: url});
-                                  } catch(err) { alert("Rasm yuklashda xatolik!"); }
+                                    setNewLandingPricing({ ...newLandingPricing, imageUrl: url });
+                                  } catch (err) { alert("Rasm yuklashda xatolik!"); }
                                 }
                               }} />
                             </label>
@@ -4125,8 +4123,8 @@ function App() {
                           <div key={p.id} className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900">
                             <div className="flex items-center gap-4">
                               <div className="flex flex-col gap-1">
-                                <button onClick={() => handleMovePricing(index, -1)} disabled={index===0} className="text-slate-400 hover:text-indigo-500 disabled:opacity-30"><span className="material-symbols-outlined text-[16px]">expand_less</span></button>
-                                <button onClick={() => handleMovePricing(index, 1)} disabled={index===landingPricing.length-1} className="text-slate-400 hover:text-indigo-500 disabled:opacity-30"><span className="material-symbols-outlined text-[16px]">expand_more</span></button>
+                                <button onClick={() => handleMovePricing(index, -1)} disabled={index === 0} className="text-slate-400 hover:text-indigo-500 disabled:opacity-30"><span className="material-symbols-outlined text-[16px]">expand_less</span></button>
+                                <button onClick={() => handleMovePricing(index, 1)} disabled={index === landingPricing.length - 1} className="text-slate-400 hover:text-indigo-500 disabled:opacity-30"><span className="material-symbols-outlined text-[16px]">expand_more</span></button>
                               </div>
                               {p.imageUrl && <img src={p.imageUrl} className="w-16 h-12 object-cover rounded-lg" alt="" />}
                               <div>
@@ -4158,18 +4156,18 @@ function App() {
                 <form onSubmit={handleAddStudentSubmit} className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">F.I.SH. (Full Name)</label>
-                    <input required value={newStudent.name} onChange={e=>setNewStudent({...newStudent, name:e.target.value})} placeholder="Ism Familiya" className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
+                    <input required value={newStudent.name} onChange={e => setNewStudent({ ...newStudent, name: e.target.value })} placeholder="Ism Familiya" className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Email manzili</label>
-                    <input type="email" required value={newStudent.email} onChange={e=>setNewStudent({...newStudent, email:e.target.value})} placeholder="Email" className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
+                    <input type="email" required value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} placeholder="Email" className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Yo'nalish (Kurs)</label>
-                    <select 
+                    <select
                       required
-                      value={newStudent.course} 
-                      onChange={e => setNewStudent({...newStudent, course: e.target.value})}
+                      value={newStudent.course}
+                      onChange={e => setNewStudent({ ...newStudent, course: e.target.value })}
                       className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
                     >
                       <option value="" disabled hidden>Kursni tanlang...</option>
@@ -4180,15 +4178,14 @@ function App() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Muddat (Deadline)</label>
-                    <input type="date" required value={newStudent.deadline || ''} onChange={e=>setNewStudent({...newStudent, deadline:e.target.value})} className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
+                    <input type="date" required value={newStudent.deadline || ''} onChange={e => setNewStudent({ ...newStudent, deadline: e.target.value })} className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
                   </div>
-                  <button 
+                  <button
                     type="submit"
-                    className={`w-full p-4 text-white font-black rounded-xl shadow-lg transition-all ${
-                      (newStudent.name && newStudent.email && newStudent.course && newStudent.deadline) 
-                        ? 'bg-indigo-500 shadow-indigo-500/30 hover:opacity-90' 
+                    className={`w-full p-4 text-white font-black rounded-xl shadow-lg transition-all ${(newStudent.name && newStudent.email && newStudent.course && newStudent.deadline)
+                        ? 'bg-indigo-500 shadow-indigo-500/30 hover:opacity-90'
                         : 'bg-indigo-500/50 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     Saqlash
                   </button>
@@ -4212,10 +4209,10 @@ function App() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Yo'nalish (Yangi Kurs)</label>
-                    <select 
+                    <select
                       required
-                      value={assignCourseData.course} 
-                      onChange={e => setAssignCourseData({...assignCourseData, course: e.target.value})}
+                      value={assignCourseData.course}
+                      onChange={e => setAssignCourseData({ ...assignCourseData, course: e.target.value })}
                       className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
                     >
                       <option value="" disabled hidden>Yangi kursni tanlang...</option>
@@ -4226,15 +4223,14 @@ function App() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Muddat (Yangi Deadline)</label>
-                    <input type="date" required value={assignCourseData.deadline || ''} onChange={e=>setAssignCourseData({...assignCourseData, deadline:e.target.value})} className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
+                    <input type="date" required value={assignCourseData.deadline || ''} onChange={e => setAssignCourseData({ ...assignCourseData, deadline: e.target.value })} className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
                   </div>
-                  <button 
+                  <button
                     type="submit"
-                    className={`w-full p-4 text-white font-black rounded-xl shadow-lg transition-all ${
-                      (assignCourseData.course && assignCourseData.deadline) 
-                        ? 'bg-indigo-500 shadow-indigo-500/30 hover:opacity-90' 
+                    className={`w-full p-4 text-white font-black rounded-xl shadow-lg transition-all ${(assignCourseData.course && assignCourseData.deadline)
+                        ? 'bg-indigo-500 shadow-indigo-500/30 hover:opacity-90'
                         : 'bg-indigo-500/50 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     Ruxsat Berish
                   </button>
@@ -4268,7 +4264,7 @@ function App() {
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Generatsiya qilingan parol</span>
                     <div className="flex items-center justify-between mt-1 bg-white/5 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-300 dark:border-slate-800">
                       <span className="text-sm font-mono font-black text-emerald-400 tracking-wider select-all">{createdStudentCredentials.password}</span>
-                      <button 
+                      <button
                         onClick={() => {
                           navigator.clipboard.writeText(createdStudentCredentials.password);
                           alert("Parol nusxalandi!");
@@ -4280,8 +4276,8 @@ function App() {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setCreatedStudentCredentials(null)} 
+                <button
+                  onClick={() => setCreatedStudentCredentials(null)}
                   className="w-full py-4 bg-indigo-500 text-white font-black rounded-xl shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition-colors"
                 >
                   Tushunarli
@@ -4300,8 +4296,8 @@ function App() {
                   <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"><span className="material-symbols-outlined text-[18px]">close</span></button>
                 </div>
                 <div className="p-6 space-y-4 text-slate-900 dark:text-white">
-                  <p className="text-sm">Mazkur kursni kurs nomini yozib o'chirishni xohlaysizmi? <br/>Haqiqatdan ham <strong>{deleteCourseTarget.title}</strong> kursini o'chirishni xohlaysizmi?</p>
-                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uchun quyidagi yozuvni kiriting: <br/>"{deleteCourseTarget.title}"</p>
+                  <p className="text-sm">Mazkur kursni kurs nomini yozib o'chirishni xohlaysizmi? <br />Haqiqatdan ham <strong>{deleteCourseTarget.title}</strong> kursini o'chirishni xohlaysizmi?</p>
+                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uchun quyidagi yozuvni kiriting: <br />"{deleteCourseTarget.title}"</p>
                   <input
                     type="text"
                     value={deleteCourseInput}
@@ -4311,8 +4307,8 @@ function App() {
                   />
                   <div className="flex justify-end gap-3 pt-4">
                     <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="px-5 py-2.5 rounded-xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Yo'q</button>
-                    <button 
-                      onClick={() => handleDeleteCourse(deleteCourseTarget.id)} 
+                    <button
+                      onClick={() => handleDeleteCourse(deleteCourseTarget.id)}
                       disabled={deleteCourseInput !== deleteCourseTarget.title}
                       className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all ${deleteCourseInput === deleteCourseTarget.title ? 'bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/30 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'}`}
                     >Ha</button>
