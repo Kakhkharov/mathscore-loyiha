@@ -432,7 +432,7 @@ app.post('/api/auth/forgot-password', authRateLimiter, async (req, res) => {
 
   // Create short-lived token for reset (15 minutes)
   const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '15m' });
-  const resetLink = `http://localhost:5174/reset-password?token=${resetToken}`;
+  const resetLink = `https://mathscore.uz/student/reset-password?token=${resetToken}`;
   
   sendPasswordReset(email, user.name, resetLink);
   

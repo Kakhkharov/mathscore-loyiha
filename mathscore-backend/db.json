@@ -12,7 +12,7 @@
       "score": "A Level",
       "name": "Musulmon",
       "color": "text-secondary",
-      "imageUrl": "http://localhost:5000/uploads/919f1cad-42c0-4c41-9984-86929d1494bb.jpg",
+      "imageUrl": "https://api.mathscore.uz/uploads/919f1cad-42c0-4c41-9984-86929d1494bb.jpg",
       "imagePosition": "object-bottom"
     },
     {
@@ -20,14 +20,14 @@
       "score": "SAT: 1430 ball",
       "name": "Mirzoxon Muxtorov",
       "color": "text-primary",
-      "imageUrl": "http://localhost:5000/uploads/8eadd075-de6a-4860-9f42-6255a9ef7e64.jpg"
+      "imageUrl": "https://api.mathscore.uz/uploads/8eadd075-de6a-4860-9f42-6255a9ef7e64.jpg"
     },
     {
       "id": 1780132689119,
       "score": "SAT 1400",
       "name": "Fayzullayev Jonibek",
       "color": "text-secondary",
-      "imageUrl": "http://localhost:5000/uploads/8a57a913-3377-41e6-a617-038949356d93.jpg",
+      "imageUrl": "https://api.mathscore.uz/uploads/8a57a913-3377-41e6-a617-038949356d93.jpg",
       "imagePosition": "object-center"
     },
     {

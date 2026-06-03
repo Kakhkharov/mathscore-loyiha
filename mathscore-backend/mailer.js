@@ -23,7 +23,7 @@ const sendStudentCredentials = async (email, name, password) => {
       </ul>
       <p>Iltimos, tizimga kirgandan so'ng parolingizni o'zgartiring.</p>
       <br/>
-      <a href="http://localhost:5174/" style="padding: 10px 20px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 5px;">Platformaga Kirish</a>
+      <a href="https://mathscore.uz/student" style="padding: 10px 20px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 5px;">Platformaga Kirish</a>
     `
   };
   try {
@@ -79,7 +79,7 @@ const sendPasswordChangeNotification = async (email, name, newPassword) => {
       <br/>
       <p>Agar bu harakatni siz amalga oshirmagan bo'lsangiz, zudlik bilan platformaga kirib parolingizni tiklang yoki ma'muriyatga murojaat qiling.</p>
       <br/>
-      <a href="http://localhost:5173/" style="padding: 10px 20px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 5px;">Platformaga Kirish</a>
+      <a href="https://mathscore.uz" style="padding: 10px 20px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 5px;">Platformaga Kirish</a>
     `
   };
   try {
