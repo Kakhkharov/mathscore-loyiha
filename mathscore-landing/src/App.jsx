@@ -78,9 +78,9 @@ function App() {
   const displayResults = results.slice(0, 10);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/settings', { cache: 'no-store' }).then(res => res.json()).then(data => setSettings(data)).catch(console.error);
-    fetch('http://localhost:5000/api/results', { cache: 'no-store' }).then(res => res.json()).then(data => setResults(data)).catch(console.error);
-    fetch('http://localhost:5000/api/pricing', { cache: 'no-store' }).then(res => res.json()).then(data => setPricing(data)).catch(console.error);
+    fetch('https://api.mathscore.uz/api/settings', { cache: 'no-store' }).then(res => res.json()).then(data => setSettings(data)).catch(console.error);
+    fetch('https://api.mathscore.uz/api/results', { cache: 'no-store' }).then(res => res.json()).then(data => setResults(data)).catch(console.error);
+    fetch('https://api.mathscore.uz/api/pricing', { cache: 'no-store' }).then(res => res.json()).then(data => setPricing(data)).catch(console.error);
   }, []);
 
   return (
