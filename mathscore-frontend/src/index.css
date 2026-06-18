@@ -1,0 +1,353 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: color 0.3s, background-color 0.3s;
+  background-color: transparent;
+}
+
+/* Solid Premium Background */
+.animated-gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -50;
+  background-color: #f8fafc; /* slate-50 */
+}
+
+.dark .animated-gradient-bg {
+  background-color: #0f172a; /* slate-900 */
+}
+
+/* ULTRA MODERN CARD DESIGN */
+.modern-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border-radius: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .modern-card {
+  background: #1e293b; /* slate-800 */
+  border: 1px solid #334155; /* slate-700 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+.modern-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.dark .modern-card-hover:hover {
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Premium micro-interactions & animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+/* STUDENT CSS */
+
+
+
+:root {
+  --primary: #4f46e5;
+  --on-primary: #ffffff;
+  --background: #fafafa;
+  --on-background: #09090b;
+  --surface: #ffffff;
+  --on-surface: #09090b;
+  --surface-container: #f4f4f5;
+  --surface-container-low: #fafafa;
+  --surface-container-high: #e4e4e7;
+  --surface-container-highest: #d4d4d8;
+  --outline-variant: #f4f4f5;
+  --outline: #71717a;
+  
+  --secondary: #d97706;
+  --on-secondary: #ffffff;
+  --secondary-container: rgba(217, 119, 6, 0.1);
+  
+  --tertiary: #10b981;
+  --on-tertiary: #ffffff;
+  --tertiary-container: rgba(16, 185, 129, 0.1);
+
+  --error: #ef4444;
+  --on-error: #ffffff;
+  --error-container: rgba(239, 68, 68, 0.1);
+}
+
+.dark {
+  --primary: #6366f1;
+  --on-primary: #ffffff;
+  --background: #09090b;
+  --on-background: #fafafa;
+  --surface: #09090b;
+  --on-surface: #fafafa;
+  --surface-container: #18181b;
+  --surface-container-low: #09090b;
+  --surface-container-high: #27272a;
+  --surface-container-highest: #3f3f46;
+  --outline-variant: #18181b;
+  --outline: #a1a1aa;
+  
+  --secondary: #f59e0b;
+  --secondary-container: rgba(245, 158, 11, 0.15);
+  
+  --tertiary: #34d399;
+  --tertiary-container: rgba(52, 211, 153, 0.15);
+
+  --error: #f87171;
+  --error-container: rgba(248, 113, 113, 0.15);
+}
+
+@theme {
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-background: var(--background);
+  --color-on-background: var(--on-background);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline-variant: var(--outline-variant);
+  --color-outline: var(--outline);
+  
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+
+  --spacing-margin-desktop: 40px;
+  --spacing-unit: 4px;
+  --spacing-container-max: 1200px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
+
+  --font-body-lg: "Plus Jakarta Sans";
+  --font-body-md: "Plus Jakarta Sans";
+  --font-headline-lg-mobile: "Plus Jakarta Sans";
+  --font-headline-md: "Plus Jakarta Sans";
+  --font-headline-lg: "Plus Jakarta Sans";
+  --font-display-lg: "Plus Jakarta Sans";
+  --font-label-sm: "Plus Jakarta Sans";
+  --font-label-md: "Plus Jakarta Sans";
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+}
+
+body { 
+  font-family: 'Plus Jakarta Sans', sans-serif; 
+  background-color: var(--background); 
+  color: var(--on-background); 
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Material symbols */
+.material-symbols-outlined { 
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+}
+.material-symbols-outlined.fill { 
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-container-high);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Custom Quiz Options */
+.quiz-option {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.quiz-option:hover {
+  transform: translateY(-1px);
+}
+
+
+/* LANDING CSS */
+
+
+
+@theme {
+  --color-surface-container-highest: #dde4e6;
+  --color-surface-bright: #f4fafd;
+  --color-on-secondary-fixed: #2e1500;
+  --color-surface-dim: #d4dbdd;
+  --color-secondary-fixed: #ffdcc2;
+  --color-on-primary-fixed-variant: #2e2bc2;
+  --color-surface-variant: #dde4e6;
+  --color-on-primary-fixed: #07006c;
+  --color-secondary-container: #fc9d41;
+  --color-on-tertiary-fixed: #002106;
+  --color-on-error: #ffffff;
+  --color-primary: #4343d5;
+  --color-on-surface-variant: #464555;
+  --color-tertiary-container: #00842e;
+  --color-outline: #767586;
+  --color-on-surface: #161d1f;
+  --color-primary-fixed: #e1e0ff;
+  --color-surface-container-high: #e2e9ec;
+  --color-surface-tint: #4849da;
+  --color-on-primary-container: #faf7ff;
+  --color-tertiary-fixed: #73fe84;
+  --color-inverse-surface: #2b3234;
+  --color-surface-container-low: #eef5f7;
+  --color-on-tertiary-fixed-variant: #005319;
+  --color-surface: #f4fafd;
+  --color-on-tertiary: #ffffff;
+  --color-on-secondary-fixed-variant: #6d3a00;
+  --color-error-container: #ffdad6;
+  --color-on-background: #161d1f;
+  --color-tertiary: #006822;
+  --color-surface-container: #e8eff1;
+  --color-primary-fixed-dim: #c1c1ff;
+  --color-primary-container: #5d5fef;
+  --color-inverse-primary: #c1c1ff;
+  --color-on-error-container: #93000a;
+  --color-on-primary: #ffffff;
+  --color-tertiary-fixed-dim: #55e16b;
+  --color-background: #f4fafd;
+  --color-on-secondary-container: #6b3900;
+  --color-secondary: #8f4e00;
+  --color-inverse-on-surface: #ebf2f4;
+  --color-on-tertiary-container: #e5ffe0;
+  --color-error: #ba1a1a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-fixed-dim: #ffb77a;
+  --color-outline-variant: #c7c4d7;
+  --color-surface-container-lowest: #ffffff;
+
+  --spacing-margin-desktop: 64px;
+  --spacing-unit: 4px;
+  --spacing-container-max: 1280px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
+
+  --font-body-lg: "Plus Jakarta Sans";
+  --font-body-md: "Plus Jakarta Sans";
+  --font-headline-lg-mobile: "Plus Jakarta Sans";
+  --font-headline-md: "Plus Jakarta Sans";
+  --font-headline-lg: "Plus Jakarta Sans";
+  --font-display-lg: "Plus Jakarta Sans";
+  --font-label-sm: "Plus Jakarta Sans";
+  --font-label-md: "Plus Jakarta Sans";
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+}
+
+body { 
+  font-family: 'Plus Jakarta Sans', sans-serif; 
+  background-color: var(--color-surface); 
+  color: var(--color-on-surface); 
+}
+
+.material-symbols-outlined { 
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+}
+
+.bg-pastel-green { background-color: #e0f8e0; border-color: #98e098; color: #1e5c1e; }
+.bg-pastel-blue { background-color: #e0eaf8; border-color: #98b9e0; color: #1e3a5c; }
+.bg-pastel-orange { background-color: #f8efe0; border-color: #e0c898; color: #5c411e; }
+.bg-pastel-purple { background-color: #efe0f8; border-color: #c898e0; color: #411e5c; }
+.bg-pastel-yellow { background-color: #f8f6e0; border-color: #e0da98; color: #5c591e; }
+.bg-pastel-red { background-color: #f8e0e0; border-color: #e09898; color: #5c1e1e; }
+
+.card-border { 
+  border-width: 2px; 
+  border-style: solid; 
+  border-radius: 24px; 
+  padding: 24px; 
+}
+
+.card-lift:hover { 
+  transform: translateY(-4px); 
+  box-shadow: 0 4px 0px currentColor; 
+  transition: all 0.2s ease; 
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-250px * var(--slide-count))); }
+}
+
+.slider { 
+  overflow: hidden; 
+  position: relative; 
+  width: 100%; 
+  padding: 20px 0; 
+}
+
+.slide-track { 
+  display: flex; 
+  width: calc(250px * var(--slide-count) * 2); 
+  animation: scroll calc(var(--slide-count) * 2.5s) linear infinite; 
+}
+
+.slide { 
+  width: 250px; 
+  padding: 0 10px; 
+  flex-shrink: 0; 
+}
+
+/* Scroll Reveal Entrance Animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.delay-100 { transition-delay: 100ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+
+

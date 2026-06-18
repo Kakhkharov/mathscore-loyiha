@@ -8,9 +8,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mathscore-super-secure-secret-key-
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'http://localhost:5173', // Landing page
-      'http://localhost:5174', // Student panel
-      'http://localhost:5175'  // Admin panel
+      'https://mathscore.uz',
+      'https://api.mathscore.uz',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175'
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {

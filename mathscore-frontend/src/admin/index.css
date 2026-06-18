@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: color 0.3s, background-color 0.3s;
+  background-color: transparent;
+}
+
+/* Solid Premium Background */
+.animated-gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -50;
+  background-color: #f8fafc; /* slate-50 */
+}
+
+.dark .animated-gradient-bg {
+  background-color: #0f172a; /* slate-900 */
+}
+
+/* ULTRA MODERN CARD DESIGN */
+.modern-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border-radius: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .modern-card {
+  background: #1e293b; /* slate-800 */
+  border: 1px solid #334155; /* slate-700 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+.modern-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.dark .modern-card-hover:hover {
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Premium micro-interactions & animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

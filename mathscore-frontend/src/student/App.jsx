@@ -1169,7 +1169,7 @@ export default function App() {
 
               <button
                 type="button"
-                onClick={() => { window.location.href = 'http://localhost:5173/'; }}
+                onClick={() => { window.location.href = '/'; }}
                 className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-all mt-3 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">home</span>
@@ -2687,3 +2687,5 @@ export default function App() {
     </div>
   );
 }
+
+
