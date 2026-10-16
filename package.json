@@ -1,0 +1,11 @@
+{
+  "name": "mathscore-loyiha",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "powershell -ExecutionPolicy Bypass -File ./run_all.ps1",
+    "sync": "powershell -ExecutionPolicy Bypass -File ./sync.ps1",
+    "build": "cd mathscore-frontend && npm run build",
+    "deploy": "powershell -ExecutionPolicy Bypass -File ./deploy.ps1"
+  }
+}

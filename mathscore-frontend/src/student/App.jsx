@@ -1207,7 +1207,7 @@ export default function App() {
                 const res = await fetch('https://api.mathscore.uz/api/auth/forgot-password', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email })
+                  body: JSON.stringify({ email, resetUrl: window.location.origin + window.location.pathname })
                 });
                 const data = await res.json();
                 alert(data.message || data.error);

@@ -79,6 +79,12 @@ app.use('/uploads', (req, res, next) => {
   });
 }, express.static(path.join(__dirname, 'uploads')));
 
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -421,7 +427,7 @@ app.post('/api/students', authenticateToken, requireRole('admin'), async (req, r
 });
 
 app.post('/api/auth/forgot-password', authRateLimiter, async (req, res) => {
-  const { email } = req.body;
+  const { email, resetUrl } = req.body;
   if (!email) return res.status(400).json({ error: 'Email manzilini kiriting.' });
   
   const user = await db.prisma.user.findUnique({ where: { email } });
@@ -432,7 +438,7 @@ app.post('/api/auth/forgot-password', authRateLimiter, async (req, res) => {
 
   // Create short-lived token for reset (15 minutes)
   const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '15m' });
-  const resetLink = `https://mathscore.uz/student/reset-password?token=${resetToken}`;
+  const resetLink = resetUrl ? `${resetUrl}?token=${resetToken}` : `https://mathscore.uz/student/reset-password?token=${resetToken}`;
   
   sendPasswordReset(email, user.name, resetLink);
   

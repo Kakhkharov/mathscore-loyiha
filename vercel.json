@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd mathscore-frontend && npm install && npm run build",
+  "outputDirectory": "mathscore-frontend/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

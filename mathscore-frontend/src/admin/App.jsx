@@ -111,6 +111,11 @@ function App() {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP xatolik: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
 
       setPromoUploadProgress(100);
@@ -121,6 +126,7 @@ function App() {
     } catch (err) {
       console.error("Upload error", err);
       setIsUploadingPromo(false);
+      alert(`Video yuklashda xatolik: ${err.message}.\nAgar serverga joylagan bo'lsangiz, NGINX da katta fayllar yuklashga ruxsat yo'q bo'lishi mumkin (client_max_body_size).`);
     }
   };
 
@@ -141,6 +147,11 @@ function App() {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP xatolik: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
 
       setLessonUploadProgress(100);
@@ -151,6 +162,7 @@ function App() {
     } catch (err) {
       console.error("Upload error", err);
       setIsUploadingLesson(false);
+      alert(`Video yuklashda xatolik: ${err.message}.\nAgar serverga joylagan bo'lsangiz, NGINX da katta fayllar yuklashga ruxsat yo'q bo'lishi mumkin (client_max_body_size).`);
     }
   };
 
@@ -2142,7 +2154,7 @@ function App() {
                         const res = await fetch('https://api.mathscore.uz/api/auth/forgot-password', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: emailInput })
+                          body: JSON.stringify({ email: emailInput, resetUrl: window.location.origin + window.location.pathname })
                         });
                         const data = await res.json();
                         alert(data.message || "Tiklash xati yuborildi!");
