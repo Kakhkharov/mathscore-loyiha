@@ -669,8 +669,8 @@ export default function App() {
   }, [currentPage]);
 
   // Course Playing State
-  const [activeCourse, setActiveCourse] = useState(coursesData[0]);
-  const [activeLesson, setActiveLesson] = useState(coursesData[0].lessons[1]);
+  const [activeCourse, setActiveCourse] = useState(coursesData[0] || null);
+  const [activeLesson, setActiveLesson] = useState(coursesData[0]?.lessons?.[1] || null);
   const [canProceedToNext, setCanProceedToNext] = useState(false);
 
   // Next Lesson Unlock Timer
@@ -726,7 +726,7 @@ export default function App() {
   }, []);
 
   // Test State Variables
-  const [activeQuizTest, setActiveQuizTest] = useState(studentTests[0]);
+  const [activeQuizTest, setActiveQuizTest] = useState(studentTests[0] || null);
   const [activeQuestion, setActiveQuestion] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [markedForReview, setMarkedForReview] = useState([]);
@@ -1310,25 +1310,27 @@ export default function App() {
     return Math.round((correct / catQuestions.length) * 100);
   };
 
-  const getLessonIndex = () => activeCourse?.lessons?.findIndex(l => l.id === activeLesson?.id);
+  const getLessonIndex = () => activeCourse?.lessons?.findIndex(l => l.id === activeLesson?.id) ?? -1;
 
   const handlePrevLesson = () => {
     const idx = getLessonIndex();
-    if (idx > 0) setActiveLesson(activeCourse.lessons[idx - 1]);
+    if (idx > 0 && activeCourse?.lessons) setActiveLesson(activeCourse.lessons[idx - 1]);
   };
 
   const handleNextLesson = async () => {
     const idx = getLessonIndex();
-    if (idx !== -1 && idx < activeCourse.lessons.length) {
+    if (idx !== -1 && activeCourse?.lessons && idx < activeCourse.lessons.length) {
       // Backendga dars yakunlanganini yuboramiz
       try {
-        await fetchWithAuth(`/api/lessons/${activeLesson.id}/complete`, { method: 'POST' });
+        if (activeLesson?.id) {
+          await fetchWithAuth(`/api/lessons/${activeLesson.id}/complete`, { method: 'POST' });
+        }
       } catch (err) {
         console.error('Failed to mark lesson as completed', err);
       }
 
       // Joriy darsni "completed" (tugallangan) deb belgilaymiz
-      const updatedLessons = [...activeCourse.lessons];
+      const updatedLessons = [...(activeCourse?.lessons || [])];
       updatedLessons[idx] = { ...updatedLessons[idx], completed: true };
       // Keyingi darsni "unlocked" qilamiz
       if (idx + 1 < updatedLessons.length) {
@@ -1340,7 +1342,7 @@ export default function App() {
       setCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
 
       // Agar bu oxirgi dars bo'lmasa, keyingisiga o'tamiz
-      if (idx < activeCourse.lessons.length - 1) {
+      if (idx < (activeCourse?.lessons?.length || 0) - 1) {
         setActiveLesson(updatedCourse.lessons[idx + 1]);
       }
     }
@@ -2046,7 +2048,7 @@ export default function App() {
                               controlsList="nodownload"
                               onContextMenu={(e) => e.preventDefault()}
                               className="w-full h-full object-contain bg-black"
-                              poster={activeCourse.image}
+                              poster={activeCourse?.image}
                             />
                           )
                         ) : (
@@ -2098,7 +2100,7 @@ export default function App() {
                       <div className="bg-surface p-5 rounded-xl border border-outline-variant space-y-3 shadow-xs">
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-0.5 bg-primary/10 text-primary rounded font-bold text-[9px] uppercase border border-primary/20">
-                            {activeCourse.title}
+                            {activeCourse?.title || 'Kurs'}
                           </span>
                         </div>
                         <h2 className="font-outfit text-xl font-bold text-on-surface">{activeLesson?.title || "Dars Tanlanmagan"}</h2>
@@ -2155,14 +2157,14 @@ export default function App() {
                           <h3 className="font-outfit text-sm font-bold text-on-surface">Kurs Dasturi</h3>
                           <div className="flex items-center gap-2">
                             <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
-                              <div className="bg-primary h-full rounded-full" style={{ width: `${activeCourse.progress}%` }}></div>
+                              <div className="bg-primary h-full rounded-full" style={{ width: `${activeCourse?.progress || 0}%` }}></div>
                             </div>
-                            <span className="text-[10px] font-bold text-primary shrink-0">{activeCourse.progress}%</span>
+                            <span className="text-[10px] font-bold text-primary shrink-0">{activeCourse?.progress || 0}%</span>
                           </div>
                         </div>
 
                         <div className="flex flex-col gap-2">
-                          {(activeCourse.lessons || []).map((lesson) => (
+                          {(activeCourse?.lessons || []).map((lesson) => (
                             <button
                               key={lesson.id}
                               disabled={lesson.locked}
