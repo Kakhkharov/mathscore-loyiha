@@ -1,4 +1,7 @@
+const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) ? 'http://localhost:5000' : 'https://api.mathscore.uz';
 import React, { useState, useEffect, useCallback } from 'react';
+import DesmosCalculator from './DesmosCalculator';
+import CourseAssignments from './CourseAssignments';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from './cropImage';
 import 'katex/dist/katex.min.css';
@@ -36,6 +39,23 @@ const coursesData = [
       { id: 2, title: '2. Hosila olish qoidalari', duration: '50:40', completed: true, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
       { id: 3, title: '3. Integrallash Asoslari', duration: '48:00', completed: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
       { id: 4, title: '4. Murakkab Integrallar', duration: '55:30', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' }
+    ]
+  },
+  {
+    id: 'aslevel-math',
+    title: 'AS-Level Mathematics (Pure Math 1)',
+    category: 'AS-Level',
+    progress: 45,
+    tag: 'Intermediate',
+    instructor: 'Malika Opa',
+    hasDesmos: true,
+    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop',
+    description: 'Cambridge AS-Level Pure Mathematics 1: Coordinate Geometry, Quadratics, Trigonometry, and Calculus.',
+    lessons: [
+      { id: 1, title: '1. Quadratics & Coordinate Geometry', duration: '25:10', completed: true, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+      { id: 2, title: '2. Circular Measure & Trigonometric Identities', duration: '40:30', completed: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
+      { id: 3, title: '3. Series & Binomial Expansion', duration: '35:00', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+      { id: 4, title: '4. Differentiation & Integration Lab', duration: '50:00', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' }
     ]
   },
   {
@@ -444,6 +464,7 @@ export default function App() {
   const [tests, setTests] = useState(studentTests);
   const [submissions, setSubmissions] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [studentPushToast, setStudentPushToast] = useState(null);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileAlert, setShowProfileAlert] = useState(false);
 
@@ -456,7 +477,7 @@ export default function App() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const response = await fetch(`https://api.mathscore.uz${url}`, {
+    const response = await fetch(`${API_BASE}${url}`, {
       ...options,
       headers
     });
@@ -480,7 +501,7 @@ export default function App() {
         if (meData.enrolledCourses && meData.enrolledCourses.length > 0) {
           // Use enrolled courses from the backend (multi-course support)
           const processedCourses = meData.enrolledCourses.map(course => {
-            const baseCourse = coursesData.find(c => c.id === course.id) || {};
+            const baseCourse = coursesData.find(c => c && c.id === course?.id) || {};
             return {
               progress: baseCourse.progress || 0,
               tag: baseCourse.tag || 'Easy',
@@ -566,14 +587,38 @@ export default function App() {
       const testsRes = await fetchWithAuth('/api/tests');
       if (testsRes.ok) {
         const testsDataVal = await testsRes.json();
+        const matchesCourse = (testCourse) => {
+          if (!testCourse || testCourse === 'All' || testCourse === 'Barchasi' || allowedCourseTitles.length === 0) {
+            return true;
+          }
+          const tc = testCourse.toLowerCase().trim();
+          return allowedCourseTitles.some(act => {
+            const a = act.toLowerCase().trim();
+            if (a === tc) return true;
+            if (a.includes(tc) || tc.includes(a)) return true;
+            const tcWords = tc.split(/\s+/).filter(w => w.length > 2);
+            const aWords = a.split(/\s+/).filter(w => w.length > 2);
+            return tcWords.some(w => aWords.includes(w));
+          });
+        };
+
         const mappedTests = testsDataVal
-          .filter(t => !t.course || allowedCourseTitles.includes(t.course))
+          .filter(t => (!t.status || t.status.toLowerCase() === 'published') && matchesCourse(t.course || t.category))
           .map(t => ({
             ...t,
-            questions: (t.questions || []).map(q => ({
-              ...q,
+            totalQuestions: t.questionCount || (t.questions ? t.questions.length : 0),
+            passingScore: t.passingPercentage !== undefined ? t.passingPercentage : (t.passingScore || 70),
+            description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
+            questions: (t.questions || []).map((q, idx) => ({
+              id: q.id || idx + 1,
+              topic: q.topic || t.category || 'Matematika',
+              difficulty: q.difficulty || t.difficulty || 'Medium',
               question: q.text || q.question || '',
-              correct: q.correctAnswer !== undefined ? q.correctAnswer : q.correct
+              options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
+              correct: q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0),
+              explanation: q.explanation || '',
+              hint: q.hint || '',
+              imageUrl: q.imageUrl || null
             }))
           }));
         setTests(mappedTests);
@@ -633,6 +678,16 @@ export default function App() {
     }
   }, []);
 
+  // Auto-sync when entering test center or tasks
+  useEffect(() => {
+    if (currentPage === 'test-center' || currentPage === 'tasks') {
+      const token = localStorage.getItem('student_token');
+      if (token) {
+        syncData();
+      }
+    }
+  }, [currentPage]);
+
   // Course Playing State
   const [activeCourse, setActiveCourse] = useState(coursesData[0]);
   const [activeLesson, setActiveLesson] = useState(coursesData[0].lessons[1]);
@@ -648,6 +703,46 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [activeLesson, currentPage]);
+
+  // Real-time student notifications polling & push toasts
+  useEffect(() => {
+    const token = localStorage.getItem('student_token');
+    if (!token) return;
+
+    const checkStudentNotifs = async () => {
+      try {
+        const notifRes = await fetchWithAuth('/api/notifications');
+        if (notifRes.ok) {
+          const notifs = await notifRes.json();
+          setNotifications(prev => {
+            const prevIds = new Set(prev.map(p => p.id));
+            const newUnread = notifs.filter(n => !n.isRead && !prevIds.has(n.id));
+            if (newUnread.length > 0 && prev.length > 0) {
+              setStudentPushToast(newUnread[0]);
+              try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.35);
+              } catch(e) {}
+            }
+            return notifs;
+          });
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(checkStudentNotifs, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Test State Variables
   const [activeQuizTest, setActiveQuizTest] = useState(studentTests[0]);
@@ -668,6 +763,9 @@ export default function App() {
 
   // Scientific Calculator states
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showDesmos, setShowDesmos] = useState(false);
+  const [desmosRefreshKey, setDesmosRefreshKey] = useState(0);
+  const [desmosViewMode, setDesmosViewMode] = useState('floating');
   const [calcInput, setCalcInput] = useState('');
   const [calcResult, setCalcResult] = useState('');
 
@@ -892,6 +990,7 @@ export default function App() {
 
   const sidebarNavItems = [
     { name: 'Dashboard', icon: 'dashboard', page: 'dashboard' },
+    { name: 'Topshiriqlar', icon: 'assignment', page: 'tasks' },
     { name: 'Testlar Markazi', icon: 'quiz', page: 'test-center' },
     { name: 'Imtihon Natijalari', icon: 'insights', page: 'test-results' },
     { name: 'Settings', icon: 'settings', page: 'profile' }
@@ -951,12 +1050,18 @@ export default function App() {
 
   const getVideoSrc = (url) => {
     if (!url) return '';
-    if (url.includes('/uploads/')) {
-      const token = localStorage.getItem('student_token');
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}token=${token}`;
+    let finalUrl = url;
+    if (url.startsWith('/uploads/')) {
+      finalUrl = `${API_BASE}${url}`;
     }
-    return url;
+    if (finalUrl.includes('/uploads/')) {
+      const token = localStorage.getItem('student_token');
+      if (token && !finalUrl.includes('token=')) {
+        const separator = finalUrl.includes('?') ? '&' : '?';
+        return `${finalUrl}${separator}token=${token}`;
+      }
+    }
+    return finalUrl;
   };
 
   const handleAvatarChange = async (e) => {
@@ -987,7 +1092,7 @@ export default function App() {
         const formData = new FormData();
         formData.append('file', avatarFile, 'avatar.jpg');
 
-        const uploadRes = await fetch('https://api.mathscore.uz/api/upload', {
+        const uploadRes = await fetch(`${API_BASE}/api/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
@@ -998,7 +1103,7 @@ export default function App() {
         currentAvatar = uploadData.url;
       }
 
-      const updateRes = await fetch('https://api.mathscore.uz/api/auth/profile', {
+      const updateRes = await fetch(`${API_BASE}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1085,7 +1190,7 @@ export default function App() {
                 const password = e.target.elements.password.value;
 
                 try {
-                  const response = await fetch('https://api.mathscore.uz/api/auth/login', {
+                  const response = await fetch(`${API_BASE}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -1167,6 +1272,43 @@ export default function App() {
                 Tizimga kirish
               </button>
 
+              <div className="pt-2 border-t border-outline-variant/60 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const email = 'musurmonqahharov747@gmail.com';
+                    const password = '12345678';
+                    try {
+                      const response = await fetch(`${API_BASE}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                      });
+                      const data = await response.json();
+                      if (!response.ok) throw new Error(data.error || 'Kirishda xatolik');
+                      localStorage.setItem('student_token', data.token);
+                      const studentProfile = {
+                        firstName: data.user.name.split(' ')[0] || data.user.name,
+                        lastName: data.user.name.split(' ').slice(1).join(' ') || '',
+                        email: data.user.email,
+                        phone: data.user.phone || '',
+                        avatar: data.user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
+                        course: data.user.course || 'SAT Pro MAX'
+                      };
+                      setProfile(studentProfile);
+                      setCurrentPage('dashboard');
+                      syncData(studentProfile);
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }}
+                  className="w-full h-10 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg text-xs hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">school</span>
+                  <span>Tezkor test kirish (Islombek Qahharov - SAT Pro MAX)</span>
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => { window.location.href = 'http://localhost:5173/'; }}
@@ -1204,7 +1346,7 @@ export default function App() {
               e.preventDefault();
               const email = e.target.elements.email.value;
               try {
-                const res = await fetch('https://api.mathscore.uz/api/auth/forgot-password', {
+                const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email })
@@ -1243,7 +1385,7 @@ export default function App() {
               const newPassword = e.target.elements.newPassword.value;
               const token = new URLSearchParams(window.location.search).get('token');
               try {
-                const res = await fetch('https://api.mathscore.uz/api/auth/reset-password', {
+                const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ token, newPassword })
@@ -1301,10 +1443,16 @@ export default function App() {
                   Dashboard
                 </button>
                 <button
-                  onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); } }}
+                  onClick={() => setCurrentPage('courses')}
                   className={`py-1 transition-colors ${currentPage === 'courses' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
                 >
                   Kurslarim
+                </button>
+                <button
+                  onClick={() => setCurrentPage('tasks')}
+                  className={`py-1 transition-colors ${currentPage === 'tasks' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
+                >
+                  Topshiriqlar
                 </button>
                 <button
                   onClick={() => setCurrentPage('test-center')}
@@ -1321,21 +1469,42 @@ export default function App() {
                 <button
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                   className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer relative"
+                  title="Bildirishnomalar"
                 >
                   <span className="material-symbols-outlined text-[20px] block">notifications</span>
                   {notifications.filter(n => !n.isRead).length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-surface"></span>
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] text-[10px] font-black leading-none rounded-full bg-red-500 text-white shadow-sm ring-2 ring-surface animate-pulse flex items-center justify-center">
+                      {notifications.filter(n => !n.isRead).length}
+                    </span>
                   )}
                 </button>
 
                 {showNotifDropdown && (
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-surface border border-outline-variant/60 rounded-xl shadow-lg z-50 overflow-hidden">
-                    <div className="p-3 border-b border-outline-variant/60">
-                      <h4 className="text-xs font-bold text-on-surface">Bildirishnomalar</h4>
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-outline-variant/60 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[420px]">
+                    <div className="p-3 border-b border-outline-variant/60 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-on-surface">Bildirishnomalar</h4>
+                        {notifications.filter(n => !n.isRead).length > 0 && (
+                          <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-bold rounded">
+                            {notifications.filter(n => !n.isRead).length} yangi
+                          </span>
+                        )}
+                      </div>
+                      {notifications.filter(n => !n.isRead).length > 0 && (
+                        <button
+                          onClick={async () => {
+                            await fetchWithAuth('/api/notifications/read-all', { method: 'POST' });
+                            setNotifications(prev => prev.map(item => ({ ...item, isRead: true })));
+                          }}
+                          className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                        >
+                          Barchasi o'qildi
+                        </button>
+                      )}
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="overflow-y-auto flex-1">
                       {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-outline font-medium">Bildirishnomalar yo'q</div>
+                        <div className="p-6 text-center text-xs text-outline font-medium">Hozircha yangi bildirishnomalar yo'q</div>
                       ) : (
                         notifications.map(n => (
                           <div
@@ -1346,15 +1515,15 @@ export default function App() {
                                 setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: true } : item));
                               }
                             }}
-                            className={`p-3 border-b border-outline-variant/60 last:border-0 cursor-pointer hover:bg-surface-container transition-colors ${!n.isRead ? 'bg-primary/5' : ''}`}
+                            className={`p-3 border-b border-outline-variant/60 last:border-0 cursor-pointer hover:bg-surface-container transition-colors ${!n.isRead ? 'bg-primary/5' : 'opacity-80'}`}
                           >
                             <div className="flex justify-between items-start mb-1">
-                              <h5 className={`text-xs font-bold ${!n.isRead ? 'text-on-surface' : 'text-outline'}`}>{n.title}</h5>
+                              <h5 className={`text-xs font-bold ${!n.isRead ? 'text-primary' : 'text-outline'}`}>{n.title}</h5>
                               <span className="text-[9px] text-outline/80 font-medium whitespace-nowrap ml-2">
                                 {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p className="text-[10px] text-outline leading-tight">{n.message}</p>
+                            <p className="text-[11px] text-on-surface/90 leading-relaxed">{n.message}</p>
                           </div>
                         ))
                       )}
@@ -1459,7 +1628,7 @@ export default function App() {
 
             {/* Primary content area */}
             <main className="flex-1 bg-background overflow-y-auto px-6 py-6 relative">
-              <div className="max-w-[1000px] mx-auto">
+              <div className={`${currentPage === 'test-interface' && showDesmos ? 'max-w-[1650px]' : currentPage === 'test-interface' ? 'max-w-[1250px]' : 'max-w-[1000px]'} mx-auto transition-all duration-300`}>
 
                 {/* -------------------- DASHBOARD VIEW -------------------- */}
                 {currentPage === 'dashboard' && (
@@ -1581,13 +1750,15 @@ export default function App() {
                           Dashboard
                         </button>
 
-                        <button
-                          onClick={() => setCurrentPage('test-center')}
-                          className="bg-secondary-container text-secondary px-4 py-2 rounded-lg font-bold text-xs hover:opacity-90 transition-opacity flex items-center gap-1 border border-secondary/20"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">assignment</span>
-                          Test topshirish (Diagnostic)
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCurrentPage('test-center')}
+                            className="bg-secondary-container text-secondary px-4 py-2 rounded-lg font-bold text-xs hover:opacity-90 transition-opacity flex items-center gap-1 border border-secondary/20 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">assignment</span>
+                            Test topshirish (Diagnostic)
+                          </button>
+                        </div>
                       </div>
 
                       {/* Video Embed Player */}
@@ -1677,6 +1848,14 @@ export default function App() {
                           </a>
                         </div>
                       </div>
+
+                      {/* Course Assignments Component */}
+                      <CourseAssignments
+                        currentCourseTitle={activeCourse?.title}
+                        studentName={`${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Alex Johnson'}
+                        studentPhone={profile?.phone || '+998 94 024 13 71'}
+                        studentAvatar={profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'}
+                      />
                     </div>
 
                     {/* Course Syllabus */}
@@ -1748,12 +1927,33 @@ export default function App() {
                   </div>
                 )}
 
+                {/* -------------------- TASKS / TOPSHIRIQLAR VIEW -------------------- */}
+                {currentPage === 'tasks' && (
+                  <CourseAssignments
+                    studentName={`${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Alex Johnson'}
+                    studentPhone={profile?.phone || '+998 94 024 13 71'}
+                    studentAvatar={profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'}
+                    studentCourses={courses}
+                    currentCourseTitle={activeCourse?.title || profile?.course}
+                  />
+                )}
+
                 {/* -------------------- TEST CENTER / PORTAL VIEW -------------------- */}
                 {currentPage === 'test-center' && (
                   <div className="space-y-6 animate-fade-in">
-                    <header className="flex flex-col gap-1">
-                      <h1 className="font-outfit text-2xl font-bold text-on-surface">Imtihonlar Markazi</h1>
-                      <p className="text-xs text-outline font-medium">Barcha onlayn testlar va diagnostik imtihonlar ro'yxati.</p>
+                    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h1 className="font-outfit text-2xl font-bold text-on-surface">Imtihonlar Markazi</h1>
+                        <p className="text-xs text-outline font-medium">Barcha onlayn testlar va diagnostik imtihonlar ro'yxati.</p>
+                      </div>
+                      <button
+                        onClick={() => { syncData(); }}
+                        className="self-start sm:self-auto bg-surface border border-outline-variant hover:border-primary/50 text-on-surface text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs hover:bg-surface-container"
+                        title="Testlarni qayta yuklash"
+                      >
+                        <span className="material-symbols-outlined text-[16px] text-primary">sync</span>
+                        <span>Yangilash</span>
+                      </button>
                     </header>
 
                     {/* Portal Stats Bento */}
@@ -1777,60 +1977,77 @@ export default function App() {
                     </div>
 
                     {/* Test List Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {tests.map((test) => (
-                        <div key={test.id} className="bg-surface rounded-xl border border-outline-variant overflow-hidden flex flex-col justify-between hover:border-primary/40 transition-all shadow-xs group">
-                          <div className="p-5 space-y-3">
-                            <div className="flex justify-between items-start">
-                              <span className="px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded font-bold text-[9px] uppercase tracking-wider">
-                                {test.category}
-                              </span>
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${test.difficulty === 'Easy' ? 'bg-tertiary-container text-tertiary' :
-                                  test.difficulty === 'Medium' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
-                                }`}>
-                                {test.difficulty}
-                              </span>
-                            </div>
-                            <h3 className="font-outfit text-base font-bold text-on-surface group-hover:text-primary transition-colors">{test.title}</h3>
-                            <p className="text-xs text-outline font-medium line-clamp-3 leading-relaxed">{test.description}</p>
-
-                            <div className="flex items-center gap-4 text-[10px] text-outline font-bold pt-2">
-                              <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[15px]">assignment</span>
-                                <span>{test.totalQuestions} ta savol</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[15px]">schedule</span>
-                                <span>{test.duration} daqiqa</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[15px]">verified</span>
-                                <span>{test.passingScore}% o'tish</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
-                            <div className="text-[10px] font-bold text-outline">
-                              {quizResult && quizResult.testId === test.id ? (
-                                <span className="text-tertiary flex items-center gap-0.5">
-                                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                                  Bajarildi ({quizResult.score}%)
+                    {tests.length === 0 ? (
+                      <div className="bg-surface border border-dashed border-outline-variant rounded-2xl p-12 text-center space-y-3">
+                        <span className="material-symbols-outlined text-4xl text-outline/60">quiz</span>
+                        <h3 className="font-outfit text-base font-bold text-on-surface">Hozircha testlar mavjud emas</h3>
+                        <p className="text-xs text-outline max-w-sm mx-auto">Admin tomonidan chop etilgan sizning kursingizga tegishli barcha yangi testlar shu yerda aks etadi.</p>
+                        <button
+                          onClick={() => syncData()}
+                          className="bg-primary text-on-primary text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors inline-flex items-center gap-1.5 cursor-pointer mt-2"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">refresh</span>
+                          <span>Yangilash</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {tests.map((test) => (
+                          <div key={test.id} className="bg-surface rounded-xl border border-outline-variant overflow-hidden flex flex-col justify-between hover:border-primary/40 transition-all shadow-xs group">
+                            <div className="p-5 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <span className="px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded font-bold text-[9px] uppercase tracking-wider">
+                                  {test.category || test.course || 'SAT Math'}
                                 </span>
-                              ) : 'Topshirilmagan'}
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${test.difficulty === 'Easy' ? 'bg-tertiary-container text-tertiary' :
+                                    test.difficulty === 'Medium' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
+                                  }`}>
+                                  {test.difficulty || 'Medium'}
+                                </span>
+                              </div>
+                              <h3 className="font-outfit text-base font-bold text-on-surface group-hover:text-primary transition-colors">{test.title}</h3>
+                              <p className="text-xs text-outline font-medium line-clamp-3 leading-relaxed">
+                                {test.description || `${test.title} bo'yicha onlayn test sinovi.`}
+                              </p>
+
+                              <div className="flex items-center gap-4 text-[10px] text-outline font-bold pt-2">
+                                <div className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[15px]">assignment</span>
+                                  <span>{test.totalQuestions || test.questionCount || (test.questions ? test.questions.length : 0)} ta savol</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[15px]">schedule</span>
+                                  <span>{test.duration || 60} daqiqa</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[15px]">verified</span>
+                                  <span>{test.passingScore || test.passingPercentage || 70}% o'tish</span>
+                                </div>
+                              </div>
                             </div>
 
-                            <button
-                              onClick={() => handleStartTestFlow(test)}
-                              className="bg-primary text-on-primary text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 cursor-pointer"
-                            >
-                              <span>Boshlash</span>
-                              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                            </button>
+                            <div className="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
+                              <div className="text-[10px] font-bold text-outline">
+                                {quizResult && quizResult.testId === test.id ? (
+                                  <span className="text-tertiary flex items-center gap-0.5">
+                                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Bajarildi ({quizResult.score}%)
+                                  </span>
+                                ) : 'Topshirilmagan'}
+                              </div>
+
+                              <button
+                                onClick={() => handleStartTestFlow(test)}
+                                className="bg-primary text-on-primary text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>Boshlash</span>
+                                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1873,8 +2090,8 @@ export default function App() {
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
                               <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-tertiary text-[18px]">calculate</span>
-                                <span className="text-on-surface">Scientific Kalkulyator mavjud</span>
+                                <span className="material-symbols-outlined text-primary text-[18px]">show_chart</span>
+                                <span className="text-on-surface">Desmos Grafik Kalkulyatori mavjud</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-error text-[18px]">lock</span>
@@ -1922,7 +2139,7 @@ export default function App() {
                   >
 
                     {/* Left Sidebar 30-Question Navigator */}
-                    <div className="lg:col-span-3">
+                    <div className={showDesmos ? "lg:col-span-3 xl:col-span-3 2xl:col-span-2" : "lg:col-span-3"}>
                       <div className="bg-surface rounded-xl p-4 border border-outline-variant flex flex-col gap-4 shadow-xs sticky top-20">
                         <div className="flex justify-between items-center pb-2 border-b border-outline-variant">
                           <h3 className="font-outfit text-xs font-bold text-on-surface">Savollar paneli</h3>
@@ -2010,7 +2227,7 @@ export default function App() {
                     </div>
 
                     {/* Central Question Workspace */}
-                    <div className="lg:col-span-9 flex flex-col gap-4">
+                    <div className={`${showDesmos ? 'lg:col-span-9 xl:col-span-9 2xl:col-span-10' : 'lg:col-span-9'} flex flex-col gap-4`}>
 
                       {/* Premium Top Bar */}
                       <div className="bg-surface border border-outline-variant p-4 rounded-xl flex justify-between items-center shadow-xs">
@@ -2024,13 +2241,21 @@ export default function App() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          {/* Calculator trigger */}
+                          {/* Desmos Graphic Calculator trigger */}
                           <button
-                            onClick={() => setShowCalculator(!showCalculator)}
-                            className="bg-secondary-container text-secondary border border-secondary/20 hover:bg-secondary/15 px-3 py-1.5 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                            onClick={() => setShowDesmos(!showDesmos)}
+                            className={`px-3 py-1.5 rounded-lg font-bold text-[10px] flex items-center gap-1.5 cursor-pointer transition-all border ${
+                              showDesmos
+                                ? 'bg-primary text-on-primary border-primary shadow-xs'
+                                : 'bg-secondary-container text-secondary border-secondary/20 hover:bg-secondary/15'
+                            }`}
+                            title="Desmos Grafik Kalkulyatori (2 oynali rejim)"
                           >
-                            <span className="material-symbols-outlined text-[14px]">calculate</span>
-                            <span>Kalkulyator</span>
+                            <span className="material-symbols-outlined text-[15px]">show_chart</span>
+                            <span>Desmos Grafik Kalkulyatori</span>
+                            {showDesmos && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+                            )}
                           </button>
 
                           <button
@@ -2043,152 +2268,247 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Main Question Sheet */}
-                      <div className="bg-surface rounded-2xl p-6 border border-outline-variant flex flex-col gap-6 shadow-xs min-h-[300px]">
-
-                        {/* Question Text with Live LaTeX parsed values */}
-                        <div className="space-y-4">
-                          <h2 className="text-[11px] font-bold text-outline uppercase tracking-wider">Masala Sharti:</h2>
-                          <div className="font-outfit text-base font-bold text-on-surface leading-relaxed text-left flex flex-wrap items-center gap-1.5">
-                            {renderMathContent(activeQuizTest.questions[activeQuestion]?.question || '')}
-                          </div>
-                          {activeQuizTest.questions[activeQuestion]?.imageUrl && (
-                            <div className="mt-4 flex justify-center">
-                              <img src={getVideoSrc(activeQuizTest.questions[activeQuestion].imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-xl border border-outline-variant shadow-sm object-contain" style={{ maxHeight: '300px' }} />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Interactive Options grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-outline-variant/60">
-                          {(activeQuizTest.questions[activeQuestion]?.options || []).map((opt, oIdx) => {
-                            const isChecked = quizAnswers[activeQuestion] === oIdx;
-                            return (
-                              <button
-                                key={oIdx}
-                                onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
-                                className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
-                                    ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
-                                    : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
-                                  }`}
-                              >
-                                <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
-                                    ? 'bg-primary border-primary text-on-primary'
-                                    : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
-                                  }`}>
-                                  {String.fromCharCode(65 + oIdx)}
+                      {/* Split-screen Workspace when showDesmos is active */}
+                      {showDesmos ? (
+                        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+                          {/* Left Column: Question & Answers (Test jarayoniga ta'sir qilmaydi) */}
+                          <div className="xl:col-span-6 flex flex-col gap-4">
+                            {/* Main Question Sheet */}
+                            <div className="bg-surface rounded-2xl p-5 border border-outline-variant flex flex-col gap-5 shadow-xs">
+                              {/* Question Text with Live LaTeX parsed values */}
+                              <div className="space-y-3">
+                                <h2 className="text-[11px] font-bold text-outline uppercase tracking-wider">Masala Sharti:</h2>
+                                <div className="font-outfit text-base font-bold text-on-surface leading-relaxed text-left flex flex-wrap items-center gap-1.5">
+                                  {renderMathContent(activeQuizTest.questions[activeQuestion]?.question || '')}
                                 </div>
-                                <span className="text-xs font-semibold leading-relaxed">
-                                  {renderMathContent(opt)}
-                                </span>
+                                {activeQuizTest.questions[activeQuestion]?.imageUrl && (
+                                  <div className="mt-3 flex justify-center">
+                                    <img
+                                      src={getVideoSrc(activeQuizTest.questions[activeQuestion].imageUrl)}
+                                      alt="Diagramma"
+                                      className="max-w-full h-auto rounded-xl border border-outline-variant shadow-sm object-contain"
+                                      style={{ maxHeight: '280px' }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Interactive Options grid */}
+                              <div className="grid grid-cols-1 gap-2.5 pt-4 border-t border-outline-variant/60">
+                                {(activeQuizTest.questions[activeQuestion]?.options || []).map((opt, oIdx) => {
+                                  const isChecked = quizAnswers[activeQuestion] === oIdx;
+                                  return (
+                                    <button
+                                      key={oIdx}
+                                      onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
+                                      className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
+                                          ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
+                                          : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
+                                        }`}
+                                    >
+                                      <div className={`w-7 h-7 rounded-full border shrink-0 flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
+                                          ? 'bg-primary border-primary text-on-primary'
+                                          : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
+                                        }`}>
+                                        {String.fromCharCode(65 + oIdx)}
+                                      </div>
+                                      <span className="text-xs font-semibold leading-relaxed">
+                                        {renderMathContent(opt)}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Bottom Quick Navigation */}
+                            <div className="bg-surface border border-outline-variant p-3.5 rounded-xl flex justify-between items-center shadow-xs">
+                              <button
+                                disabled={activeQuestion === 0}
+                                onClick={() => {
+                                  setActiveQuestion(prev => prev - 1);
+                                  if (!visitedQuestions.includes(activeQuestion - 1)) {
+                                    setVisitedQuestions(prev => [...prev, activeQuestion - 1]);
+                                  }
+                                }}
+                                className="bg-surface hover:bg-surface-container text-on-surface font-bold text-xs py-2 px-3.5 rounded-lg border border-outline-variant transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">chevron_left</span> Ortga
                               </button>
-                            );
-                          })}
+
+                              <div className="text-[10px] text-outline font-bold">
+                                Savol {activeQuestion + 1} / {activeQuizTest.questions.length}
+                              </div>
+
+                              {activeQuestion === activeQuizTest.questions.length - 1 ? (
+                                <button
+                                  onClick={() => setShowQuizConfirmationModal(true)}
+                                  className="bg-tertiary text-on-tertiary font-bold text-xs py-2 px-4 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
+                                >
+                                  <span>Yuborish</span>
+                                  <span className="material-symbols-outlined text-[15px]">check</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setActiveQuestion(prev => prev + 1);
+                                    if (!visitedQuestions.includes(activeQuestion + 1)) {
+                                      setVisitedQuestions(prev => [...prev, activeQuestion + 1]);
+                                    }
+                                  }}
+                                  className="bg-primary text-on-primary font-bold text-xs py-2 px-4 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
+                                >
+                                  <span>Keyingi</span>
+                                  <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right Column: Desmos Interactive Graphing Workspace */}
+                          <div className="xl:col-span-6 bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-md flex flex-col sticky top-20">
+                            {/* Desmos Window Header */}
+                            <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container border-b border-outline-variant select-none">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-[18px]">show_chart</span>
+                                <span className="font-outfit font-bold text-xs text-on-surface">
+                                  Desmos Grafik Kalkulyatori
+                                </span>
+                                <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[9px] font-mono font-bold uppercase">
+                                  A/AS Level
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href="https://www.desmos.com/calculator?lang=ru"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 rounded-md hover:bg-surface-container-high text-outline hover:text-primary transition-colors flex items-center"
+                                  title="Alohida yangi oynada ochish (Desmos.com)"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                </a>
+                                <button
+                                  onClick={() => setDesmosRefreshKey(prev => prev + 1)}
+                                  className="p-1 rounded-md hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors flex items-center"
+                                  title="Grafikni tozalash / Qayta yuklash"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                                </button>
+                                <button
+                                  onClick={() => setShowDesmos(false)}
+                                  className="p-1 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors flex items-center"
+                                  title="Desmosni yopish (To'liq ekranga qaytish)"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">close</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Desmos Iframe */}
+                            <div className="w-full h-[620px] bg-white relative">
+                              <iframe
+                                key={desmosRefreshKey}
+                                src="https://www.desmos.com/calculator?lang=ru"
+                                title="Desmos Graphing Calculator"
+                                className="w-full h-full border-0"
+                                allow="clipboard-write; fullscreen"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        // Standard full-width Question Workspace
+                        <>
+                          {/* Main Question Sheet */}
+                          <div className="bg-surface rounded-2xl p-6 border border-outline-variant flex flex-col gap-6 shadow-xs min-h-[300px]">
+                            {/* Question Text with Live LaTeX parsed values */}
+                            <div className="space-y-4">
+                              <h2 className="text-[11px] font-bold text-outline uppercase tracking-wider">Masala Sharti:</h2>
+                              <div className="font-outfit text-base font-bold text-on-surface leading-relaxed text-left flex flex-wrap items-center gap-1.5">
+                                {renderMathContent(activeQuizTest.questions[activeQuestion]?.question || '')}
+                              </div>
+                              {activeQuizTest.questions[activeQuestion]?.imageUrl && (
+                                <div className="mt-4 flex justify-center">
+                                  <img src={getVideoSrc(activeQuizTest.questions[activeQuestion].imageUrl)} alt="Diagramma" className="max-w-full h-auto rounded-xl border border-outline-variant shadow-sm object-contain" style={{ maxHeight: '300px' }} />
+                                </div>
+                              )}
+                            </div>
 
-                      {/* Bottom Quick Navigation */}
-                      <div className="bg-surface border border-outline-variant p-4 rounded-xl flex justify-between items-center shadow-xs">
-                        <button
-                          disabled={activeQuestion === 0}
-                          onClick={() => {
-                            setActiveQuestion(prev => prev - 1);
-                            if (!visitedQuestions.includes(activeQuestion - 1)) {
-                              setVisitedQuestions(prev => [...prev, activeQuestion - 1]);
-                            }
-                          }}
-                          className="bg-surface hover:bg-surface-container text-on-surface font-bold text-xs py-2.5 px-4 rounded-lg border border-outline-variant transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">chevron_left</span> Ortga
-                        </button>
+                            {/* Interactive Options grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-outline-variant/60">
+                              {(activeQuizTest.questions[activeQuestion]?.options || []).map((opt, oIdx) => {
+                                const isChecked = quizAnswers[activeQuestion] === oIdx;
+                                return (
+                                  <button
+                                    key={oIdx}
+                                    onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
+                                    className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
+                                        ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
+                                        : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
+                                      }`}
+                                  >
+                                    <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
+                                        ? 'bg-primary border-primary text-on-primary'
+                                        : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
+                                      }`}>
+                                      {String.fromCharCode(65 + oIdx)}
+                                    </div>
+                                    <span className="text-xs font-semibold leading-relaxed">
+                                      {renderMathContent(opt)}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
 
-                        <div className="text-[10px] text-outline font-bold">
-                          Savol {activeQuestion + 1} / {activeQuizTest.questions.length}
-                        </div>
+                          {/* Bottom Quick Navigation */}
+                          <div className="bg-surface border border-outline-variant p-4 rounded-xl flex justify-between items-center shadow-xs">
+                            <button
+                              disabled={activeQuestion === 0}
+                              onClick={() => {
+                                setActiveQuestion(prev => prev - 1);
+                                if (!visitedQuestions.includes(activeQuestion - 1)) {
+                                  setVisitedQuestions(prev => [...prev, activeQuestion - 1]);
+                                }
+                              }}
+                              className="bg-surface hover:bg-surface-container text-on-surface font-bold text-xs py-2.5 px-4 rounded-lg border border-outline-variant transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">chevron_left</span> Ortga
+                            </button>
 
-                        {activeQuestion === activeQuizTest.questions.length - 1 ? (
-                          <button
-                            onClick={() => setShowQuizConfirmationModal(true)}
-                            className="bg-tertiary text-on-tertiary font-bold text-xs py-2.5 px-5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
-                          >
-                            <span>Yuborish</span>
-                            <span className="material-symbols-outlined text-[15px]">check</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setActiveQuestion(prev => prev + 1);
-                              if (!visitedQuestions.includes(activeQuestion + 1)) {
-                                setVisitedQuestions(prev => [...prev, activeQuestion + 1]);
-                              }
-                            }}
-                            className="bg-primary text-on-primary font-bold text-xs py-2.5 px-5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
-                          >
-                            <span>Keyingi</span>
-                            <span className="material-symbols-outlined text-[15px]">chevron_right</span>
-                          </button>
-                        )}
-                      </div>
+                            <div className="text-[10px] text-outline font-bold">
+                              Savol {activeQuestion + 1} / {activeQuizTest.questions.length}
+                            </div>
+
+                            {activeQuestion === activeQuizTest.questions.length - 1 ? (
+                              <button
+                                onClick={() => setShowQuizConfirmationModal(true)}
+                                className="bg-tertiary text-on-tertiary font-bold text-xs py-2.5 px-5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
+                              >
+                                <span>Yuborish</span>
+                                <span className="material-symbols-outlined text-[15px]">check</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setActiveQuestion(prev => prev + 1);
+                                  if (!visitedQuestions.includes(activeQuestion + 1)) {
+                                    setVisitedQuestions(prev => [...prev, activeQuestion + 1]);
+                                  }
+                                }}
+                                className="bg-primary text-on-primary font-bold text-xs py-2.5 px-5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer shadow-xs"
+                              >
+                                <span>Keyingi</span>
+                                <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-
-                    {/* Floating Scientific Calculator Widget */}
-                    {showCalculator && (
-                      <div className="fixed bottom-6 right-6 w-72 bg-surface/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-2xl border border-outline-variant p-4 shadow-xl z-50 flex flex-col gap-3 animate-fade-in">
-                        <div className="flex justify-between items-center pb-2 border-b border-outline-variant/60">
-                          <h4 className="font-outfit text-xs font-bold text-on-surface flex items-center gap-1">
-                            <span className="material-symbols-outlined text-secondary text-[16px]">calculate</span>
-                            Muxandislik Kalkulyatori
-                          </h4>
-                          <button
-                            onClick={() => setShowCalculator(false)}
-                            className="w-5 h-5 rounded-full hover:bg-surface-container flex items-center justify-center text-outline cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">close</span>
-                          </button>
-                        </div>
-
-                        {/* Screen */}
-                        <div className="bg-surface-container-high rounded-xl p-3 text-right space-y-1 border border-outline-variant">
-                          <div className="text-[10px] text-outline font-bold truncate h-4">{calcInput || '0'}</div>
-                          <div className="font-outfit text-lg font-bold text-on-surface truncate h-7">{calcResult || '0'}</div>
-                        </div>
-
-                        {/* Buttons Grid */}
-                        <div className="grid grid-cols-5 gap-1 text-[10px] font-bold">
-                          {['sin', 'cos', 'tan', 'sqrt', 'log'].map((btn) => (
-                            <button
-                              key={btn}
-                              onClick={() => handleCalcPress(btn)}
-                              className="bg-primary/10 text-primary py-2 rounded-lg hover:bg-primary/20 cursor-pointer"
-                            >
-                              {btn}
-                            </button>
-                          ))}
-
-                          {['(', ')', 'π', 'C', '='].map((btn) => (
-                            <button
-                              key={btn}
-                              onClick={() => handleCalcPress(btn)}
-                              className={`py-2 rounded-lg cursor-pointer ${btn === 'C' ? 'bg-error-container text-error' :
-                                  btn === '=' ? 'bg-tertiary text-on-tertiary col-span-2' : 'bg-surface-container hover:bg-surface-container-high'
-                                }`}
-                            >
-                              {btn}
-                            </button>
-                          ))}
-
-                          {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '+'].map((btn) => (
-                            <button
-                              key={btn}
-                              onClick={() => handleCalcPress(btn)}
-                              className="bg-surface-container hover:bg-surface-container-high py-2.5 rounded-lg cursor-pointer"
-                            >
-                              {btn}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -2681,6 +3001,26 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Student Push Notification Toast */}
+      {studentPushToast && (
+        <div className="fixed bottom-6 right-6 z-[999] max-w-sm w-full bg-surface border border-primary/40 rounded-2xl p-4 shadow-2xl animate-slide-in flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[22px]">notifications_active</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h5 className="text-xs font-black text-on-surface">{studentPushToast.title}</h5>
+            <p className="text-[11px] text-outline mt-0.5 line-clamp-2 leading-relaxed">{studentPushToast.message}</p>
+            <span className="text-[9px] text-outline/80 block mt-1 font-medium">Hozirgina</span>
+          </div>
+          <button
+            onClick={() => setStudentPushToast(null)}
+            className="text-outline hover:text-on-surface p-1 rounded-lg transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
         </div>
       )}
 

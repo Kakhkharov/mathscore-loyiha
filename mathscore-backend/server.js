@@ -63,9 +63,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Secure Video Streaming / Uploads Access
 app.use('/uploads', (req, res, next) => {
   const ext = path.extname(req.path).toLowerCase();
-  const publicExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+  const publicExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.pdf', '.doc', '.docx', '.zip'];
   
-  // Allow public access to images (used in landing page, certificates, etc.)
+  // Allow public access to images, PDFs, and documents (used in landing page, task assignments, homeworks, etc.)
   if (publicExtensions.includes(ext)) {
     return next();
   }
@@ -114,6 +114,82 @@ function broadcastToDashboard(type, data) {
   sseClients.forEach(client => { client.write(`data: ${payload}\n\n`); });
 }
 
+async function sendNotificationToUser(userId, title, message) {
+  try {
+    const notif = await db.prisma.notification.create({
+      data: { userId, title, message }
+    });
+    broadcastToDashboard('notification', { userId, notif });
+    return notif;
+  } catch (e) {
+    console.error('Failed to send notification to user:', e);
+    return null;
+  }
+}
+
+async function sendNotificationToAdmins(title, message) {
+  try {
+    const admins = await db.prisma.user.findMany({
+      where: { role: 'admin' },
+      select: { id: true }
+    });
+    const results = [];
+    for (const admin of admins) {
+      const n = await sendNotificationToUser(admin.id, title, message);
+      if (n) results.push(n);
+    }
+    return results;
+  } catch (e) {
+    console.error('Failed to notify admins:', e);
+    return [];
+  }
+}
+
+async function sendNotificationToCourseStudents(courseTitleOrId, title, message) {
+  try {
+    if (!courseTitleOrId || courseTitleOrId === 'All' || courseTitleOrId === 'Barchasi') {
+      const allStudents = await db.prisma.user.findMany({ where: { role: 'student' }, select: { id: true } });
+      for (const s of allStudents) {
+        await sendNotificationToUser(s.id, title, message);
+      }
+      return;
+    }
+
+    const course = await db.prisma.course.findFirst({
+      where: {
+        OR: [
+          { id: courseTitleOrId },
+          { title: courseTitleOrId },
+          { title: { contains: courseTitleOrId } }
+        ]
+      }
+    });
+
+    const userQuery = course ? {
+      role: 'student',
+      OR: [
+        { userCourses: { some: { courseId: course.id } } },
+        { course: { contains: course.title } },
+        { course: courseTitleOrId }
+      ]
+    } : {
+      role: 'student',
+      course: { contains: courseTitleOrId }
+    };
+
+    const students = await db.prisma.user.findMany({
+      where: userQuery,
+      select: { id: true, name: true, email: true }
+    });
+
+    for (const student of students) {
+      await sendNotificationToUser(student.id, title, message);
+    }
+  } catch (e) {
+    console.error('Failed to notify course students:', e);
+  }
+}
+
 app.use((req, res, next) => {
   if (maintenanceMode && !req.path.startsWith('/api/system') && !req.path.startsWith('/api/auth')) {
     return res.status(503).json({ error: 'Tizimda texnik ishlar olib borilmoqda (Maintenance Mode).' });
@@ -132,8 +208,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// File Upload
-app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
+// File Upload (Rasmlar va diagrammalar uchun xavfsiz va moslashuvchan upload)
+app.post('/api/upload', (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        jwt.verify(token, JWT_SECRET, (err, user) => {
+          if (!err) req.user = user;
+          next();
+        });
+        return;
+      } catch (e) {}
+    }
+  }
+  next();
+}, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Fayl yuklanmadi' });
   const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   
@@ -500,7 +592,8 @@ app.delete('/api/courses/:id', authenticateToken, requireRole('admin'), async (r
 app.get('/api/tests', authenticateToken, async (req, res) => {
   const tests = await db.get('tests');
   if (req.user.role === 'student') {
-    return res.json(tests.map(t => {
+    const published = tests.filter(t => !t.status || t.status.toLowerCase() === 'published');
+    return res.json(published.map(t => {
       const sanitizedQuestions = (t.questions || []).map(q => {
         const { correctAnswer, explanation, ...safeQ } = q;
         return safeQ;
@@ -526,10 +619,24 @@ app.get('/api/tests/:id', authenticateToken, async (req, res) => {
 
 app.post('/api/tests', authenticateToken, requireRole('admin'), async (req, res) => {
   const saved = await db.insert('tests', req.body);
+  if (saved && saved.status === 'Published') {
+    sendNotificationToCourseStudents(
+      saved.course || saved.category,
+      "Yangi imtihon testi chop etildi! 🎯",
+      `"${saved.title}" imtihon testi chop etildi. Testlar markaziga o'tib topshirishingiz mumkin.`
+    );
+  }
   res.status(201).json(saved);
 });
 app.put('/api/tests/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   const updated = await db.update('tests', req.params.id, req.body);
+  if (updated && updated.status === 'Published') {
+    sendNotificationToCourseStudents(
+      updated.course || updated.category,
+      "Imtihon testi chop etildi! 🎯",
+      `"${updated.title}" testi yangilandi va chop etildi. Testlar markaziga o'tib topshirishingiz mumkin.`
+    );
+  }
   res.json(updated);
 });
 app.delete('/api/tests/:id', authenticateToken, requireRole('admin'), async (req, res) => {
@@ -544,11 +651,11 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
   if (!test) return res.status(404).json({ error: 'Test topilmadi.' });
 
   let correctCount = 0;
-  test.questions.forEach((q, idx) => {
+  (test.questions || []).forEach((q, idx) => {
     if (answers && answers[idx] === q.correctAnswer) correctCount++;
   });
 
-  const totalQuestions = test.questions.length;
+  const totalQuestions = (test.questions && test.questions.length > 0) ? test.questions.length : 1;
   const score = Math.round((correctCount / totalQuestions) * 100);
   const passed = score >= (test.passingPercentage || 70);
 
@@ -562,6 +669,12 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
     db.logSecurityIncident({ type: 'EXAM_CHEATING_ALERT', severity: 'HIGH', message: `Talaba imtihonda cheat qildi: ${req.user.email}. Tab: ${tabSwitches}`, ip: req.ip });
     broadcastToDashboard('sec_log', { type: 'EXAM_CHEATING_ALERT', severity: 'HIGH', message: `Imtihonda ko'chirish urinishi: ${req.user.name}`, ip: req.ip });
   }
+
+  // Notify admins in real-time
+  await sendNotificationToAdmins(
+    "Yangi test topshirildi 📝",
+    `${req.user.name} "${test.title}" imtihon testini ${score}% ball bilan topshirdi (${passed ? "O'tdi ✅" : "O'tmadi ❌"}).`
+  );
 
   res.status(201).json({ message: 'Natijangiz saqlandi!', result: { score, correctCount, totalQuestions, passed, tabSwitches } });
 });
@@ -695,6 +808,32 @@ app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   res.json({ success: true });
 });
 
+app.post('/api/notifications/read-all', authenticateToken, async (req, res) => {
+  await db.prisma.notification.updateMany({
+    where: { userId: req.user.id, isRead: false },
+    data: { isRead: true }
+  });
+  res.json({ success: true, message: "Barcha bildirishnomalar o'qilgan deb belgilandi." });
+});
+
+app.post('/api/notifications', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { userId, course, title, message } = req.body;
+  if (!title || !message) return res.status(400).json({ error: 'Sarlavha va matn kiritilishi shart.' });
+  if (userId) {
+    const notif = await sendNotificationToUser(userId, title, message);
+    return res.status(201).json(notif);
+  }
+  if (course) {
+    await sendNotificationToCourseStudents(course, title, message);
+    return res.status(201).json({ message: "Kurs talabalariga yuborildi." });
+  }
+  const allStudents = await db.prisma.user.findMany({ where: { role: 'student' }, select: { id: true } });
+  for (const s of allStudents) {
+    await sendNotificationToUser(s.id, title, message);
+  }
+  res.status(201).json({ message: "Barcha talabalarga yuborildi." });
+});
+
 // ==========================================
 // LANDING PAGE API
 // ==========================================
@@ -731,6 +870,332 @@ function readLandingDB() {
 function writeLandingDB(data) {
   fs.writeFileSync(LANDING_DB_FILE, JSON.stringify(data, null, 2));
 }
+
+
+// ==================== TASKS & ASSIGNMENTS API ====================
+app.get('/api/tasks', (req, res) => {
+  const dbData = readLandingDB();
+  res.json(dbData.tasks || []);
+});
+
+app.post('/api/tasks', upload.single('file'), async (req, res) => {
+  try {
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+
+    let fileUrl = '';
+    let fileName = '';
+    if (req.file) {
+      if (req.file.size > 20 * 1024 * 1024) {
+        return res.status(400).json({ error: "Xatolik: Fayl hajmi 20 MB dan oshmasligi kerak!" });
+      }
+      fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      fileName = req.file.originalname;
+    }
+
+    const { courseTitle, title, description, deadline, linkUrl } = req.body;
+    if (!title || !courseTitle) {
+      return res.status(400).json({ error: "Kurs va topshiriq sarlavhasi kiritilishi shart." });
+    }
+
+    const newTask = {
+      id: Date.now(),
+      courseTitle: courseTitle,
+      title: title.trim(),
+      description: (description || '').slice(0, 256),
+      deadline: deadline || new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString(),
+      linkUrl: linkUrl || '',
+      fileUrl: fileUrl,
+      fileName: fileName,
+      tasksCount: 1,
+      uploadedStudentsCount: 0,
+      linksCount: linkUrl ? 1 : 0,
+      submissions: [],
+      createdAt: new Date().toISOString()
+    };
+
+    dbData.tasks.unshift(newTask);
+    writeLandingDB(dbData);
+
+    // Notify course students about the new task
+    sendNotificationToCourseStudents(
+      newTask.courseTitle,
+      "Yangi topshiriq yuklandi! 📚",
+      `"${newTask.courseTitle}" kursingizga yangi topshiriq: "${newTask.title}" qo'shildi. Topshirish muddati: ${new Date(newTask.deadline).toLocaleDateString('uz-UZ')}.`
+    );
+
+    res.status(201).json(newTask);
+  } catch (err) {
+    console.error("Task create error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/tasks/:id', (req, res) => {
+  try {
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+    const taskId = parseInt(req.params.id);
+    dbData.tasks = dbData.tasks.filter(t => t.id !== taskId);
+    writeLandingDB(dbData);
+    res.json({ success: true, message: "Topshiriq muvaffaqiyatli o'chirildi." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/tasks/:id', (req, res) => {
+  try {
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+    const taskId = parseInt(req.params.id);
+    const task = dbData.tasks.find(t => t.id === taskId);
+    if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
+
+    const { title, description, deadline } = req.body;
+    if (title) task.title = title.trim();
+    if (description !== undefined) task.description = description.trim().slice(0, 256);
+    if (deadline) task.deadline = deadline;
+    task.updatedAt = new Date().toISOString();
+
+    writeLandingDB(dbData);
+    res.json({ success: true, message: "Topshiriq muvaffaqiyatli yangilandi!", task });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tasks/:id/grade', async (req, res) => {
+  try {
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+    const taskId = parseInt(req.params.id);
+    const task = dbData.tasks.find(t => t.id === taskId);
+    if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
+
+    const { submissionId, grade, feedback, gradedBy, attemptsAllowed, resubmitAllowed } = req.body;
+    if (!task.submissions) task.submissions = [];
+    const submission = task.submissions.find(s => String(s.id) === String(submissionId));
+    if (!submission) {
+      return res.status(404).json({ error: "Talaba yechimi topilmadi." });
+    }
+
+    submission.grade = grade;
+    submission.feedback = feedback;
+    submission.gradedAt = new Date().toISOString();
+    submission.gradedBy = gradedBy || 'Admin';
+
+    // 2-3-imkoniyat berish mantig'i
+    if (attemptsAllowed !== undefined) {
+      submission.attemptsAllowed = parseInt(attemptsAllowed) || 1;
+    }
+    if (resubmitAllowed !== undefined) {
+      submission.resubmitAllowed = Boolean(resubmitAllowed);
+      if (submission.resubmitAllowed) {
+        submission.resubmitGrantedAt = new Date().toISOString();
+        if (!submission.attemptsAllowed || submission.attemptsAllowed < 2) {
+          submission.attemptsAllowed = 2;
+        }
+      }
+    }
+
+    writeLandingDB(dbData);
+
+    // Notify the student about the grade and feedback
+    (async () => {
+      try {
+        let studentUserId = submission.studentId;
+        if (!studentUserId && submission.studentEmail) {
+          const u = await db.prisma.user.findFirst({ where: { email: submission.studentEmail } });
+          if (u) studentUserId = u.id;
+        }
+        if (!studentUserId && submission.studentPhone) {
+          const u = await db.prisma.user.findFirst({ where: { phone: submission.studentPhone } });
+          if (u) studentUserId = u.id;
+        }
+        if (!studentUserId && submission.studentName) {
+          const u = await db.prisma.user.findFirst({
+            where: { role: 'student', name: { contains: submission.studentName.trim() } }
+          });
+          if (u) studentUserId = u.id;
+        }
+        if (studentUserId) {
+          await sendNotificationToUser(
+            studentUserId,
+            "Topshirig'ingiz baholandi! ⭐",
+            `"${task.title}" topshirig'ingiz baholandi: ${grade} ball. O'qituvchi izohi: "${feedback || "Baholandi."}"`
+          );
+        }
+      } catch (err) {
+        console.error("Grade notif error:", err);
+      }
+    })();
+
+    res.json({ success: true, message: "Baho va fikr muvaffaqiyatli saqlandi!", task, submission });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin tomonidan talabaga topshiriqni qayta yuklash (2-3-imkoniyat) berish API
+app.post('/api/tasks/:id/allow-resubmit', async (req, res) => {
+  try {
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+    const taskId = parseInt(req.params.id);
+    const task = dbData.tasks.find(t => t.id === taskId);
+    if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
+
+    const { submissionId, attemptsAllowed, feedback } = req.body;
+    if (!task.submissions) task.submissions = [];
+    const submission = task.submissions.find(s => String(s.id) === String(submissionId));
+    if (!submission) {
+      return res.status(404).json({ error: "Talaba yechimi topilmadi." });
+    }
+
+    submission.resubmitAllowed = true;
+    submission.attemptsAllowed = parseInt(attemptsAllowed) || 2;
+    submission.resubmitGrantedAt = new Date().toISOString();
+    if (feedback) submission.feedback = feedback;
+
+    writeLandingDB(dbData);
+
+    // Notify the student about resubmission opportunity
+    (async () => {
+      try {
+        let studentUserId = submission.studentId;
+        if (!studentUserId && submission.studentEmail) {
+          const u = await db.prisma.user.findFirst({ where: { email: submission.studentEmail } });
+          if (u) studentUserId = u.id;
+        }
+        if (!studentUserId && submission.studentPhone) {
+          const u = await db.prisma.user.findFirst({ where: { phone: submission.studentPhone } });
+          if (u) studentUserId = u.id;
+        }
+        if (!studentUserId && submission.studentName) {
+          const u = await db.prisma.user.findFirst({
+            where: { role: 'student', name: { contains: submission.studentName.trim() } }
+          });
+          if (u) studentUserId = u.id;
+        }
+        if (studentUserId) {
+          await sendNotificationToUser(
+            studentUserId,
+            "Qayta topshirish imkoniyati berildi! 🔄",
+            `"${task.title}" topshirig'i uchun sizga ${submission.attemptsAllowed}-imkoniyat berildi. Yangilangan yechimni yuklashingiz mumkin.`
+          );
+        }
+      } catch (err) {
+        console.error("Resubmit notif error:", err);
+      }
+    })();
+
+    res.json({ success: true, message: `${submission.attemptsAllowed}-imkoniyat muvaffaqiyatli berildi!`, task, submission });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tasks/:id/submit', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Fayl yuklanmadi." });
+    }
+
+    if (req.file.size > 20 * 1024 * 1024) {
+      return res.status(400).json({ error: "Xatolik: Fayl hajmi 20 MB dan oshmasligi kerak!" });
+    }
+
+    const allowedExts = ['.pdf', '.doc', '.docx'];
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    if (!allowedExts.includes(ext)) {
+      return res.status(400).json({ error: "Xatolik: Faqat .pdf, .doc, .docx formatidagi fayllar qabul qilinadi!" });
+    }
+
+    const dbData = readLandingDB();
+    if (!dbData.tasks) dbData.tasks = [];
+    const taskId = parseInt(req.params.id);
+    const task = dbData.tasks.find(t => t.id === taskId);
+
+    if (!task) {
+      return res.status(404).json({ error: "Topshiriq topilmadi." });
+    }
+
+    if (!task.submissions) task.submissions = [];
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+    const existingIndex = task.submissions.findIndex(s =>
+      (req.body.studentPhone && s.studentPhone && s.studentPhone === req.body.studentPhone) ||
+      (req.body.studentName && s.studentName && s.studentName.toLowerCase().trim() === req.body.studentName.toLowerCase().trim())
+    );
+
+    let submission;
+    if (existingIndex !== -1) {
+      const prevSub = task.submissions[existingIndex];
+      const nextAttempt = (prevSub.attemptNumber || 1) + 1;
+      submission = {
+        ...prevSub,
+        studentAvatar: req.body.studentAvatar || prevSub.studentAvatar || null,
+        fileName: req.file.originalname,
+        fileUrl: fileUrl,
+        submittedAt: new Date().toISOString(),
+        attemptNumber: nextAttempt,
+        resubmitAllowed: false, // Ishlatildi, yangi imkoniyat admin ruxsatidan keyin ochiladi
+        resubmittedAt: new Date().toISOString(),
+        previousSubmissions: [
+          ...(prevSub.previousSubmissions || []),
+          {
+            fileName: prevSub.fileName,
+            fileUrl: prevSub.fileUrl,
+            submittedAt: prevSub.submittedAt,
+            grade: prevSub.grade,
+            feedback: prevSub.feedback,
+            attemptNumber: prevSub.attemptNumber || 1
+          }
+        ],
+        grade: null, // Qayta baholash uchun bo'shatiladi
+        feedback: `${nextAttempt}-urinish yuborildi. O'qituvchi tekshirmoqda.`
+      };
+      task.submissions[existingIndex] = submission;
+    } else {
+      submission = {
+        id: Date.now(),
+        studentName: req.body.studentName || 'Alex Johnson',
+        studentId: req.body.studentId || null,
+        studentEmail: req.body.studentEmail || null,
+        studentPhone: req.body.studentPhone || '+998 94 024 13 71',
+        studentAvatar: req.body.studentAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
+        fileName: req.file.originalname,
+        fileUrl: fileUrl,
+        submittedAt: new Date().toISOString(),
+        attemptNumber: 1,
+        attemptsAllowed: 1,
+        resubmitAllowed: false,
+        grade: null,
+        feedback: ''
+      };
+      task.submissions.push(submission);
+    }
+
+    if (req.body.studentEmail) {
+      submission.studentEmail = req.body.studentEmail;
+    }
+
+    task.uploadedStudentsCount = task.submissions.length;
+    writeLandingDB(dbData);
+
+    // Notify admins about the submitted homework
+    await sendNotificationToAdmins(
+      "Yangi topshiriq yechimi topshirildi 📥",
+      `${submission.studentName} "${task.title}" topshirig'iga ${submission.attemptNumber}-urinish faylini muvaffaqiyatli yukladi.`
+    );
+
+    res.status(201).json({ success: true, message: "Topshiriq muvaffaqiyatli topshirildi!", task, submission });
+  } catch (err) {
+    console.error("Submission error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/settings', (req, res) => {
   const db = readLandingDB();

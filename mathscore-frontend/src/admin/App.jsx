@@ -1,3 +1,4 @@
+const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) ? 'http://localhost:5000' : 'https://api.mathscore.uz';
 import React, { useState, useEffect, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from './cropImage';
@@ -8,6 +9,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import 'katex/dist/katex.min.css';
 import katex from 'katex';
+import TasksDashboard from './TasksDashboard';
+import MathDiagramStudio from './MathDiagramStudio';
 
 const yearlyData = [
   { name: 'Yan', daromad: 4000000, sotuv: 24 },
@@ -42,6 +45,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 function App() {
   const [currentPage, setCurrentPage] = useState('login');
+  const [testsMenuOpen, setTestsMenuOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [adminProfile, setAdminProfile] = useState({ name: 'Malika', role: 'Super Admin', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop' });
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -72,6 +76,8 @@ function App() {
   const [students, setStudents] = useState(initialStudents);
   const [activities, setActivities] = useState(initialActivities);
 
+  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [adminPushToast, setAdminPushToast] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showActivitiesModal, setShowActivitiesModal] = useState(false);
@@ -370,7 +376,7 @@ function App() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const response = await fetch(`https://api.mathscore.uz${url}`, {
+    const response = await fetch(`${API_BASE}${url}`, {
       ...options,
       headers,
       cache: 'no-store'
@@ -419,11 +425,19 @@ function App() {
       }
 
       try {
-        const setRes = await fetch('https://api.mathscore.uz/api/settings', { cache: 'no-store' });
+        const notifRes = await fetchWithAuth('/api/notifications');
+        if (notifRes.ok) {
+          const notifs = await notifRes.json();
+          setAdminNotifications(notifs);
+        }
+      } catch (e) {}
+
+      try {
+        const setRes = await fetch(`${API_BASE}/api/settings`, { cache: 'no-store' });
         if (setRes.ok) setLandingSettings(await setRes.json());
-        const resRes = await fetch('https://api.mathscore.uz/api/results', { cache: 'no-store' });
+        const resRes = await fetch(`${API_BASE}/api/results`, { cache: 'no-store' });
         if (resRes.ok) setLandingResults(await resRes.json());
-        const priRes = await fetch('https://api.mathscore.uz/api/pricing', { cache: 'no-store' });
+        const priRes = await fetch(`${API_BASE}/api/pricing`, { cache: 'no-store' });
         if (priRes.ok) setLandingPricing(await priRes.json());
       } catch (e) {
         console.error('Landing sync failed:', e);
@@ -460,6 +474,46 @@ function App() {
           setCurrentPage('login');
         });
     }
+  }, []);
+
+  // Real-time admin notifications polling
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) return;
+
+    const checkNotifs = async () => {
+      try {
+        const notifRes = await fetchWithAuth('/api/notifications');
+        if (notifRes.ok) {
+          const notifs = await notifRes.json();
+          setAdminNotifications(prev => {
+            const prevIds = new Set(prev.map(p => p.id));
+            const newUnread = notifs.filter(n => !n.isRead && !prevIds.has(n.id));
+            if (newUnread.length > 0 && prev.length > 0) {
+              setAdminPushToast(newUnread[0]);
+              try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.35);
+              } catch(e) {}
+            }
+            return notifs;
+          });
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(checkNotifs, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const triggerNewTest = () => {
@@ -655,22 +709,33 @@ function App() {
     fileInput.click();
   };
 
-  const renderMathPreview = (text) => {
-    if (!text) return <div className="text-slate-400 text-xs italic">Formula va matn oldindan ko'rinishi shu yerda chiqadi...</div>;
+  const renderMathPreview = (text, imageUrl) => {
+    if (!text && !imageUrl) return <div className="text-slate-400 text-xs italic">Formula va matn oldindan ko'rinishi shu yerda chiqadi...</div>;
     try {
-      const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
+      const parts = (text || '').split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
       return (
-        <div className="math-rendered p-4 bg-indigo-500/5 dark:bg-slate-900/50 border border-indigo-500/20 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 font-medium text-sm leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-0.5">
-          {parts.map((part, index) => {
-            if (part.startsWith('$$') && part.endsWith('$$')) {
-              const html = katex.renderToString(part.slice(2, -2), { displayMode: true, throwOnError: false });
-              return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
-            } else if (part.startsWith('$') && part.endsWith('$')) {
-              const html = katex.renderToString(part.slice(1, -1), { displayMode: false, throwOnError: false });
-              return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
-            }
-            return <span key={index}>{part}</span>;
-          })}
+        <div className="math-rendered p-4 bg-indigo-500/5 dark:bg-slate-900/50 border border-indigo-500/20 dark:border-slate-800 rounded-xl space-y-3">
+          <div className="text-slate-800 dark:text-slate-100 font-medium text-sm leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-0.5">
+            {parts.map((part, index) => {
+              if (part.startsWith('$$') && part.endsWith('$$')) {
+                const html = katex.renderToString(part.slice(2, -2), { displayMode: true, throwOnError: false });
+                return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+              } else if (part.startsWith('$') && part.endsWith('$')) {
+                const html = katex.renderToString(part.slice(1, -1), { displayMode: false, throwOnError: false });
+                return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+              }
+              return <span key={index}>{part}</span>;
+            })}
+          </div>
+          {imageUrl && (
+            <div className="pt-2 border-t border-indigo-500/10 flex justify-center">
+              <img
+                src={getAuthMediaUrl(imageUrl)}
+                alt="Diagramma"
+                className="max-h-56 max-w-full rounded-xl border border-slate-200 dark:border-slate-700 object-contain shadow-xs bg-white p-1"
+              />
+            </div>
+          )}
         </div>
       );
     } catch (e) {
@@ -710,7 +775,7 @@ function App() {
     const password = e.target.elements.password.value;
 
     try {
-      const response = await fetch('https://api.mathscore.uz/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -740,15 +805,26 @@ function App() {
   };
 
   const parseTestText = (text) => {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const questions = [];
     let currentQuestion = null;
 
     lines.forEach(line => {
-      const questionMatch = line.match(/^(\d+)[\.\)\s-]+\s*(.*)$/);
-      const variantMatch = line.match(/^(\+)?([A-D])[\)\.\s-]+\s*(.*)$/i) || line.match(/^(\+)(.*)$/);
+      // 1. Javob kaliti: "Javob: A" yoki "To'g'ri javob: B" yoki "Answer: C"
+      const ansKeyMatch = line.match(/^(?:javob|to['`ʻ]?g['`ʻ]?ri javob|answer|correct(?:\s*answer)?)\s*[:=-]\s*([A-D])/i);
+      if (ansKeyMatch && currentQuestion && currentQuestion.options.length > 0) {
+        const char = ansKeyMatch[1].toUpperCase();
+        const ansIdx = char.charCodeAt(0) - 65; // A->0, B->1, C->2, D->3
+        if (ansIdx >= 0 && ansIdx < currentQuestion.options.length) {
+          currentQuestion.correctAnswer = ansIdx;
+        }
+        return;
+      }
 
-      if (questionMatch && !line.match(/^(\+)?([A-D])[\)\.\s-]/i)) {
+      const questionMatch = line.match(/^(\d+)[\.\)\s-]+\s*(.*)$/);
+      const variantMatch = line.match(/^(\+|\*|\[x\]|\(x\))?\s*([A-D])[\)\.\s-]+\s*(.*)$/i) || line.match(/^(\+|\*|\[x\])(.*)$/i);
+
+      if (questionMatch && !line.match(/^(\+|\*|\[x\])?\s*([A-D])[\)\.\s-]/i)) {
         if (currentQuestion) {
           questions.push(currentQuestion);
         }
@@ -773,14 +849,20 @@ function App() {
         let isCorrect = false;
         let optionText = "";
 
-        const letterMatch = line.match(/^(\+)?([A-D])[\)\.\s-]+\s*(.*)$/i);
+        const letterMatch = line.match(/^(\+|\*|\[x\]|\(x\))?\s*([A-D])[\)\.\s-]+\s*(.*)$/i);
         if (letterMatch) {
           isCorrect = !!letterMatch[1];
           optionText = letterMatch[3].trim();
         } else {
-          const plusMatch = line.match(/^(\+)(.*)$/);
+          const plusMatch = line.match(/^(\+|\*|\[x\])(.*)$/);
           isCorrect = true;
           optionText = plusMatch[2].trim();
+        }
+
+        // Agar matn ichida yoki oxirida * yoki (to'g'ri) yoki (correct) belgisi bo'lsa
+        if (optionText.endsWith('*') || optionText.match(/\((?:to['`ʻ]?g['`ʻ]?ri|correct)\)$/i)) {
+          isCorrect = true;
+          optionText = optionText.replace(/\*$/, '').replace(/\((?:to['`ʻ]?g['`ʻ]?ri|correct)\)$/i, '').trim();
         }
 
         currentQuestion.options.push(optionText);
@@ -927,32 +1009,8 @@ function App() {
   };
 
   const handleDownloadTemplate = () => {
-    const templateContent = `
-      <h1>MathScore Test Import Template</h1>
-      <p>Barcha savollarni quyidagi formatda yozing. To'g'ri javob variantini oldiga "+" belgisini qo'ying.</p>
-      <br/>
-      <p>1. Quyidagi algebraik ifodadagi x ni toping: (3x+5)/2 = 16</p>
-      <p>+A) x = 9</p>
-      <p>B) x = 10</p>
-      <p>C) x = 7</p>
-      <p>D) x = 12</p>
-      <br/>
-      <p>2. Solve the equation: x² + 5x + 6 = 0</p>
-      <p>+A) x = -2, -3</p>
-      <p>B) x = 2, 3</p>
-      <p>C) x = 1, 6</p>
-      <p>D) x = 0</p>
-      <br/>
-      <p>3. Berilgan aniq integralni hisoblang: ∫₀¹ x² dx</p>
-      <p>A) 1/2</p>
-      <p>+B) 1/3</p>
-      <p>C) 1/4</p>
-      <p>D) 1</p>
-    `;
-    const blob = new Blob([templateContent], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
+    link.href = '/template/MathScore_Test_Import_Template.docx';
     link.download = 'MathScore_Test_Import_Template.docx';
     document.body.appendChild(link);
     link.click();
@@ -1709,7 +1767,7 @@ function App() {
 
   const handleUpdateLandingSettings = async () => {
     try {
-      const res = await fetch('https://api.mathscore.uz/api/settings', {
+      const res = await fetch(`${API_BASE}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(landingSettings)
@@ -1724,7 +1782,7 @@ function App() {
       return;
     }
     try {
-      const res = await fetch('https://api.mathscore.uz/api/results', {
+      const res = await fetch(`${API_BASE}/api/results`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingResult)
@@ -1772,7 +1830,7 @@ function App() {
 
   const handleAddLandingPricing = async () => {
     try {
-      const res = await fetch('https://api.mathscore.uz/api/pricing', {
+      const res = await fetch(`${API_BASE}/api/pricing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLandingPricing)
@@ -2199,18 +2257,77 @@ function App() {
 
             <div className="flex items-center gap-2 sm:gap-4">
               <div className="relative">
-                <button onClick={() => setShowNotifications(!showNotifications)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all relative cursor-pointer"
+                  title="Bildirishnomalar"
+                >
                   <span className="material-symbols-outlined text-[20px]">notifications</span>
-                  <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-pink-500 ring-2 ring-white dark:ring-slate-900"></span>
+                  {adminNotifications.filter(n => !n.isRead).length > 0 && (
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] text-[10px] font-black leading-none rounded-full bg-rose-500 text-white shadow-sm ring-2 ring-white dark:ring-slate-900 animate-pulse flex items-center justify-center">
+                      {adminNotifications.filter(n => !n.isRead).length}
+                    </span>
+                  )}
                 </button>
                 {showNotifications && (
-                  <div className="absolute right-0 mt-3 w-72 modern-card p-5 animate-fade-in z-50">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2 mb-3">Bildirishnomalar</h4>
-                    <div className="space-y-3">
-                      <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Tizimga kirildi</p>
-                        <p className="text-[10px] text-slate-500 mt-1">Hozirgina</p>
+                  <div className="absolute right-0 mt-3 w-80 modern-card p-4 animate-fade-in z-50 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[420px] flex flex-col">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Bildirishnomalar</span>
+                        {adminNotifications.filter(n => !n.isRead).length > 0 && (
+                          <span className="px-1.5 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] font-bold rounded">
+                            {adminNotifications.filter(n => !n.isRead).length} yangi
+                          </span>
+                        )}
                       </div>
+                      {adminNotifications.filter(n => !n.isRead).length > 0 && (
+                        <button
+                          onClick={async () => {
+                            await fetchWithAuth('/api/notifications/read-all', { method: 'POST' });
+                            setAdminNotifications(prev => prev.map(item => ({ ...item, isRead: true })));
+                          }}
+                          className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 cursor-pointer"
+                        >
+                          Barchasi o'qildi
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 overflow-y-auto pr-1 flex-1">
+                      {adminNotifications.length === 0 ? (
+                        <div className="p-6 text-center text-xs text-slate-400 font-medium">
+                          Hozircha yangi bildirishnomalar yo'q
+                        </div>
+                      ) : (
+                        adminNotifications.map(n => (
+                          <div
+                            key={n.id}
+                            onClick={async () => {
+                              if (!n.isRead) {
+                                await fetchWithAuth(`/api/notifications/${n.id}/read`, { method: 'POST' });
+                                setAdminNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: true } : item));
+                              }
+                            }}
+                            className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                              !n.isRead
+                                ? 'bg-indigo-500/10 border-indigo-500/30 dark:bg-indigo-950/40'
+                                : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 opacity-80'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start gap-1 mb-1">
+                              <p className={`text-xs font-bold ${!n.isRead ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                                {n.title}
+                              </p>
+                              {!n.isRead && <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0 mt-1"></span>}
+                            </div>
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">{n.message}</p>
+                            <p className="text-[9px] font-medium text-slate-400 mt-1.5 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">schedule</span>
+                              {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
@@ -2247,24 +2364,89 @@ function App() {
                 { id: 'home', icon: 'home', label: 'Bosh sahifa' },
                 { id: 'categories', icon: 'category', label: 'Kategoriyalar' },
                 { id: 'courses', icon: 'smart_display', label: 'Videolar' },
-                { id: 'tests', icon: 'quiz', label: 'Testlar' },
-
+                {
+                  id: 'tests',
+                  icon: 'quiz',
+                  label: 'Testlar',
+                  hasSubmenu: true,
+                  subItems: [
+                    { id: 'tests', icon: 'quiz', label: 'Testlar' },
+                    { id: 'tasks', icon: 'assignment', label: 'Topshiriqlar' }
+                  ]
+                },
                 { id: 'settings', icon: 'settings', label: 'Sozlamalar' },
                 { id: 'students', icon: 'group', label: 'Talabalar' },
                 { id: 'landing', icon: 'web', label: 'Lending' }
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => { setCurrentPage(item.id); setSearchQuery(''); syncData(); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${currentPage === item.id
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
-                    }`}
-                >
-                  <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              ))}
+              ].map(item => {
+                if (item.hasSubmenu) {
+                  const isParentActive = currentPage === 'tests' || currentPage === 'tasks';
+                  return (
+                    <div key={item.id} className="flex flex-col gap-1">
+                      <button
+                        onClick={() => {
+                          setTestsMenuOpen(!testsMenuOpen);
+                          if (!isParentActive) {
+                            setCurrentPage('tests');
+                            setSearchQuery('');
+                            syncData();
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                          isParentActive
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="material-symbols-outlined text-[18px]">
+                          {testsMenuOpen ? 'expand_less' : 'expand_more'}
+                        </span>
+                      </button>
+
+                      {/* Submenu: Testlar & Topshiriqlar */}
+                      {testsMenuOpen && (
+                        <div className="pl-6 pr-1 py-1 flex flex-col gap-1 border-l-2 border-indigo-200 dark:border-indigo-900/40 ml-4 animate-fade-in">
+                          {item.subItems.map(sub => (
+                            <button
+                              key={sub.id}
+                              onClick={() => {
+                                setCurrentPage(sub.id);
+                                setSearchQuery('');
+                                syncData();
+                              }}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                                currentPage === sub.id
+                                  ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/40'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[17px]">{sub.icon}</span>
+                              <span>{sub.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setCurrentPage(item.id); setSearchQuery(''); syncData(); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${currentPage === item.id
+                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
 
               <button
                 onClick={() => setCurrentPage('login')}
@@ -3027,6 +3209,11 @@ function App() {
                   </div>
                 )}
 
+                {/* VIEW 9.1: TASKS DASHBOARD */}
+                {currentPage === 'tasks' && (
+                  <TasksDashboard adminProfile={adminProfile} courses={courses} />
+                )}
+
                 {/* VIEW 9: TESTS (TEST DASHBOARD & TEST BUILDER) */}
                 {currentPage === 'tests' && (
                   <div className="space-y-6 animate-fade-in">
@@ -3554,50 +3741,26 @@ function App() {
                                   {/* Live Formula Preview Box */}
                                   <div className="space-y-1.5">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase">Formula va savolning jonli ko'rinishi (Live Rendered LaTeX Preview)</span>
-                                    {renderMathPreview(newTest.questions[activeQuestionIndex].text)}
+                                    {renderMathPreview(newTest.questions[activeQuestionIndex].text, newTest.questions[activeQuestionIndex].imageUrl)}
                                   </div>
                                 </div>
 
-                                {/* Question Image Upload (Dropzone & simulated action) */}
-                                <div className="space-y-2">
-                                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Geometriya chizmasi yoki Matematik diagramma yuklash</span>
-
-                                  {newTest.questions[activeQuestionIndex].imageUrl ? (
-                                    <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
-                                      <div className="flex items-center gap-3">
-                                        <img src={getAuthMediaUrl(newTest.questions[activeQuestionIndex].imageUrl)} className="w-20 h-14 object-cover rounded-lg border border-slate-300 dark:border-slate-700 shadow-sm" alt="Diagramma" />
-                                        <div>
-                                          <p className="text-xs font-bold text-slate-800 dark:text-white">{newTest.questions[activeQuestionIndex].imageUrl.split('/').pop() || 'diagramma.png'}</p>
-                                          <p className="text-[10px] text-slate-400 font-semibold">Chizma olchamlari: 100% moslashuvchan</p>
-                                        </div>
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <button type="button" onClick={() => alert("Diagramma qirqildi (Crop success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">Qirqish (Crop)</button>
-                                        <button type="button" onClick={() => alert("Diagramma olchami ozgartirildi (Resize success)!")} className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white transition-colors">O'lcham (Resize)</button>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            const updated = [...newTest.questions];
-                                            updated[activeQuestionIndex].imageUrl = '';
-                                            setNewTest({ ...newTest, questions: updated });
-                                          }}
-                                          className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
-                                        >
-                                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div
-                                      onClick={handleQuestionImageUpload}
-                                      className="p-6 bg-white/30 dark:bg-slate-900/30 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-xl text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-500/5 transition-all"
-                                    >
-                                      <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">upload_file</span>
-                                      <p className="text-xs font-bold text-slate-800 dark:text-white">Rasm yuklash / Sudrab tashlash</p>
-                                      <p className="text-[10px] text-slate-400 font-medium mt-1">Geometrik shakllar, funksiya grafiklari yoki diagrammalar (JPG, PNG)</p>
-                                    </div>
-                                  )}
-                                </div>
+                                {/* Question Image & Math Diagram Studio (O'zgacha, samarali test tayyorlash vositasi) */}
+                                <MathDiagramStudio
+                                  imageUrl={newTest.questions[activeQuestionIndex].imageUrl}
+                                  onImageChange={(newUrl) => {
+                                    const updated = [...newTest.questions];
+                                    updated[activeQuestionIndex] = {
+                                      ...updated[activeQuestionIndex],
+                                      imageUrl: newUrl
+                                    };
+                                    setNewTest({ ...newTest, questions: updated });
+                                  }}
+                                  apiBase={API_BASE}
+                                  getAuthMediaUrl={getAuthMediaUrl}
+                                  questionNumber={activeQuestionIndex + 1}
+                                  isActiveTab={isBuildingTest && testBuilderTab === 'questions'}
+                                />
 
                                 {/* MCQ Options Configuration */}
                                 {(newTest.questions[activeQuestionIndex].type === 'single' || newTest.questions[activeQuestionIndex].type === 'multiple') && (
@@ -4330,6 +4493,26 @@ function App() {
             </div>
           )}
 
+          {/* Admin Push Notification Toast */}
+          {adminPushToast && (
+            <div className="fixed bottom-6 right-6 z-[999] max-w-sm w-full bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-indigo-500/40 animate-slide-in flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[22px]">notifications_active</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h5 className="text-xs font-black text-white">{adminPushToast.title}</h5>
+                <p className="text-[11px] text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">{adminPushToast.message}</p>
+                <span className="text-[9px] text-slate-400 block mt-1 font-medium">Hozirgina</span>
+              </div>
+              <button
+                onClick={() => setAdminPushToast(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          )}
+
         </div>
       )}
     </div>
@@ -4337,5 +4520,3 @@ function App() {
 }
 
 export default App;
-
-

@@ -9,9 +9,15 @@ const db = {
       case 'users': return await prisma.user.findMany();
       case 'courses': return await prisma.course.findMany({ include: { lessons: true } });
       case 'tests': {
-        const tests = await prisma.test.findMany({ include: { questions: true } });
+        const tests = await prisma.test.findMany({
+          include: {
+            questions: true,
+            course: true
+          }
+        });
         return tests.map(t => ({
           ...t,
+          course: t.course ? t.course.title : (t.category || null),
           questions: t.questions.map(q => ({
             ...q,
             options: JSON.parse(q.options || '[]')
@@ -30,10 +36,14 @@ const db = {
       case 'users': return await prisma.user.findUnique({ where: { id } });
       case 'courses': return await prisma.course.findUnique({ where: { id }, include: { lessons: true } });
       case 'tests': {
-        const t = await prisma.test.findUnique({ where: { id }, include: { questions: true } });
+        const t = await prisma.test.findUnique({
+          where: { id },
+          include: { questions: true, course: true }
+        });
         if (!t) return null;
         return {
           ...t,
+          course: t.course ? t.course.title : (t.category || null),
           questions: t.questions.map(q => ({
             ...q,
             options: JSON.parse(q.options || '[]')
@@ -83,12 +93,26 @@ const db = {
             imageUrl: qData.imageUrl || null
           };
         }) : [];
+
+        let resolvedCourseId = testData.courseId || null;
+        if (!resolvedCourseId && testData.course) {
+          const matchedCourse = await prisma.course.findFirst({
+            where: {
+              OR: [
+                { id: testData.course },
+                { title: testData.course },
+                { title: { contains: testData.course } }
+              ]
+            }
+          });
+          if (matchedCourse) resolvedCourseId = matchedCourse.id;
+        }
         
         const cleanTestData = {
           title: testData.title,
           category: testData.category || 'General',
           difficulty: testData.difficulty || 'Medium',
-          questionCount: Number(testData.questionCount || 0),
+          questionCount: Number(testData.questionCount || (mappedQuestions.length || 0)),
           duration: Number(testData.duration || 60),
           status: testData.status || 'Draft',
           passingPercentage: testData.passingPercentage !== undefined ? Number(testData.passingPercentage) : 70,
@@ -96,15 +120,25 @@ const db = {
           endDate: testData.endDate || null,
           randomizeQuestions: Boolean(testData.randomizeQuestions),
           randomizeAnswers: Boolean(testData.randomizeAnswers),
-          courseId: testData.courseId || null
+          courseId: resolvedCourseId
         };
 
-        return await prisma.test.create({
+        const created = await prisma.test.create({
           data: {
             ...cleanTestData,
             questions: { create: mappedQuestions }
-          }
+          },
+          include: { questions: true, course: true }
         });
+
+        return {
+          ...created,
+          course: created.course ? created.course.title : (created.category || null),
+          questions: created.questions.map(q => ({
+            ...q,
+            options: JSON.parse(q.options || '[]')
+          }))
+        };
       }
       case 'submissions': {
         return await prisma.submission.create({
@@ -170,7 +204,56 @@ const db = {
             }
           }
         }
-        return await prisma.test.update({ where: { id }, data });
+
+        if (!data.courseId && updatedFields.course) {
+          const matchedCourse = await prisma.course.findFirst({
+            where: {
+              OR: [
+                { id: updatedFields.course },
+                { title: updatedFields.course },
+                { title: { contains: updatedFields.course } }
+              ]
+            }
+          });
+          if (matchedCourse) data.courseId = matchedCourse.id;
+        }
+
+        if (updatedFields.questions && Array.isArray(updatedFields.questions)) {
+          await prisma.question.deleteMany({ where: { testId: id } });
+          data.questions = {
+            create: updatedFields.questions.map(q => {
+              const { id: qId, ...qData } = q;
+              return {
+                type: qData.type || 'single',
+                text: qData.text || '',
+                options: typeof q.options === 'string' ? q.options : JSON.stringify(q.options || []),
+                correctAnswer: Number(qData.correctAnswer !== undefined ? qData.correctAnswer : 0),
+                score: Number(qData.score !== undefined ? qData.score : 1),
+                explanation: qData.explanation || '',
+                hint: qData.hint || '',
+                imageUrl: qData.imageUrl || null
+              };
+            })
+          };
+          if (!data.questionCount) {
+            data.questionCount = updatedFields.questions.filter(q => (q.text || '').trim() !== '').length || updatedFields.questions.length;
+          }
+        }
+
+        const updated = await prisma.test.update({
+          where: { id },
+          data,
+          include: { questions: true, course: true }
+        });
+
+        return {
+          ...updated,
+          course: updated.course ? updated.course.title : (updated.category || null),
+          questions: updated.questions.map(q => ({
+            ...q,
+            options: JSON.parse(q.options || '[]')
+          }))
+        };
       }
       default: return null;
     }
