@@ -512,7 +512,8 @@ function App() {
       } catch (e) {}
     };
 
-    const interval = setInterval(checkNotifs, 5000);
+    checkNotifs();
+    const interval = setInterval(checkNotifs, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -3916,7 +3917,10 @@ function App() {
                                 {/* Short / Math text answer configuration */}
                                 {(newTest.questions[activeQuestionIndex].type === 'short' || newTest.questions[activeQuestionIndex].type === 'math') && (
                                   <div className="space-y-2">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase block">To'g'ri javob matni / qiymati (Student kiritishi shart)</span>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Qabul qilinadigan to'g'ri javob(lar)</span>
+                                      <span className="text-[10px] font-semibold text-slate-400">Katta-kichik harflar va probellar hisobga olinmaydi</span>
+                                    </div>
                                     <input
                                       value={newTest.questions[activeQuestionIndex].correctAnswer || ""}
                                       onChange={e => {
@@ -3924,9 +3928,12 @@ function App() {
                                         updated[activeQuestionIndex].correctAnswer = e.target.value;
                                         setNewTest({ ...newTest, questions: updated });
                                       }}
-                                      placeholder={newTest.questions[activeQuestionIndex].type === 'math' ? "Tenglama javobi, masalan: x=7 yoki 4" : "Kutilayotgan javob matni..."}
+                                      placeholder={newTest.questions[activeQuestionIndex].type === 'math' ? "Tenglama javobi, masalan: x=7 yoki 4" : "Kutilayotgan javob (bir nechta bo'lsa vergul bilan ajrating: javob1, javob2)"}
                                       className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                     />
+                                    <p className="text-[10px] text-slate-400 font-medium">
+                                      💡 Agar bir nechta to'g'ri variantlar bo'lsa, ularni vergul bilan kiriting. Masalan: <code>10, o'n, on</code>
+                                    </p>
                                   </div>
                                 )}
 

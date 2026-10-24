@@ -651,12 +651,89 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
   if (!test) return res.status(404).json({ error: 'Test topilmadi.' });
 
   let correctCount = 0;
+  let totalPossibleScore = 0;
+  let earnedScore = 0;
+
   (test.questions || []).forEach((q, idx) => {
-    if (answers && answers[idx] === q.correctAnswer) correctCount++;
+    const qScore = Number(q.score) || 1;
+    totalPossibleScore += qScore;
+    const studentAns = answers ? answers[idx] : undefined;
+    let isCorrect = false;
+
+    const qType = (q.type || 'single').toLowerCase();
+
+    if (qType === 'single' || qType === 'mcq') {
+      const correctIdx = Number(q.correctAnswer);
+      if (studentAns !== undefined && studentAns !== null && Number(studentAns) === correctIdx) {
+        isCorrect = true;
+      }
+    } else if (qType === 'multiple') {
+      let correctArr = [];
+      try {
+        correctArr = Array.isArray(q.correctAnswer)
+          ? q.correctAnswer.map(Number)
+          : JSON.parse(q.correctAnswer || '[]').map(Number);
+      } catch (e) {
+        correctArr = [];
+      }
+      const studentArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
+      const sortedCorrect = [...correctArr].sort((a, b) => a - b);
+      const sortedStudent = [...studentArr].sort((a, b) => a - b);
+
+      if (
+        sortedCorrect.length > 0 &&
+        sortedCorrect.length === sortedStudent.length &&
+        sortedCorrect.every((val, i) => val === sortedStudent[i])
+      ) {
+        isCorrect = true;
+      }
+    } else if (qType === 'truefalse') {
+      const correctBool = String(q.correctAnswer) === 'true' || q.correctAnswer === true || q.correctAnswer === 1;
+      let studentBool;
+      if (typeof studentAns === 'boolean') {
+        studentBool = studentAns;
+      } else if (typeof studentAns === 'string') {
+        const s = studentAns.toLowerCase().trim();
+        studentBool = s === 'true' || s === 'rost' || s === '1';
+      } else if (typeof studentAns === 'number') {
+        studentBool = studentAns === 1;
+      }
+      if (studentBool !== undefined && studentBool === correctBool) {
+        isCorrect = true;
+      }
+    } else if (qType === 'short' || qType === 'math') {
+      if (studentAns !== undefined && studentAns !== null && String(studentAns).trim().length > 0) {
+        const cleanStudent = String(studentAns).trim().toLowerCase();
+        let acceptedAnswers = [];
+        try {
+          if (Array.isArray(q.correctAnswer)) {
+            acceptedAnswers = q.correctAnswer.map(a => String(a).trim().toLowerCase());
+          } else if (typeof q.correctAnswer === 'string' && q.correctAnswer.startsWith('[') && q.correctAnswer.endsWith(']')) {
+            acceptedAnswers = JSON.parse(q.correctAnswer).map(a => String(a).trim().toLowerCase());
+          } else {
+            acceptedAnswers = String(q.correctAnswer || '').split(/[,|]/).map(a => a.trim().toLowerCase()).filter(Boolean);
+            if (acceptedAnswers.length === 0 && q.correctAnswer) {
+              acceptedAnswers = [String(q.correctAnswer).trim().toLowerCase()];
+            }
+          }
+        } catch (e) {
+          acceptedAnswers = [String(q.correctAnswer || '').trim().toLowerCase()];
+        }
+
+        if (acceptedAnswers.includes(cleanStudent)) {
+          isCorrect = true;
+        }
+      }
+    }
+
+    if (isCorrect) {
+      correctCount++;
+      earnedScore += qScore;
+    }
   });
 
   const totalQuestions = (test.questions && test.questions.length > 0) ? test.questions.length : 1;
-  const score = Math.round((correctCount / totalQuestions) * 100);
+  const score = totalPossibleScore > 0 ? Math.round((earnedScore / totalPossibleScore) * 100) : 0;
   const passed = score >= (test.passingPercentage || 70);
 
   await db.insert('submissions', {
@@ -935,8 +1012,8 @@ app.delete('/api/tasks/:id', (req, res) => {
   try {
     const dbData = readLandingDB();
     if (!dbData.tasks) dbData.tasks = [];
-    const taskId = parseInt(req.params.id);
-    dbData.tasks = dbData.tasks.filter(t => t.id !== taskId);
+    const taskIdStr = String(req.params.id);
+    dbData.tasks = dbData.tasks.filter(t => String(t.id) !== taskIdStr);
     writeLandingDB(dbData);
     res.json({ success: true, message: "Topshiriq muvaffaqiyatli o'chirildi." });
   } catch (err) {
@@ -948,8 +1025,8 @@ app.patch('/api/tasks/:id', (req, res) => {
   try {
     const dbData = readLandingDB();
     if (!dbData.tasks) dbData.tasks = [];
-    const taskId = parseInt(req.params.id);
-    const task = dbData.tasks.find(t => t.id === taskId);
+    const taskIdStr = String(req.params.id);
+    const task = dbData.tasks.find(t => String(t.id) === taskIdStr);
     if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
 
     const { title, description, deadline } = req.body;
@@ -969,8 +1046,8 @@ app.post('/api/tasks/:id/grade', async (req, res) => {
   try {
     const dbData = readLandingDB();
     if (!dbData.tasks) dbData.tasks = [];
-    const taskId = parseInt(req.params.id);
-    const task = dbData.tasks.find(t => t.id === taskId);
+    const taskIdStr = String(req.params.id);
+    const task = dbData.tasks.find(t => String(t.id) === taskIdStr);
     if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
 
     const { submissionId, grade, feedback, gradedBy, attemptsAllowed, resubmitAllowed } = req.body;
@@ -1042,8 +1119,8 @@ app.post('/api/tasks/:id/allow-resubmit', async (req, res) => {
   try {
     const dbData = readLandingDB();
     if (!dbData.tasks) dbData.tasks = [];
-    const taskId = parseInt(req.params.id);
-    const task = dbData.tasks.find(t => t.id === taskId);
+    const taskIdStr = String(req.params.id);
+    const task = dbData.tasks.find(t => String(t.id) === taskIdStr);
     if (!task) return res.status(404).json({ error: "Topshiriq topilmadi." });
 
     const { submissionId, attemptsAllowed, feedback } = req.body;
@@ -1114,8 +1191,8 @@ app.post('/api/tasks/:id/submit', upload.single('file'), async (req, res) => {
 
     const dbData = readLandingDB();
     if (!dbData.tasks) dbData.tasks = [];
-    const taskId = parseInt(req.params.id);
-    const task = dbData.tasks.find(t => t.id === taskId);
+    const taskIdStr = String(req.params.id);
+    const task = dbData.tasks.find(t => String(t.id) === taskIdStr);
 
     if (!task) {
       return res.status(404).json({ error: "Topshiriq topilmadi." });

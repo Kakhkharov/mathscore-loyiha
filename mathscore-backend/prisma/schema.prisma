@@ -99,7 +99,7 @@ model Question {
   type          String
   text          String
   options       String  // Stored as JSON string
-  correctAnswer Int
+  correctAnswer String  // Stored as JSON string or text (supports single, multiple, truefalse, short, math)
   score         Int
   difficulty    String?
   explanation   String?

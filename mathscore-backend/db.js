@@ -18,10 +18,21 @@ const db = {
         return tests.map(t => ({
           ...t,
           course: t.course ? t.course.title : (t.category || null),
-          questions: t.questions.map(q => ({
-            ...q,
-            options: JSON.parse(q.options || '[]')
-          }))
+          questions: t.questions.map(q => {
+            let parsedAns = q.correctAnswer;
+            if (q.type === 'multiple') {
+              try { parsedAns = JSON.parse(q.correctAnswer); } catch (e) { parsedAns = [0]; }
+            } else if (q.type === 'truefalse') {
+              parsedAns = q.correctAnswer === 'true' || q.correctAnswer === '1' || q.correctAnswer === true || q.correctAnswer === 1;
+            } else if (q.type === 'single' || q.type === 'mcq') {
+              parsedAns = isNaN(Number(q.correctAnswer)) ? q.correctAnswer : Number(q.correctAnswer);
+            }
+            return {
+              ...q,
+              options: JSON.parse(q.options || '[]'),
+              correctAnswer: parsedAns
+            };
+          })
         }));
       }
       case 'submissions': return await prisma.submission.findMany();
@@ -44,10 +55,21 @@ const db = {
         return {
           ...t,
           course: t.course ? t.course.title : (t.category || null),
-          questions: t.questions.map(q => ({
-            ...q,
-            options: JSON.parse(q.options || '[]')
-          }))
+          questions: t.questions.map(q => {
+            let parsedAns = q.correctAnswer;
+            if (q.type === 'multiple') {
+              try { parsedAns = JSON.parse(q.correctAnswer); } catch (e) { parsedAns = [0]; }
+            } else if (q.type === 'truefalse') {
+              parsedAns = q.correctAnswer === 'true' || q.correctAnswer === '1' || q.correctAnswer === true || q.correctAnswer === 1;
+            } else if (q.type === 'single' || q.type === 'mcq') {
+              parsedAns = isNaN(Number(q.correctAnswer)) ? q.correctAnswer : Number(q.correctAnswer);
+            }
+            return {
+              ...q,
+              options: JSON.parse(q.options || '[]'),
+              correctAnswer: parsedAns
+            };
+          })
         };
       }
       case 'submissions': return await prisma.submission.findUnique({ where: { id } });
@@ -86,7 +108,9 @@ const db = {
             type: qData.type || 'single',
             text: qData.text || '',
             options: typeof q.options === 'string' ? q.options : JSON.stringify(q.options || []),
-            correctAnswer: Number(qData.correctAnswer !== undefined ? qData.correctAnswer : 0),
+            correctAnswer: typeof qData.correctAnswer === 'object'
+              ? JSON.stringify(qData.correctAnswer)
+              : String(qData.correctAnswer !== undefined && qData.correctAnswer !== null ? qData.correctAnswer : ''),
             score: Number(qData.score !== undefined ? qData.score : 1),
             explanation: qData.explanation || '',
             hint: qData.hint || '',
@@ -227,7 +251,9 @@ const db = {
                 type: qData.type || 'single',
                 text: qData.text || '',
                 options: typeof q.options === 'string' ? q.options : JSON.stringify(q.options || []),
-                correctAnswer: Number(qData.correctAnswer !== undefined ? qData.correctAnswer : 0),
+                correctAnswer: typeof qData.correctAnswer === 'object'
+                  ? JSON.stringify(qData.correctAnswer)
+                  : String(qData.correctAnswer !== undefined && qData.correctAnswer !== null ? qData.correctAnswer : ''),
                 score: Number(qData.score !== undefined ? qData.score : 1),
                 explanation: qData.explanation || '',
                 hint: qData.hint || '',

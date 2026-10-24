@@ -99,7 +99,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
 
   // 2-talab: View Submissions & Baholash / Feedback Modali
   const [viewingTask, setViewingTask] = useState(null);
-  const currentViewingTask = viewingTask ? (tasks.find(t => t.id === viewingTask.id) || viewingTask) : null;
+  const currentViewingTask = viewingTask ? (tasks.find(t => String(t.id) === String(viewingTask.id)) || viewingTask) : null;
   const [gradingState, setGradingState] = useState({});
   const [savingGradeId, setSavingGradeId] = useState(null);
 
@@ -134,29 +134,92 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     return () => clearInterval(timer);
   }, []);
 
+  // Vazifalarni birlashtiruvchi ishonchli mexanizm (Server va LocalStorage submissions larini merge qilish)
+  const mergeTasks = (serverList, localList) => {
+    if (!Array.isArray(serverList)) serverList = [];
+    if (!Array.isArray(localList)) localList = [];
+
+    const map = new Map();
+
+    serverList.forEach(t => {
+      map.set(String(t.id), { ...t, submissions: [...(t.submissions || [])] });
+    });
+
+    localList.forEach(localTask => {
+      const idStr = String(localTask.id);
+      if (map.has(idStr)) {
+        const existing = map.get(idStr);
+        const subsMap = new Map();
+        (existing.submissions || []).forEach(s => subsMap.set(String(s.id || s.submittedAt || s.studentName), s));
+        (localTask.submissions || []).forEach(s => {
+          const key = String(s.id || s.submittedAt || s.studentName);
+          if (!subsMap.has(key)) {
+            subsMap.set(key, s);
+          } else {
+            const exSub = subsMap.get(key);
+            subsMap.set(key, { ...exSub, ...s });
+          }
+        });
+        const mergedSubs = Array.from(subsMap.values());
+        map.set(idStr, {
+          ...existing,
+          ...localTask,
+          submissions: mergedSubs,
+          uploadedStudentsCount: mergedSubs.length
+        });
+      } else {
+        map.set(idStr, localTask);
+      }
+    });
+
+    return Array.from(map.values());
+  };
+
   // Sync tasks from backend (Har 3 soniyada doimiy integratsiya)
   const fetchTasks = () => {
+    let localSaved = [];
+    try {
+      const saved = localStorage.getItem('mathscore_course_tasks');
+      if (saved) localSaved = JSON.parse(saved);
+    } catch (e) {}
+
     fetch(`${API_BASE}/api/tasks`)
       .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data)) {
-          setTasks(data);
-          localStorage.setItem('mathscore_course_tasks', JSON.stringify(data));
+      .then(serverData => {
+        const merged = mergeTasks(serverData || [], localSaved);
+        if (merged.length > 0) {
+          setTasks(merged);
+          localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged));
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (localSaved.length > 0) {
+          setTasks(localSaved);
+        }
+      });
   };
 
   useEffect(() => {
     fetchTasks();
     const interval = setInterval(fetchTasks, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    localStorage.setItem('mathscore_course_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    const handleStorageChange = (e) => {
+      if (e.key === 'mathscore_course_tasks') {
+        try {
+          if (e.newValue) {
+            const updated = JSON.parse(e.newValue);
+            if (Array.isArray(updated)) setTasks(updated);
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Sync grading inputs when viewingTask opens or updates
   useEffect(() => {

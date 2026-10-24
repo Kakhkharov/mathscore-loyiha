@@ -602,25 +602,32 @@ export default function App() {
           });
         };
 
-        const mappedTests = testsDataVal
-          .filter(t => (!t.status || t.status.toLowerCase() === 'published') && matchesCourse(t.course || t.category))
-          .map(t => ({
-            ...t,
-            totalQuestions: t.questionCount || (t.questions ? t.questions.length : 0),
-            passingScore: t.passingPercentage !== undefined ? t.passingPercentage : (t.passingScore || 70),
-            description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
-            questions: (t.questions || []).map((q, idx) => ({
-              id: q.id || idx + 1,
-              topic: q.topic || t.category || 'Matematika',
-              difficulty: q.difficulty || t.difficulty || 'Medium',
-              question: q.text || q.question || '',
-              options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
-              correct: q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0),
-              explanation: q.explanation || '',
-              hint: q.hint || '',
-              imageUrl: q.imageUrl || null
-            }))
-          }));
+        const publishedTests = testsDataVal.filter(t => !t.status || t.status.toLowerCase() === 'published');
+        let filteredTests = publishedTests.filter(t => matchesCourse(t.course || t.category));
+        // Fallback: Agar kurs mos kelishi bo'yicha test chiqmasa, barcha chop etilgan testlarni ko'rsatamiz
+        if (filteredTests.length === 0 && publishedTests.length > 0) {
+          filteredTests = publishedTests;
+        }
+
+        const mappedTests = filteredTests.map(t => ({
+          ...t,
+          totalQuestions: t.questionCount || (t.questions ? t.questions.length : 0),
+          passingScore: t.passingPercentage !== undefined ? t.passingPercentage : (t.passingScore || 70),
+          description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
+          questions: (t.questions || []).map((q, idx) => ({
+            id: q.id || idx + 1,
+            type: q.type || 'single',
+            topic: q.topic || t.category || 'Matematika',
+            difficulty: q.difficulty || t.difficulty || 'Medium',
+            question: q.text || q.question || '',
+            options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
+            correct: q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0),
+            score: q.score !== undefined ? Number(q.score) : 1,
+            explanation: q.explanation || '',
+            hint: q.hint || '',
+            imageUrl: q.imageUrl || null
+          }))
+        }));
         setTests(mappedTests);
       }
 
@@ -740,7 +747,8 @@ export default function App() {
       } catch (e) {}
     };
 
-    const interval = setInterval(checkStudentNotifs, 5000);
+    checkStudentNotifs();
+    const interval = setInterval(checkStudentNotifs, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -861,6 +869,185 @@ export default function App() {
     if (!visitedQuestions.includes(qIndex)) {
       setVisitedQuestions(prev => [...prev, qIndex]);
     }
+  };
+
+  const handleToggleMultipleAnswer = (qIndex, optionIndex) => {
+    setQuizAnswers(prev => {
+      const current = Array.isArray(prev[qIndex]) ? [...prev[qIndex]] : [];
+      const updated = current.includes(optionIndex)
+        ? current.filter(i => i !== optionIndex)
+        : [...current, optionIndex];
+      return { ...prev, [qIndex]: updated };
+    });
+
+    if (!visitedQuestions.includes(qIndex)) {
+      setVisitedQuestions(prev => [...prev, qIndex]);
+    }
+  };
+
+  const handleTextAnswer = (qIndex, text) => {
+    setQuizAnswers(prev => ({ ...prev, [qIndex]: text }));
+
+    if (!visitedQuestions.includes(qIndex)) {
+      setVisitedQuestions(prev => [...prev, qIndex]);
+    }
+  };
+
+  const renderQuestionInputControls = (currentQ, isSplit = false) => {
+    if (!currentQ) return null;
+    const qType = (currentQ.type || 'single').toLowerCase();
+    const currentAnswer = quizAnswers[activeQuestion];
+
+    // 1. Multiple-response question (Select all that apply)
+    if (qType === 'multiple') {
+      const selectedIndices = Array.isArray(currentAnswer) ? currentAnswer : [];
+      const options = currentQ.options || [];
+
+      return (
+        <div className="space-y-3 pt-4 border-t border-outline-variant/60">
+          <div className="flex items-center gap-1.5 text-secondary text-xs font-bold">
+            <span className="material-symbols-outlined text-[16px]">checklist</span>
+            <span>Ko'p variantli savol (Bir nechta to'g'ri javoblarni belgilang):</span>
+          </div>
+
+          <div className={`grid ${isSplit ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
+            {options.map((opt, oIdx) => {
+              const isChecked = selectedIndices.includes(oIdx);
+              return (
+                <button
+                  key={oIdx}
+                  type="button"
+                  onClick={() => handleToggleMultipleAnswer(activeQuestion, oIdx)}
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
+                    ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
+                    : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-lg border shrink-0 flex items-center justify-center text-xs font-bold transition-all ${isChecked
+                    ? 'bg-primary border-primary text-on-primary'
+                    : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
+                  }`}>
+                    {isChecked ? (
+                      <span className="material-symbols-outlined text-[16px]">check</span>
+                    ) : (
+                      String.fromCharCode(65 + oIdx)
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold leading-relaxed">
+                    {renderMathContent(opt)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // 2. True / False (Rost yoki Yolg'on)
+    if (qType === 'truefalse') {
+      const isTrueSelected = currentAnswer === true || currentAnswer === 'true';
+      const isFalseSelected = currentAnswer === false || currentAnswer === 'false';
+
+      return (
+        <div className="space-y-3 pt-4 border-t border-outline-variant/60">
+          <div className="flex items-center gap-1.5 text-indigo-500 text-xs font-bold">
+            <span className="material-symbols-outlined text-[16px]">rule</span>
+            <span>Rost yoki Yolg'on holatini belgilang:</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => handleSelectAnswer(activeQuestion, true)}
+              className={`p-4 rounded-xl border flex items-center justify-center gap-3 transition-all font-bold text-sm cursor-pointer shadow-xs ${isTrueSelected
+                ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-extrabold ring-2 ring-emerald-500/20'
+                : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${isTrueSelected ? 'bg-emerald-500 text-white border-emerald-500' : 'border-outline-variant text-outline bg-surface-container'}`}>
+                <span className="material-symbols-outlined text-[18px]">check</span>
+              </div>
+              <span>Rost (True)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSelectAnswer(activeQuestion, false)}
+              className={`p-4 rounded-xl border flex items-center justify-center gap-3 transition-all font-bold text-sm cursor-pointer shadow-xs ${isFalseSelected
+                ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-400 font-extrabold ring-2 ring-rose-500/20'
+                : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${isFalseSelected ? 'bg-rose-500 text-white border-rose-500' : 'border-outline-variant text-outline bg-surface-container'}`}>
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </div>
+              <span>Yolg'on (False)</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 3. Short Answer / Math Equation (Qisqa matn yoki formula javob)
+    if (qType === 'short' || qType === 'math') {
+      const textVal = currentAnswer !== undefined && currentAnswer !== null ? String(currentAnswer) : '';
+
+      return (
+        <div className="space-y-3 pt-4 border-t border-outline-variant/60">
+          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-bold">
+            <span className="material-symbols-outlined text-[16px]">edit_note</span>
+            <span>
+              {qType === 'math' ? "Matematik formula / qiymat yechimini kiriting:" : "Qisqa matnli javobingizni kiriting:"}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={textVal}
+              onChange={(e) => handleTextAnswer(activeQuestion, e.target.value)}
+              placeholder={qType === 'math' ? "Javobingiz (masalan: 7 yoki x=4)..." : "Javobingizni bu yerga yozing..."}
+              className="w-full p-4 rounded-xl border border-outline-variant bg-surface text-on-surface font-semibold text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs transition-all"
+            />
+            <p className="text-[11px] text-outline font-medium">
+              💡 Harflar kattaligi (Katta/kichik) va probellar inobatga olinmaydi.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // 4. Default: MCQ (Single-choice question)
+    const options = currentQ.options || [];
+    return (
+      <div className={`grid ${isSplit ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-3 pt-4 border-t border-outline-variant/60`}>
+        {options.map((opt, oIdx) => {
+          const isChecked = currentAnswer === oIdx;
+          return (
+            <button
+              key={oIdx}
+              type="button"
+              onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
+              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
+                ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
+                : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full border shrink-0 flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
+                ? 'bg-primary border-primary text-on-primary'
+                : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
+              }`}>
+                {String.fromCharCode(65 + oIdx)}
+              </div>
+              <span className="text-xs font-semibold leading-relaxed">
+                {renderMathContent(opt)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
   };
 
   const handleToggleFlag = (qIndex) => {
@@ -2151,7 +2338,9 @@ export default function App() {
                         {/* Navigator grid of pills */}
                         <div className="grid grid-cols-5 gap-1.5">
                           {activeQuizTest.questions.map((q, idx) => {
-                            const isAnswered = quizAnswers[idx] !== undefined;
+                            const ansVal = quizAnswers[idx];
+                            const isAnswered = ansVal !== undefined && ansVal !== null &&
+                              (Array.isArray(ansVal) ? ansVal.length > 0 : String(ansVal).trim().length > 0);
                             const isCurrent = idx === activeQuestion;
                             const isFlagged = markedForReview.includes(idx);
 
@@ -2293,32 +2482,8 @@ export default function App() {
                                 )}
                               </div>
 
-                              {/* Interactive Options grid */}
-                              <div className="grid grid-cols-1 gap-2.5 pt-4 border-t border-outline-variant/60">
-                                {(activeQuizTest.questions[activeQuestion]?.options || []).map((opt, oIdx) => {
-                                  const isChecked = quizAnswers[activeQuestion] === oIdx;
-                                  return (
-                                    <button
-                                      key={oIdx}
-                                      onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
-                                      className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
-                                          ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
-                                          : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
-                                        }`}
-                                    >
-                                      <div className={`w-7 h-7 rounded-full border shrink-0 flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
-                                          ? 'bg-primary border-primary text-on-primary'
-                                          : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
-                                        }`}>
-                                        {String.fromCharCode(65 + oIdx)}
-                                      </div>
-                                      <span className="text-xs font-semibold leading-relaxed">
-                                        {renderMathContent(opt)}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                              {/* Interactive Answer Input Controls (Multi-Type: MCQ, Multiple, True/False, Short, Math) */}
+                              {renderQuestionInputControls(activeQuizTest.questions[activeQuestion], true)}
                             </div>
 
                             {/* Bottom Quick Navigation */}
@@ -2436,32 +2601,8 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* Interactive Options grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-outline-variant/60">
-                              {(activeQuizTest.questions[activeQuestion]?.options || []).map((opt, oIdx) => {
-                                const isChecked = quizAnswers[activeQuestion] === oIdx;
-                                return (
-                                  <button
-                                    key={oIdx}
-                                    onClick={() => handleSelectAnswer(activeQuestion, oIdx)}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all quiz-option cursor-pointer group ${isChecked
-                                        ? 'bg-primary/5 border-primary text-primary font-bold shadow-xs'
-                                        : 'bg-surface border-outline-variant hover:bg-surface-container text-on-surface hover:border-outline'
-                                      }`}
-                                  >
-                                    <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all ${isChecked
-                                        ? 'bg-primary border-primary text-on-primary'
-                                        : 'border-outline-variant text-outline bg-surface-container group-hover:border-outline'
-                                      }`}>
-                                      {String.fromCharCode(65 + oIdx)}
-                                    </div>
-                                    <span className="text-xs font-semibold leading-relaxed">
-                                      {renderMathContent(opt)}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
+                            {/* Interactive Answer Input Controls (Multi-Type: MCQ, Multiple, True/False, Short, Math) */}
+                            {renderQuestionInputControls(activeQuizTest.questions[activeQuestion], false)}
                           </div>
 
                           {/* Bottom Quick Navigation */}

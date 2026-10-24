@@ -70,6 +70,38 @@
   ],
   "tasks": [
     {
+      "id": 1792862800000,
+      "courseTitle": "Pure Mathematics 1",
+      "title": "A level tasks",
+      "description": "izoh",
+      "deadline": "2026-11-02T18:00:00.000Z",
+      "linkUrl": "",
+      "fileUrl": "http://localhost:5000/uploads/11-amaliy_ish.pdf",
+      "fileName": "11-amaliy ish.pdf",
+      "tasksCount": 1,
+      "uploadedStudentsCount": 1,
+      "linksCount": 0,
+      "submissions": [
+        {
+          "id": 1792862900000,
+          "studentName": "Musulmon Qahharov",
+          "studentId": null,
+          "studentPhone": "+998 94 024 13 71",
+          "studentAvatar": "https://api.mathscore.uz/uploads/a0be742a-3510-4c22-8c84-2e47c518866b.jpg",
+          "fileName": "Dars_tahlili_namunalari_Qahharov_Musulmon.pdf",
+          "fileUrl": "http://localhost:5000/uploads/Dars_tahlili_namunalari_Qahharov_Musulmon.pdf",
+          "submittedAt": "2026-10-24T17:15:00.000Z",
+          "attemptNumber": 1,
+          "attemptsAllowed": 1,
+          "resubmitAllowed": false,
+          "grade": null,
+          "feedback": "Topshiriq tekshirilmoqda. Baho va fikr tez orada chiqadi.",
+          "previousSubmissions": []
+        }
+      ],
+      "createdAt": "2026-10-24T17:00:00.000Z"
+    },
+    {
       "id": 1792842904111,
       "courseTitle": "SAT Pro MAX",
       "title": "Topshiriq 2",
