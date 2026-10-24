@@ -420,7 +420,16 @@ const studentTests = [
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('login');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      const savedDark = localStorage.getItem('darkMode');
+      if (savedTheme) return savedTheme === 'dark';
+      if (savedDark) return savedDark === 'true';
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -614,19 +623,48 @@ export default function App() {
           totalQuestions: t.questionCount || (t.questions ? t.questions.length : 0),
           passingScore: t.passingPercentage !== undefined ? t.passingPercentage : (t.passingScore || 70),
           description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
-          questions: (t.questions || []).map((q, idx) => ({
-            id: q.id || idx + 1,
-            type: q.type || 'single',
-            topic: q.topic || t.category || 'Matematika',
-            difficulty: q.difficulty || t.difficulty || 'Medium',
-            question: q.text || q.question || '',
-            options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
-            correct: q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0),
-            score: q.score !== undefined ? Number(q.score) : 1,
-            explanation: q.explanation || '',
-            hint: q.hint || '',
-            imageUrl: q.imageUrl || null
-          }))
+          questions: (t.questions || []).map((q, idx) => {
+            let decodedAnswer = q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0);
+            const qType = (q.type || 'single').toLowerCase();
+            
+            if (qType === 'multiple') {
+              if (q.hint && q.hint.includes('__MULTI__:')) {
+                try {
+                  decodedAnswer = JSON.parse(q.hint.split('__MULTI__:')[1].split(' | ')[0]);
+                } catch(e) {}
+              } else if (!Array.isArray(decodedAnswer)) {
+                decodedAnswer = [Number(decodedAnswer) || 0];
+              }
+            } else if (qType === 'truefalse') {
+              if (q.hint && q.hint.includes('__TF__:')) {
+                decodedAnswer = q.hint.includes('true');
+              } else {
+                decodedAnswer = decodedAnswer === 0 || decodedAnswer === true || decodedAnswer === 'true';
+              }
+            } else if (qType === 'short' || qType === 'math') {
+              const marker = qType === 'short' ? '__SHORT__:' : '__MATH__:';
+              if (q.hint && q.hint.includes(marker)) {
+                decodedAnswer = q.hint.split(marker)[1].split(' | ')[0];
+              } else if (typeof decodedAnswer === 'number' && decodedAnswer === 0 && Array.isArray(q.options) && q.options.length > 0) {
+                decodedAnswer = q.options.join(', ');
+              }
+            }
+
+            return {
+              id: q.id || idx + 1,
+              type: qType,
+              topic: q.topic || t.category || 'Matematika',
+              difficulty: q.difficulty || t.difficulty || 'Medium',
+              question: q.text || q.question || '',
+              options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
+              correct: decodedAnswer,
+              correctAnswer: decodedAnswer,
+              score: q.score !== undefined ? Number(q.score) : 1,
+              explanation: q.explanation || '',
+              hint: q.hint || '',
+              imageUrl: q.imageUrl || null
+            };
+          })
         }));
         setTests(mappedTests);
       }
@@ -784,8 +822,12 @@ export default function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      localStorage.setItem('darkMode', 'true');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      localStorage.setItem('darkMode', 'false');
     }
   }, [darkMode]);
 
@@ -1064,6 +1106,58 @@ export default function App() {
     const spentTimeSecs = activeQuizTest.duration * 60 - timerSeconds;
     const timeSpentStr = formatTimer(spentTimeSecs >= 0 ? spentTimeSecs : 0);
 
+    // Multi-type accurate client-side evaluation fallback
+    let clientCorrectCount = 0;
+    let totalScorePossible = 0;
+    let clientEarnedScore = 0;
+
+    (activeQuizTest.questions || []).forEach((q, idx) => {
+      const qScore = Number(q.score) || 1;
+      totalScorePossible += qScore;
+      const studentAns = quizAnswers[idx];
+      const qType = (q.type || 'single').toLowerCase();
+      let isCorrect = false;
+
+      if (qType === 'single' || qType === 'mcq') {
+        if (studentAns !== undefined && studentAns !== null && Number(studentAns) === Number(q.correct)) {
+          isCorrect = true;
+        }
+      } else if (qType === 'multiple') {
+        const correctArr = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct) || 0];
+        const studentArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
+        const s1 = [...correctArr].sort((a,b)=>a-b);
+        const s2 = [...studentArr].sort((a,b)=>a-b);
+        if (s1.length > 0 && s1.length === s2.length && s1.every((v, i) => v === s2[i])) {
+          isCorrect = true;
+        }
+      } else if (qType === 'truefalse') {
+        const cBool = q.correct === true || q.correct === 0 || q.correct === 'true';
+        let sBool;
+        if (typeof studentAns === 'boolean') sBool = studentAns;
+        else if (typeof studentAns === 'string') sBool = studentAns.toLowerCase() === 'true' || studentAns.toLowerCase() === 'rost' || studentAns === '0';
+        else if (typeof studentAns === 'number') sBool = studentAns === 0;
+        if (sBool !== undefined && sBool === cBool) isCorrect = true;
+      } else if (qType === 'short' || qType === 'math') {
+        if (studentAns !== undefined && studentAns !== null) {
+          const sText = String(studentAns).trim().toLowerCase();
+          const accepted = (String(q.correct || '') + ',' + (Array.isArray(q.options) ? q.options.join(',') : ''))
+            .split(',')
+            .map(x => x.trim().toLowerCase())
+            .filter(Boolean);
+          if (accepted.some(acc => acc === sText || (acc.replace(/\s+/g, '') === sText.replace(/\s+/g, '')))) {
+            isCorrect = true;
+          }
+        }
+      }
+
+      if (isCorrect) {
+        clientCorrectCount++;
+        clientEarnedScore += qScore;
+      }
+    });
+
+    const clientPercentage = totalScorePossible > 0 ? Math.round((clientEarnedScore / totalScorePossible) * 100) : 0;
+
     try {
       const response = await fetchWithAuth('/api/submissions', {
         method: 'POST',
@@ -1080,12 +1174,19 @@ export default function App() {
         throw new Error(data.error || 'Natijani saqlashda xatolik.');
       }
 
+      const finalScore = (data.result && typeof data.result.score === 'number' && data.result.score > 0)
+        ? data.result.score
+        : clientPercentage;
+      const finalCorrectCount = (data.result && typeof data.result.correctCount === 'number' && data.result.correctCount > 0)
+        ? data.result.correctCount
+        : clientCorrectCount;
+
       setQuizResult({
         testId: activeQuizTest.id,
         testTitle: activeQuizTest.title,
-        score: data.result.score,
-        correctCount: data.result.correctCount,
-        incorrectCount: data.result.totalQuestions - data.result.correctCount,
+        score: finalScore,
+        correctCount: finalCorrectCount,
+        incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
         unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
         timeSpent: timeSpentStr,
         answers: quizAnswers,
@@ -1459,46 +1560,13 @@ export default function App() {
                 Tizimga kirish
               </button>
 
-              <div className="pt-2 border-t border-outline-variant/60 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const email = 'musurmonqahharov747@gmail.com';
-                    const password = '12345678';
-                    try {
-                      const response = await fetch(`${API_BASE}/api/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                      });
-                      const data = await response.json();
-                      if (!response.ok) throw new Error(data.error || 'Kirishda xatolik');
-                      localStorage.setItem('student_token', data.token);
-                      const studentProfile = {
-                        firstName: data.user.name.split(' ')[0] || data.user.name,
-                        lastName: data.user.name.split(' ').slice(1).join(' ') || '',
-                        email: data.user.email,
-                        phone: data.user.phone || '',
-                        avatar: data.user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
-                        course: data.user.course || 'SAT Pro MAX'
-                      };
-                      setProfile(studentProfile);
-                      setCurrentPage('dashboard');
-                      syncData(studentProfile);
-                    } catch (err) {
-                      alert(err.message);
-                    }
-                  }}
-                  className="w-full h-10 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg text-xs hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[16px]">school</span>
-                  <span>Tezkor test kirish (Islombek Qahharov - SAT Pro MAX)</span>
-                </button>
-              </div>
-
               <button
                 type="button"
-                onClick={() => { window.location.href = 'http://localhost:5173/'; }}
+                onClick={() => { 
+                  if (typeof window !== 'undefined') {
+                    window.location.href = window.location.origin ? (window.location.origin + '/') : '/';
+                  }
+                }}
                 className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-all mt-3 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">home</span>

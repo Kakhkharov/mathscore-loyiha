@@ -564,10 +564,57 @@ function App() {
     const finalStatus = statusVal || newTest.status;
     if (!newTest.title) return alert("Iltimos, test nomini kiriting!");
 
+    // Safely prepare questions for Prisma compatibility (correctAnswer must be integer for database validation)
+    const preparedQuestions = (newTest.questions || []).map((q, idx) => {
+      const qType = (q.type || 'single').toLowerCase();
+      let safeIntCorrectAnswer = 0;
+      let hintMarker = q.hint || '';
+      let safeOptions = Array.isArray(q.options) ? [...q.options] : [];
+
+      if (qType === 'single' || qType === 'mcq') {
+        safeIntCorrectAnswer = Number.isInteger(Number(q.correctAnswer)) ? Number(q.correctAnswer) : 0;
+      } else if (qType === 'multiple') {
+        const arr = Array.isArray(q.correctAnswer) ? q.correctAnswer : [0];
+        safeIntCorrectAnswer = Number(arr[0]) || 0;
+        hintMarker = `__MULTI__:${JSON.stringify(arr)}${q.hint && !q.hint.startsWith('__MULTI__:') ? ' | ' + q.hint : ''}`;
+      } else if (qType === 'truefalse') {
+        const isTrue = q.correctAnswer === true || q.correctAnswer === 1 || q.correctAnswer === 'true' || q.correctAnswer === 'Rost';
+        safeIntCorrectAnswer = isTrue ? 0 : 1;
+        hintMarker = `__TF__:${isTrue ? 'true' : 'false'}${q.hint && !q.hint.startsWith('__TF__:') ? ' | ' + q.hint : ''}`;
+        if (safeOptions.length === 0) safeOptions = ['Rost', 'Yolg\'on'];
+      } else if (qType === 'short') {
+        const ansStr = String(q.correctAnswer !== undefined && q.correctAnswer !== null ? q.correctAnswer : '').trim();
+        const numVal = Number(ansStr);
+        safeIntCorrectAnswer = (!isNaN(numVal) && ansStr !== '') ? Math.round(numVal) : 0;
+        hintMarker = `__SHORT__:${ansStr}${q.hint && !q.hint.startsWith('__SHORT__:') ? ' | ' + q.hint : ''}`;
+        if (safeOptions.length === 0 && ansStr) {
+          safeOptions = ansStr.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      } else if (qType === 'math') {
+        const ansStr = String(q.correctAnswer !== undefined && q.correctAnswer !== null ? q.correctAnswer : '').trim();
+        const numVal = Number(ansStr);
+        safeIntCorrectAnswer = (!isNaN(numVal) && ansStr !== '') ? Math.round(numVal) : 0;
+        hintMarker = `__MATH__:${ansStr}${q.hint && !q.hint.startsWith('__MATH__:') ? ' | ' + q.hint : ''}`;
+        if (safeOptions.length === 0 && ansStr) {
+          safeOptions = ansStr.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+
+      return {
+        ...q,
+        type: qType,
+        options: safeOptions,
+        correctAnswer: safeIntCorrectAnswer,
+        score: Math.max(1, Math.round(Number(q.score) || 1)),
+        hint: hintMarker
+      };
+    });
+
     const testData = {
       ...newTest,
       status: finalStatus,
-      questionCount: newTest.questions.filter(q => q.text.trim() !== '').length || 30
+      questions: preparedQuestions,
+      questionCount: preparedQuestions.filter(q => (q.text || '').trim() !== '').length || preparedQuestions.length || 30
     };
 
     try {
@@ -1887,13 +1934,19 @@ function App() {
     }
   };
 
-  const [categories, setCategories] = useState([
-    { id: 1, title: "SAT Prep", count: 4, students: 280, icon: "calculate", color: "from-blue-500/20 to-indigo-500/20 border-indigo-500/30" },
-    { id: 2, title: "A-Level Mathematics", count: 3, students: 140, icon: "functions", color: "from-purple-500/20 to-pink-500/20 border-purple-500/30" },
-    { id: 3, title: "Foundation Maths", count: 2, students: 95, icon: "square_foot", color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30" },
-    { id: 4, title: "Olympiad Math", count: 1, students: 48, icon: "trophy", color: "from-amber-500/20 to-orange-500/20 border-amber-500/30" },
-    { id: 5, title: "AP Calculus", count: 2, students: 64, icon: "analytics", color: "from-cyan-500/20 to-blue-500/20 border-cyan-500/30" }
-  ]);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mathscore_admin_categories');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      { id: 1, title: "SAT Prep", count: 4, students: 280, icon: "calculate", color: "from-blue-500/20 to-indigo-500/20 border-indigo-500/30" },
+      { id: 2, title: "A-Level Mathematics", count: 3, students: 140, icon: "functions", color: "from-purple-500/20 to-pink-500/20 border-purple-500/30" },
+      { id: 3, title: "Foundation Maths", count: 2, students: 95, icon: "square_foot", color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30" },
+      { id: 4, title: "Olympiad Math", count: 1, students: 48, icon: "trophy", color: "from-amber-500/20 to-orange-500/20 border-amber-500/30" },
+      { id: 5, title: "AP Calculus", count: 2, students: 64, icon: "analytics", color: "from-cyan-500/20 to-blue-500/20 border-cyan-500/30" }
+    ];
+  });
 
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategory, setNewCategory] = useState({ title: '', icon: 'calculate' });
@@ -1922,7 +1975,9 @@ function App() {
     e.preventDefault();
     if (!newCategory.title.trim()) return;
     const color = categoryColors[categories.length % categoryColors.length];
-    setCategories(prev => [...prev, { id: Date.now(), title: newCategory.title, count: 0, students: 0, icon: newCategory.icon, color }]);
+    const updated = [...categories, { id: Date.now(), title: newCategory.title.trim(), count: 0, students: 0, icon: newCategory.icon, color }];
+    setCategories(updated);
+    try { localStorage.setItem('mathscore_admin_categories', JSON.stringify(updated)); } catch(e){}
     setNewCategory({ title: '', icon: 'calculate' });
     setShowAddCategoryModal(false);
   };
@@ -1930,7 +1985,9 @@ function App() {
   const handleDeleteCategory = (catId) => {
     const cat = categories.find(c => c.id === catId);
     if (window.confirm(`"${cat?.title}" kategoriyasini o'chirmoqchimisiz?`)) {
-      setCategories(prev => prev.filter(c => c.id !== catId));
+      const updated = categories.filter(c => c.id !== catId);
+      setCategories(updated);
+      try { localStorage.setItem('mathscore_admin_categories', JSON.stringify(updated)); } catch(e){}
     }
   };
 
@@ -3086,49 +3143,6 @@ function App() {
                         </div>
                       ))}
                     </div>
-
-                    {/* Add Category Modal */}
-                    {showAddCategoryModal && (
-                      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                        <div className="modern-card w-full max-w-md p-8 space-y-6">
-                          <div className="flex justify-between items-center">
-                            <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Kategoriya Qo'shish</h3>
-                            <button onClick={() => setShowAddCategoryModal(false)} className="w-8 h-8 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                              <span className="material-symbols-outlined">close</span>
-                            </button>
-                          </div>
-                          <form onSubmit={handleAddCategory} className="space-y-4">
-                            <div className="space-y-1">
-                              <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya Nomi</label>
-                              <input
-                                required
-                                value={newCategory.title}
-                                onChange={e => setNewCategory({ ...newCategory, title: e.target.value })}
-                                placeholder="Masalan: IELTS Mathematics"
-                                className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-bold text-slate-500 uppercase">Ikonka</label>
-                              <div className="grid grid-cols-4 gap-2">
-                                {categoryIcons.map(ic => (
-                                  <button
-                                    type="button"
-                                    key={ic.value}
-                                    onClick={() => setNewCategory({ ...newCategory, icon: ic.value })}
-                                    className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${newCategory.icon === ic.value ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400'}`}
-                                  >
-                                    <span className="material-symbols-outlined text-[20px]">{ic.value}</span>
-                                    <span className="text-[9px] font-bold">{ic.label}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                            <button className="w-full p-4 bg-indigo-500 text-white font-black rounded-xl shadow-lg shadow-indigo-500/30 hover:opacity-90 transition-all">Saqlash</button>
-                          </form>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -3358,7 +3372,53 @@ function App() {
                                     </button>
                                     <button
                                       onClick={() => {
-                                        setNewTest({ ...test });
+                                        const decodedQuestions = (test.questions || []).map(q => {
+                                          let ans = q.correctAnswer;
+                                          const qType = (q.type || 'single').toLowerCase();
+                                          if (qType === 'multiple') {
+                                            if (q.hint && q.hint.includes('__MULTI__:')) {
+                                              try {
+                                                const raw = q.hint.split('__MULTI__:')[1].split(' | ')[0];
+                                                ans = JSON.parse(raw);
+                                              } catch (e) {
+                                                ans = Array.isArray(q.correctAnswer) ? q.correctAnswer : [Number(q.correctAnswer) || 0];
+                                              }
+                                            } else if (Array.isArray(q.correctAnswer)) {
+                                              ans = q.correctAnswer;
+                                            } else {
+                                              ans = [Number(q.correctAnswer) || 0];
+                                            }
+                                          } else if (qType === 'truefalse') {
+                                            if (q.hint && q.hint.includes('__TF__:')) {
+                                              ans = q.hint.includes('true');
+                                            } else {
+                                              ans = q.correctAnswer === 0 || q.correctAnswer === true || q.correctAnswer === 'true';
+                                            }
+                                          } else if (qType === 'short') {
+                                            if (q.hint && q.hint.includes('__SHORT__:')) {
+                                              ans = q.hint.split('__SHORT__:')[1].split(' | ')[0];
+                                            } else if (typeof q.correctAnswer === 'string') {
+                                              ans = q.correctAnswer;
+                                            } else if (Array.isArray(q.options) && q.options.length > 0) {
+                                              ans = q.options.join(', ');
+                                            } else {
+                                              ans = String(q.correctAnswer || '');
+                                            }
+                                          } else if (qType === 'math') {
+                                            if (q.hint && q.hint.includes('__MATH__:')) {
+                                              ans = q.hint.split('__MATH__:')[1].split(' | ')[0];
+                                            } else if (typeof q.correctAnswer === 'string') {
+                                              ans = q.correctAnswer;
+                                            } else if (Array.isArray(q.options) && q.options.length > 0) {
+                                              ans = q.options.join(', ');
+                                            } else {
+                                              ans = String(q.correctAnswer || '');
+                                            }
+                                          }
+                                          return { ...q, type: qType, correctAnswer: ans };
+                                        });
+
+                                        setNewTest({ ...test, questions: decodedQuestions });
                                         setActiveQuestionIndex(0);
                                         setTestBuilderTab('general');
                                         setIsBuildingTest(true);
@@ -4469,17 +4529,60 @@ function App() {
           )}
 
 
+          {/* Add Category Modal (Global z-[100] level to avoid navbar overlap) */}
+          {showAddCategoryModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
+              <div className="modern-card w-full max-w-md p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Kategoriya Qo'shish</h3>
+                  <button onClick={() => setShowAddCategoryModal(false)} className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+                <form onSubmit={handleAddCategory} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Kategoriya Nomi</label>
+                    <input
+                      required
+                      value={newCategory.title}
+                      onChange={e => setNewCategory({ ...newCategory, title: e.target.value })}
+                      placeholder="Masalan: IELTS Mathematics"
+                      className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Ikonka</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {categoryIcons.map(ic => (
+                        <button
+                          type="button"
+                          key={ic.value}
+                          onClick={() => setNewCategory({ ...newCategory, icon: ic.value })}
+                          className={`p-2.5 rounded-xl border flex flex-col items-center gap-1 transition-all ${newCategory.icon === ic.value ? 'bg-indigo-500 text-white border-indigo-500 shadow-md shadow-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400'}`}
+                        >
+                          <span className="material-symbols-outlined text-[20px]">{ic.value}</span>
+                          <span className="text-[9px] font-bold">{ic.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white font-black rounded-xl shadow-lg shadow-indigo-500/30 transition-all cursor-pointer">Saqlash</button>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* Delete Course Confirmation Modal */}
           {deleteCourseTarget && (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
               <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 <div className="bg-rose-500 p-6 flex justify-between items-center">
                   <h3 className="text-xl font-black text-white flex items-center gap-2"><span className="material-symbols-outlined text-[24px]">warning</span> Diqqat! O'chirish</h3>
                   <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"><span className="material-symbols-outlined text-[18px]">close</span></button>
                 </div>
                 <div className="p-6 space-y-4 text-slate-900 dark:text-white">
-                  <p className="text-sm">Mazkur kursni kurs nomini yozib o'chirishni xohlaysizmi? <br />Haqiqatdan ham <strong>{deleteCourseTarget.title}</strong> kursini o'chirishni xohlaysizmi?</p>
-                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uchun quyidagi yozuvni kiriting: <br />"{deleteCourseTarget.title}"</p>
+                  <p className="text-sm">Mazkur kursni kurs nomini yozib o'chirishni xohlaysizmi? <br />Haqiqatdan ham <strong>{(deleteCourseTarget.title || '').trim()}</strong> kursini o'chirishni xohlaysizmi?</p>
+                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uchun quyidagi yozuvni kiriting: <br />"{(deleteCourseTarget.title || '').trim()}"</p>
                   <input
                     type="text"
                     value={deleteCourseInput}
@@ -4489,11 +4592,18 @@ function App() {
                   />
                   <div className="flex justify-end gap-3 pt-4">
                     <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="px-5 py-2.5 rounded-xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Yo'q</button>
-                    <button
-                      onClick={() => handleDeleteCourse(deleteCourseTarget.id)}
-                      disabled={deleteCourseInput !== deleteCourseTarget.title}
-                      className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all ${deleteCourseInput === deleteCourseTarget.title ? 'bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/30 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'}`}
-                    >Ha</button>
+                    {(() => {
+                      const targetClean = (deleteCourseTarget.title || '').trim().toLowerCase();
+                      const inputClean = deleteCourseInput.trim().toLowerCase();
+                      const isMatched = inputClean === targetClean && targetClean.length > 0;
+                      return (
+                        <button
+                          onClick={() => handleDeleteCourse(deleteCourseTarget.id)}
+                          disabled={!isMatched}
+                          className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all ${isMatched ? 'bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/30 cursor-pointer' : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'}`}
+                        >Ha</button>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

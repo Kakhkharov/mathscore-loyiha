@@ -289,7 +289,13 @@ const db = {
     try {
       switch (table) {
         case 'users': await prisma.user.delete({ where: { id } }); break;
-        case 'courses': await prisma.course.delete({ where: { id } }); break;
+        case 'courses': {
+          await prisma.lesson.deleteMany({ where: { courseId: id } }).catch(() => {});
+          await prisma.userCourse.deleteMany({ where: { courseId: id } }).catch(() => {});
+          await prisma.test.updateMany({ where: { courseId: id }, data: { courseId: null } }).catch(() => {});
+          await prisma.course.delete({ where: { id } });
+          break;
+        }
         case 'tests': await prisma.test.delete({ where: { id } }); break;
         default: return false;
       }
