@@ -4,7 +4,24 @@
     "heroSubtitle": "Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutish imkoniyatini qo'lga kiriting.",
     "contactPhone": "+998 99 824 46 18",
     "contactAddress": "Toshkent shahri, Sergeli tumani",
-    "telegramLink": "https://t.me/math_teacher_m"
+    "telegramLink": "https://t.me/math_teacher_m",
+    "tasksPayload": [
+      {
+        "id": 1792880100881,
+        "courseTitle": "A Level Math",
+        "title": "A Level Tasks",
+        "description": "bu yerda vazifalar bor",
+        "deadline": "2026-10-31T23:59:59.000Z",
+        "fileUrl": "",
+        "fileName": "",
+        "linkUrl": "",
+        "tasksCount": 1,
+        "uploadedStudentsCount": 0,
+        "linksCount": 0,
+        "submissions": [],
+        "createdAt": "2026-10-24T22:15:00.890Z"
+      }
+    ]
   },
   "results": [
     {
@@ -70,126 +87,19 @@
   ],
   "tasks": [
     {
-      "id": 1792862800000,
-      "courseTitle": "Pure Mathematics 1",
-      "title": "A level tasks",
-      "description": "izoh",
-      "deadline": "2026-11-02T18:00:00.000Z",
-      "linkUrl": "",
-      "fileUrl": "http://localhost:5000/uploads/11-amaliy_ish.pdf",
-      "fileName": "11-amaliy ish.pdf",
-      "tasksCount": 1,
-      "uploadedStudentsCount": 1,
-      "linksCount": 0,
-      "submissions": [
-        {
-          "id": 1792862900000,
-          "studentName": "Musulmon Qahharov",
-          "studentId": null,
-          "studentPhone": "+998 94 024 13 71",
-          "studentAvatar": "https://api.mathscore.uz/uploads/a0be742a-3510-4c22-8c84-2e47c518866b.jpg",
-          "fileName": "Dars_tahlili_namunalari_Qahharov_Musulmon.pdf",
-          "fileUrl": "http://localhost:5000/uploads/Dars_tahlili_namunalari_Qahharov_Musulmon.pdf",
-          "submittedAt": "2026-10-24T17:15:00.000Z",
-          "attemptNumber": 1,
-          "attemptsAllowed": 1,
-          "resubmitAllowed": false,
-          "grade": null,
-          "feedback": "Topshiriq tekshirilmoqda. Baho va fikr tez orada chiqadi.",
-          "previousSubmissions": []
-        }
-      ],
-      "createdAt": "2026-10-24T17:00:00.000Z"
-    },
-    {
-      "id": 1792842904111,
-      "courseTitle": "SAT Pro MAX",
-      "title": "Topshiriq 2",
-      "description": "bu majburiy",
-      "deadline": "2026-10-25T18:59:59.000Z",
-      "linkUrl": "https://cdn.dribbble.com/userupload/48171285/file/ecbb1193c83b6106e780a6194600f030.jpg?resize=752x&vertical=center",
-      "fileUrl": "http://localhost:5000/uploads/1bb8d6d0-5213-4af8-84c5-883fca039710.pdf",
-      "fileName": "Dars_tahlili_namunalari_Qahharov_Musulmon.pdf",
-      "tasksCount": 1,
-      "uploadedStudentsCount": 1,
-      "linksCount": 1,
-      "submissions": [
-        {
-          "id": 1792845076796,
-          "studentName": "Musulmon Qahharov",
-          "studentId": null,
-          "studentPhone": "+998 94 024 13 71",
-          "studentAvatar": "https://api.mathscore.uz/uploads/a0be742a-3510-4c22-8c84-2e47c518866b.jpg",
-          "fileName": "2-toifa Malaka toifasi sertifikati.pdf",
-          "fileUrl": "http://localhost:5000/uploads/5cf78e38-b768-473f-9bb4-229dcf142fad.pdf",
-          "submittedAt": "2026-10-24T12:33:38.665Z",
-          "attemptNumber": 2,
-          "attemptsAllowed": 2,
-          "resubmitAllowed": false,
-          "grade": "B",
-          "feedback": "2-urinish yuborildi. O&#x27;qituvchi tekshirmoqda.",
-          "gradedAt": "2026-10-24T13:30:40.063Z",
-          "gradedBy": "Malika",
-          "resubmitGrantedAt": "2026-10-24T12:33:15.020Z",
-          "resubmittedAt": "2026-10-24T12:33:38.665Z",
-          "previousSubmissions": [
-            {
-              "fileName": "Ilovalar_jadvallar.docx",
-              "fileUrl": "http://localhost:5000/uploads/a377843e-becb-4f87-806f-b0c0d1e1c44d.docx",
-              "submittedAt": "2026-10-24T12:31:16.796Z",
-              "grade": "85.3",
-              "feedback": "Xato qilgansiz, qayta topshiring",
-              "attemptNumber": 1
-            }
-          ]
-        }
-      ],
-      "createdAt": "2026-10-24T11:55:04.111Z"
-    },
-    {
-      "id": 1792839945163,
-      "courseTitle": "Mathematics",
-      "title": "Algebra Quadratic Equations Test",
-      "description": "Solve the quadratics given in the attached PDF worksheet.",
-      "deadline": "2026-10-29T11:05:42.145Z",
-      "linkUrl": "https://www.desmos.com/calculator?lang=ru",
+      "id": 1792880100881,
+      "courseTitle": "A Level Math",
+      "title": "A Level Tasks",
+      "description": "bu yerda vazifalar bor",
+      "deadline": "2026-10-31T23:59:59.000Z",
       "fileUrl": "",
       "fileName": "",
+      "linkUrl": "",
       "tasksCount": 1,
-      "uploadedStudentsCount": 1,
-      "linksCount": 1,
-      "submissions": [
-        {
-          "id": 1792841108332,
-          "studentName": "Alex Johnson",
-          "studentId": null,
-          "studentPhone": "+998 94 024 13 71",
-          "fileName": "file.pdf",
-          "fileUrl": "http://localhost:5000/uploads/e44b670e-e277-4183-a43c-1856128577e2.pdf",
-          "submittedAt": "2026-10-24T12:04:21.875Z",
-          "grade": "A",
-          "feedback": "qayta topshiring",
-          "gradedAt": "2026-10-24T12:04:51.188Z",
-          "gradedBy": "Malika",
-          "resubmitAllowed": false,
-          "attemptsAllowed": 2,
-          "resubmitGrantedAt": "2026-10-24T12:01:33.456Z",
-          "attemptNumber": 2,
-          "resubmittedAt": "2026-10-24T12:04:21.875Z",
-          "previousSubmissions": [
-            {
-              "fileName": "ISH REJA MUQOVA 2.docx",
-              "fileUrl": "http://localhost:5000/uploads/23a3100a-8da3-4355-b168-84d28e9fa3f1.docx",
-              "submittedAt": "2026-10-24T11:25:08.332Z",
-              "grade": "C",
-              "feedback": "qayta topshiring",
-              "attemptNumber": 1
-            }
-          ],
-          "studentAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop"
-        }
-      ],
-      "createdAt": "2026-10-24T11:05:45.163Z"
+      "uploadedStudentsCount": 0,
+      "linksCount": 0,
+      "submissions": [],
+      "createdAt": "2026-10-24T22:15:00.890Z"
     }
   ]
 }

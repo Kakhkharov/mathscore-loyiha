@@ -26,7 +26,7 @@ export default function CourseAssignments({
   const [showDesmosModal, setShowDesmosModal] = useState(false);
   const [pushNotification, setPushNotification] = useState(null);
 
-  // Talabaning to'liq ismi va familiyasi (1-talab)
+  // Talabaning to'liq ismi, telefon raqami va emaili (1-talab)
   const resolvedStudentName = (studentName && studentName !== 'Talaba')
     ? studentName
     : (() => {
@@ -41,19 +41,31 @@ export default function CourseAssignments({
         return 'Alex Johnson';
       })();
 
+  const resolvedStudentEmail = studentEmail || (() => {
+    try {
+      const u = localStorage.getItem('user') || localStorage.getItem('mathscore_user');
+      if (u) {
+        const parsed = JSON.parse(u);
+        return parsed.email || '';
+      }
+    } catch (e) {}
+    return '';
+  })();
+
   // 4-talab: Admin tomonidan baho qo'yilib feedback berilganida va qayta topshirish berilganida talabaga Push xabar chiqarish
   useEffect(() => {
     if (!tasks || !Array.isArray(tasks)) return;
 
     tasks.forEach(task => {
       const mySub = (task.submissions || []).find(s => {
+        if (resolvedStudentEmail && s.studentEmail && s.studentEmail.toLowerCase() === resolvedStudentEmail.toLowerCase()) return true;
         if (studentPhone && s.studentPhone && s.studentPhone === studentPhone) return true;
         if (resolvedStudentName && s.studentName) {
           const sName = resolvedStudentName.toLowerCase().trim();
           const subName = s.studentName.toLowerCase().trim();
           if (sName === subName || sName.includes(subName) || subName.includes(sName)) return true;
         }
-        if (task.submissions && task.submissions.length === 1 && !s.studentPhone) return true;
+        if (task.submissions && task.submissions.length === 1 && !s.studentPhone && !s.studentEmail) return true;
         return false;
       });
 
@@ -181,29 +193,44 @@ export default function CourseAssignments({
   };
 
   // Sync tasks from backend (Har 3 soniyada backend va LocalStorage bilan avtomatik sinxronizatsiya)
-  const syncTasks = () => {
+  const syncTasks = async () => {
     let localSaved = [];
     try {
       const saved = localStorage.getItem('mathscore_course_tasks');
       if (saved) localSaved = JSON.parse(saved);
     } catch (e) {}
 
-    fetch(`${API_BASE}/api/tasks`)
-      .then(res => res.ok ? res.json() : null)
-      .then(serverData => {
-        if (serverData && Array.isArray(serverData) && serverData.length > 0) {
-          const merged = mergeTasks(serverData, localSaved);
-          setTasks(merged);
-          try { localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged)); } catch(e){}
-        } else if (localSaved && localSaved.length > 0) {
-          setTasks(localSaved);
+    let serverTasks = [];
+
+    // 1. Try /api/tasks
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) serverTasks = data;
+      }
+    } catch (e) {}
+
+    // 2. If /api/tasks returned empty or 404, fallback to /api/settings tasksPayload
+    if (serverTasks.length === 0) {
+      try {
+        const setRes = await fetch(`${API_BASE}/api/settings`, { cache: 'no-store' });
+        if (setRes.ok) {
+          const setData = await setRes.json();
+          if (setData && Array.isArray(setData.tasksPayload)) {
+            serverTasks = setData.tasksPayload;
+          }
         }
-      })
-      .catch(() => {
-        if (localSaved && localSaved.length > 0) {
-          setTasks(localSaved);
-        }
-      });
+      } catch (e) {}
+    }
+
+    if (serverTasks.length > 0 || localSaved.length > 0) {
+      const merged = mergeTasks(serverTasks, localSaved);
+      setTasks(merged);
+      try {
+        localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged));
+      } catch (e) {}
+    }
   };
 
   useEffect(() => {
@@ -308,14 +335,32 @@ export default function CourseAssignments({
     setUploadingTaskId(taskId);
 
     const processSubmission = async (fileDataUrl) => {
+      let uploadedServerUrl = '';
+
+      // Serverga faylni yuklash (/api/upload orqali)
+      try {
+        const uploadForm = new FormData();
+        uploadForm.append('file', file);
+        const upRes = await fetch(`${API_BASE}/api/upload`, {
+          method: 'POST',
+          body: uploadForm
+        });
+        if (upRes.ok) {
+          const upData = await upRes.json();
+          uploadedServerUrl = upData.url || upData.fileUrl || '';
+        }
+      } catch (e) {}
+
+      const effectiveFileUrl = uploadedServerUrl || fileDataUrl || URL.createObjectURL(file);
+
       const localSubmission = {
         id: Date.now(),
         studentName: resolvedStudentName,
         studentPhone: studentPhone || '+998 94 024 13 71',
-        studentEmail: studentEmail || '',
+        studentEmail: resolvedStudentEmail || studentEmail || '',
         studentAvatar: studentAvatar,
         fileName: file.name,
-        fileUrl: fileDataUrl || URL.createObjectURL(file),
+        fileUrl: effectiveFileUrl,
         submittedAt: new Date().toISOString(),
         grade: null,
         feedback: ''
@@ -326,7 +371,7 @@ export default function CourseAssignments({
         formData.append('file', file);
         formData.append('studentName', resolvedStudentName);
         formData.append('studentPhone', studentPhone || '+998 94 024 13 71');
-        if (studentEmail) formData.append('studentEmail', studentEmail);
+        if (resolvedStudentEmail || studentEmail) formData.append('studentEmail', resolvedStudentEmail || studentEmail);
         if (studentAvatar) formData.append('studentAvatar', studentAvatar);
 
         await fetch(`${API_BASE}/api/tasks/${taskId}/submit`, {
@@ -335,33 +380,49 @@ export default function CourseAssignments({
         }).catch(() => {});
       } catch (e) {}
 
-      // Always save to state and localStorage
-      setTasks(prev => {
-        let currentTasks = (prev && prev.length > 0) ? prev : [];
-        try {
-          const saved = localStorage.getItem('mathscore_course_tasks');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) currentTasks = parsed;
-          }
-        } catch (e) {}
+      // Always save to state, localStorage and sync to /api/settings tasksPayload
+      let currentTasks = (tasks && tasks.length > 0) ? tasks : [];
+      try {
+        const saved = localStorage.getItem('mathscore_course_tasks');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) currentTasks = parsed;
+        }
+      } catch (e) {}
 
-        const updated = currentTasks.map(t => {
-          if (String(t.id) === String(taskId)) {
-            const existing = (t.submissions || []).filter(s => s.id !== localSubmission.id);
-            const subs = [...existing, localSubmission];
-            return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
-          }
-          return t;
-        });
-
-        try {
-          localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
-          window.dispatchEvent(new Event('storage'));
-        } catch (e) {}
-
-        return updated;
+      const updated = currentTasks.map(t => {
+        if (String(t.id) === String(taskId)) {
+          const existing = (t.submissions || []).filter(s => s.id !== localSubmission.id);
+          const subs = [...existing, localSubmission];
+          return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
+        }
+        return t;
       });
+
+      setTasks(updated);
+      try {
+        localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {}
+
+      // Persist to server settings payload (infallible VPS json store)
+      const payloadToSync = updated.map(t => ({
+        ...t,
+        submissions: (t.submissions || []).map(s => {
+          if (s.fileUrl && s.fileUrl.startsWith('data:') && s.fileUrl.length > 50000) {
+            return { ...s, fileUrl: uploadedServerUrl || s.fileName || '' };
+          }
+          return s;
+        })
+      }));
+
+      try {
+        await fetch(`${API_BASE}/api/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tasksPayload: payloadToSync })
+        }).catch(() => {});
+      } catch (e) {}
 
       setSelectedFiles(prev => ({ ...prev, [taskId]: null }));
       setUploadingTaskId(null);
@@ -487,14 +548,15 @@ export default function CourseAssignments({
 
             // Talabaning topshirig'ini aniq tekshirish (5-talab)
             const mySubmission = (task.submissions || []).find(s => {
+              if (resolvedStudentEmail && s.studentEmail && s.studentEmail.toLowerCase() === resolvedStudentEmail.toLowerCase()) return true;
               if (studentPhone && s.studentPhone && s.studentPhone === studentPhone) return true;
-              if (studentName && s.studentName) {
-                const sName = studentName.toLowerCase().trim();
+              if (resolvedStudentName && s.studentName) {
+                const sName = resolvedStudentName.toLowerCase().trim();
                 const subName = s.studentName.toLowerCase().trim();
                 if (sName === subName) return true;
                 if (sName.includes(subName) || subName.includes(sName)) return true;
               }
-              if (task.submissions && task.submissions.length === 1 && !s.studentPhone) return true;
+              if (task.submissions && task.submissions.length === 1 && !s.studentPhone && !s.studentEmail) return true;
               return false;
             });
 

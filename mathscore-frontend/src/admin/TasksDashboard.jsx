@@ -102,30 +102,62 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     return Array.from(map.values());
   };
 
+  const saveAndSyncTasks = async (updatedTasks) => {
+    setTasks(updatedTasks);
+    try {
+      localStorage.setItem('mathscore_course_tasks', JSON.stringify(updatedTasks));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+
+    // Persist to server via /api/settings tasksPayload (infallible VPS json store)
+    try {
+      fetch(`${API_BASE}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasksPayload: updatedTasks })
+      }).catch(() => {});
+    } catch (e) {}
+  };
+
   // Sync tasks from backend (Har 3 soniyada doimiy integratsiya)
-  const fetchTasks = () => {
+  const fetchTasks = async () => {
     let localSaved = [];
     try {
       const saved = localStorage.getItem('mathscore_course_tasks');
       if (saved) localSaved = JSON.parse(saved);
     } catch (e) {}
 
-    fetch(`${API_BASE}/api/tasks`)
-      .then(res => res.ok ? res.json() : null)
-      .then(serverData => {
-        if (serverData && Array.isArray(serverData) && serverData.length > 0) {
-          const merged = mergeTasks(serverData, localSaved);
-          setTasks(merged);
-          try { localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged)); } catch(e){}
-        } else if (localSaved && localSaved.length > 0) {
-          setTasks(localSaved);
+    let serverTasks = [];
+
+    // 1. Try /api/tasks
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) serverTasks = data;
+      }
+    } catch (e) {}
+
+    // 2. If /api/tasks returned empty or 404, fetch from /api/settings
+    if (serverTasks.length === 0) {
+      try {
+        const setRes = await fetch(`${API_BASE}/api/settings`, { cache: 'no-store' });
+        if (setRes.ok) {
+          const setData = await setRes.json();
+          if (setData && Array.isArray(setData.tasksPayload)) {
+            serverTasks = setData.tasksPayload;
+          }
         }
-      })
-      .catch(() => {
-        if (localSaved && localSaved.length > 0) {
-          setTasks(localSaved);
-        }
-      });
+      } catch (e) {}
+    }
+
+    if (serverTasks.length > 0 || localSaved.length > 0) {
+      const merged = mergeTasks(serverTasks, localSaved);
+      setTasks(merged);
+      try {
+        localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged));
+      } catch (e) {}
+    }
   };
 
   useEffect(() => {
@@ -238,6 +270,24 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setIsSubmitting(true);
     const deadlineIso = new Date(formDueDate + 'T23:59:59').toISOString();
 
+    let uploadedFileUrl = '';
+    let uploadedFileName = formFile ? formFile.name : '';
+
+    if (formFile) {
+      try {
+        const uploadForm = new FormData();
+        uploadForm.append('file', formFile);
+        const upRes = await fetch(`${API_BASE}/api/upload`, {
+          method: 'POST',
+          body: uploadForm
+        });
+        if (upRes.ok) {
+          const upData = await upRes.json();
+          uploadedFileUrl = upData.url || upData.fileUrl || '';
+        }
+      } catch (e) {}
+    }
+
     const localNewTask = {
       id: Date.now(),
       courseTitle: formCourse,
@@ -245,8 +295,8 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       description: formDesc.trim().slice(0, 256),
       deadline: deadlineIso,
       linkUrl: formLink.trim(),
-      fileName: formFile ? formFile.name : '',
-      fileUrl: formFile ? URL.createObjectURL(formFile) : '',
+      fileName: uploadedFileName,
+      fileUrl: uploadedFileUrl || (formFile ? URL.createObjectURL(formFile) : ''),
       tasksCount: 1,
       uploadedStudentsCount: 0,
       linksCount: formLink.trim() ? 1 : 0,
@@ -265,20 +315,14 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
         formData.append('file', formFile);
       }
 
-      const res = await fetch(`${API_BASE}/api/tasks`, {
+      await fetch(`${API_BASE}/api/tasks`, {
         method: 'POST',
         body: formData
-      });
+      }).catch(() => {});
+    } catch (err) {}
 
-      if (res.ok) {
-        const savedTask = await res.json();
-        setTasks(prev => [savedTask, ...prev]);
-      } else {
-        setTasks(prev => [localNewTask, ...prev]);
-      }
-    } catch (err) {
-      setTasks(prev => [localNewTask, ...prev]);
-    }
+    const updated = [localNewTask, ...(tasks || [])];
+    await saveAndSyncTasks(updated);
 
     setIsSubmitting(false);
     setShowAddTaskModal(false);
@@ -296,15 +340,12 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     const targetId = taskToDelete.id;
 
     try {
-      await fetch(`${API_BASE}/api/tasks/${targetId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/tasks/${targetId}`, { method: 'DELETE' }).catch(() => {});
     } catch (e) {}
 
     // Ham admin, ham student paneldan butunlay o'chadi
-    setTasks(prev => {
-      const updated = prev.filter(t => t.id !== targetId);
-      localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = (tasks || []).filter(t => t.id !== targetId);
+    await saveAndSyncTasks(updated);
 
     setTaskToDelete(null);
   };
@@ -335,29 +376,23 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       }).catch(() => {});
     } catch (e) {}
 
-    // Always update tasks state and localStorage
-    setTasks(prev => {
-      const updated = prev.map(t => {
-        if (String(t.id) === String(taskId) && t.submissions) {
-          const updatedSubs = t.submissions.map(s => {
-            if (String(s.id) === String(submissionId)) {
-              return { ...s, grade, feedback, gradedAt: new Date().toISOString() };
-            }
-            return s;
-          });
-          const updatedTask = { ...t, submissions: updatedSubs };
-          if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
-          return updatedTask;
-        }
-        return t;
-      });
-
-      try {
-        localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
-        window.dispatchEvent(new Event('storage'));
-      } catch (err) {}
-      return updated;
+    // Always update tasks state, localStorage, and sync to server
+    const updated = (tasks || []).map(t => {
+      if (String(t.id) === String(taskId) && t.submissions) {
+        const updatedSubs = t.submissions.map(s => {
+          if (String(s.id) === String(submissionId)) {
+            return { ...s, grade, feedback, gradedAt: new Date().toISOString() };
+          }
+          return s;
+        });
+        const updatedTask = { ...t, submissions: updatedSubs };
+        if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
+        return updatedTask;
+      }
+      return t;
     });
+
+    await saveAndSyncTasks(updated);
 
     setSavingGradeId(null);
     alert("Talaba topshirig'i baholandi va feedback saqlandi!");
@@ -377,41 +412,35 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       }).catch(() => {});
     } catch (e) {}
 
-    // Always update tasks state and localStorage
-    setTasks(prev => {
-      const updated = prev.map(t => {
-        if (String(t.id) === String(taskId) && t.submissions) {
-          const updatedSubs = t.submissions.map(s => {
-            if (String(s.id) === String(submissionId)) {
-              return {
-                ...s,
-                resubmitAllowed: true,
-                attemptsAllowed: attempts,
-                resubmitGrantedAt: new Date().toISOString()
-              };
-            }
-            return s;
-          });
-          const updatedTask = { ...t, submissions: updatedSubs };
-          if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
-          return updatedTask;
-        }
-        return t;
-      });
-
-      try {
-        localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
-        window.dispatchEvent(new Event('storage'));
-      } catch (err) {}
-      return updated;
+    // Always update tasks state, localStorage, and sync to server
+    const updated = (tasks || []).map(t => {
+      if (String(t.id) === String(taskId) && t.submissions) {
+        const updatedSubs = t.submissions.map(s => {
+          if (String(s.id) === String(submissionId)) {
+            return {
+              ...s,
+              resubmitAllowed: true,
+              attemptsAllowed: attempts,
+              resubmitGrantedAt: new Date().toISOString()
+            };
+          }
+          return s;
+        });
+        const updatedTask = { ...t, submissions: updatedSubs };
+        if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
+        return updatedTask;
+      }
+      return t;
     });
+
+    await saveAndSyncTasks(updated);
 
     alert(`Talabaga ${attempts}-imkoniyat muvaffaqiyatli berildi! Talaba panelida bildirishnoma aks etadi.`);
   };
 
   const handleRevokeResubmit = async (taskId, submissionId) => {
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${taskId}/grade`, {
+      await fetch(`${API_BASE}/api/tasks/${taskId}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -419,13 +448,25 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           resubmitAllowed: false,
           attemptsAllowed: 1
         })
-      });
-      if (res.ok) {
-        const result = await res.json();
-        setTasks(prev => prev.map(t => t.id === taskId ? result.task : t));
-        setViewingTask(result.task);
-      }
+      }).catch(() => {});
     } catch (e) {}
+
+    const updated = (tasks || []).map(t => {
+      if (String(t.id) === String(taskId) && t.submissions) {
+        const updatedSubs = t.submissions.map(s => {
+          if (String(s.id) === String(submissionId)) {
+            return { ...s, resubmitAllowed: false, attemptsAllowed: 1 };
+          }
+          return s;
+        });
+        const updatedTask = { ...t, submissions: updatedSubs };
+        if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
+        return updatedTask;
+      }
+      return t;
+    });
+
+    await saveAndSyncTasks(updated);
   };
 
   // 3-talab: 3 nuqta bosilganda edit oynasini ochish
@@ -454,7 +495,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setIsSavingEdit(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${editingTask.id}`, {
+      await fetch(`${API_BASE}/api/tasks/${editingTask.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -462,34 +503,21 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           description: editDesc.trim().slice(0, 256),
           deadline: editDeadline
         })
-      });
+      }).catch(() => {});
+    } catch (e) {}
 
-      if (res.ok) {
-        const result = await res.json();
-        setTasks(prev => prev.map(t => t.id === editingTask.id ? result.task : t));
-      } else {
-        setTasks(prev => prev.map(t => t.id === editingTask.id ? {
-          ...t,
-          title: editTitle.trim(),
-          description: editDesc.trim().slice(0, 256),
-          deadline: editDeadline
-        } : t));
-      }
+    const updated = (tasks || []).map(t => t.id === editingTask.id ? {
+      ...t,
+      title: editTitle.trim(),
+      description: editDesc.trim().slice(0, 256),
+      deadline: editDeadline
+    } : t);
 
-      alert("Topshiriq muvaffaqiyatli yangilandi!");
-      setEditingTask(null);
-    } catch (e) {
-      setTasks(prev => prev.map(t => t.id === editingTask.id ? {
-        ...t,
-        title: editTitle.trim(),
-        description: editDesc.trim().slice(0, 256),
-        deadline: editDeadline
-      } : t));
-      setEditingTask(null);
-      alert("Topshiriq yangilandi!");
-    } finally {
-      setIsSavingEdit(false);
-    }
+    await saveAndSyncTasks(updated);
+
+    setIsSavingEdit(false);
+    setEditingTask(null);
+    alert("Topshiriq muvaffaqiyatli yangilandi!");
   };
 
   return (

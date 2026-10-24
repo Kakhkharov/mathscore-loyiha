@@ -2121,6 +2121,7 @@ export default function App() {
                         currentCourseTitle={activeCourse?.title}
                         studentName={`${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Alex Johnson'}
                         studentPhone={profile?.phone || '+998 94 024 13 71'}
+                        studentEmail={profile?.email || ''}
                         studentAvatar={profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'}
                       />
                     </div>
@@ -2199,6 +2200,7 @@ export default function App() {
                   <CourseAssignments
                     studentName={`${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Alex Johnson'}
                     studentPhone={profile?.phone || '+998 94 024 13 71'}
+                    studentEmail={profile?.email || ''}
                     studentAvatar={profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'}
                     studentCourses={courses}
                     currentCourseTitle={activeCourse?.title || profile?.course}
