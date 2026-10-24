@@ -736,10 +736,15 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
   const score = totalPossibleScore > 0 ? Math.round((earnedScore / totalPossibleScore) * 100) : 0;
   const passed = score >= (test.passingPercentage || 70);
 
-  await db.insert('submissions', {
+  const insertedSub = await db.insert('submissions', {
     userId: req.user.id, userName: req.user.name, userEmail: req.user.email,
-    testId, testTitle: test.title, score, correctCount, incorrectCount: totalQuestions - correctCount,
-    tabSwitches: tabSwitches || 0, timeSpent: timeSpent || '00:00', passed
+    userAvatar: req.user.avatar || null,
+    testId, testTitle: test.title,
+    courseTitle: test.course || test.courseTitle || test.category || 'Barcha kurslar',
+    score, earnedScore, totalPossibleScore: totalPossibleScore || totalQuestions,
+    correctCount, incorrectCount: totalQuestions - correctCount,
+    tabSwitches: tabSwitches || 0, timeSpent: timeSpent || '00:00', passed,
+    createdAt: new Date().toISOString()
   });
 
   if (tabSwitches >= 3) {
@@ -753,7 +758,7 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
     `${req.user.name} "${test.title}" imtihon testini ${score}% ball bilan topshirdi (${passed ? "O'tdi ✅" : "O'tmadi ❌"}).`
   );
 
-  res.status(201).json({ message: 'Natijangiz saqlandi!', result: { score, correctCount, totalQuestions, passed, tabSwitches } });
+  res.status(201).json({ message: 'Natijangiz saqlandi!', result: { id: insertedSub?.id || Date.now(), score, correctCount, totalQuestions, passed, tabSwitches } });
 });
 
 app.get('/api/submissions', authenticateToken, async (req, res) => {

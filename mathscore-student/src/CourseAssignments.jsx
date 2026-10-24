@@ -191,14 +191,16 @@ export default function CourseAssignments({
     fetch(`${API_BASE}/api/tasks`)
       .then(res => res.ok ? res.json() : null)
       .then(serverData => {
-        const merged = mergeTasks(serverData || [], localSaved);
-        if (merged.length > 0) {
+        if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+          const merged = mergeTasks(serverData, localSaved);
           setTasks(merged);
-          localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged));
+          try { localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged)); } catch(e){}
+        } else if (localSaved && localSaved.length > 0) {
+          setTasks(localSaved);
         }
       })
       .catch(() => {
-        if (localSaved.length > 0) {
+        if (localSaved && localSaved.length > 0) {
           setTasks(localSaved);
         }
       });
@@ -305,75 +307,74 @@ export default function CourseAssignments({
 
     setUploadingTaskId(taskId);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('studentName', resolvedStudentName);
-      formData.append('studentPhone', studentPhone || '+998 94 024 13 71');
-      if (studentEmail) {
-        formData.append('studentEmail', studentEmail);
-      }
-      if (studentAvatar) {
-        formData.append('studentAvatar', studentAvatar);
-      }
-
-      const res = await fetch(`${API_BASE}/api/tasks/${taskId}/submit`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(prev => prev.map(t => t.id === taskId ? data.task : t));
-        localStorage.setItem('mathscore_course_tasks', JSON.stringify(tasks));
-      } else {
-        // Fallback local update
-        const localSubmission = {
-          id: Date.now(),
-          studentName: resolvedStudentName,
-          studentPhone: studentPhone || '+998 94 024 13 71',
-          studentAvatar: studentAvatar,
-          fileName: file.name,
-          fileUrl: URL.createObjectURL(file),
-          submittedAt: new Date().toISOString(),
-          grade: null,
-          feedback: ''
-        };
-        setTasks(prev => prev.map(t => {
-          if (t.id === taskId) {
-            const subs = t.submissions ? [...t.submissions, localSubmission] : [localSubmission];
-            return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
-          }
-          return t;
-        }));
-      }
-
-      setSelectedFiles(prev => ({ ...prev, [taskId]: null }));
-      alert("Muvaffaqiyatli! Topshirig'ingiz o'qituvchiga yuborildi.");
-    } catch (err) {
-      // Offline fallback
+    const processSubmission = async (fileDataUrl) => {
       const localSubmission = {
         id: Date.now(),
         studentName: resolvedStudentName,
         studentPhone: studentPhone || '+998 94 024 13 71',
+        studentEmail: studentEmail || '',
         studentAvatar: studentAvatar,
         fileName: file.name,
-        fileUrl: URL.createObjectURL(file),
+        fileUrl: fileDataUrl || URL.createObjectURL(file),
         submittedAt: new Date().toISOString(),
         grade: null,
         feedback: ''
       };
-      setTasks(prev => prev.map(t => {
-        if (t.id === taskId) {
-          const subs = t.submissions ? [...t.submissions, localSubmission] : [localSubmission];
-          return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
-        }
-        return t;
-      }));
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('studentName', resolvedStudentName);
+        formData.append('studentPhone', studentPhone || '+998 94 024 13 71');
+        if (studentEmail) formData.append('studentEmail', studentEmail);
+        if (studentAvatar) formData.append('studentAvatar', studentAvatar);
+
+        await fetch(`${API_BASE}/api/tasks/${taskId}/submit`, {
+          method: 'POST',
+          body: formData
+        }).catch(() => {});
+      } catch (e) {}
+
+      // Always save to state and localStorage
+      setTasks(prev => {
+        let currentTasks = (prev && prev.length > 0) ? prev : [];
+        try {
+          const saved = localStorage.getItem('mathscore_course_tasks');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) currentTasks = parsed;
+          }
+        } catch (e) {}
+
+        const updated = currentTasks.map(t => {
+          if (String(t.id) === String(taskId)) {
+            const existing = (t.submissions || []).filter(s => s.id !== localSubmission.id);
+            const subs = [...existing, localSubmission];
+            return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
+          }
+          return t;
+        });
+
+        try {
+          localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
+          window.dispatchEvent(new Event('storage'));
+        } catch (e) {}
+
+        return updated;
+      });
+
       setSelectedFiles(prev => ({ ...prev, [taskId]: null }));
-      alert("Topshiriq saqlandi va o'qituvchiga yuborildi!");
-    } finally {
       setUploadingTaskId(null);
+      alert("Muvaffaqiyatli! Topshirig'ingiz o'qituvchiga yuborildi.");
+    };
+
+    try {
+      const reader = new FileReader();
+      reader.onload = () => processSubmission(reader.result);
+      reader.onerror = () => processSubmission(null);
+      reader.readAsDataURL(file);
+    } catch (err) {
+      processSubmission(null);
     }
   };
 

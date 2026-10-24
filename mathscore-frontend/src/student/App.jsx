@@ -7,73 +7,8 @@ import { getCroppedImg } from './cropImage';
 import 'katex/dist/katex.min.css';
 import katex from 'katex';
 
-// Sample LMS Course Data
-const coursesData = [
-  {
-    id: 'sat-math',
-    title: 'SAT Mathematics Intensive',
-    category: 'Algebra & Geometry',
-    progress: 45,
-    tag: 'Easy',
-    instructor: 'Malika Opa',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBFhDPXAwP0-mCX5QF4Xx32QGmVTXoWaoau_L1f4gtxR0hE7rk1oU9B_Fz2QxfH5FBrzQnxddkzhl0CrwDzjfvCbD3kONRVOm0pJy8dFxuo22kpQSx32tVABkwGoNHo3Hn-S-zOmWyZ56C-8dJHTh3-WcwGedY8Q-78FDeCR6wbhAJCLIBQLy7Av9vqtAP6kpJGr7J3QoEKUW-UyehI37G-umxGt6pdMeUBw0-NN8v7oSwp5i3qBP755XtXl4t3Xf3uLpj8MX2pbDy8',
-    description: 'Intensive preparation covering all key concepts required for the quantitative section.',
-    lessons: [
-      { id: 1, title: '1. Kirish va Kurs Rejasi', duration: '15:20', completed: true, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 2, title: '2. Algebra Asoslari & Tenglamalar', duration: '45:00', completed: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
-      { id: 3, title: '3. Chiziqli Tenglamalar Tizimi', duration: '38:15', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 4, title: '4. Kvadrat Tenglamalar va Grafiklar', duration: '42:10', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' }
-    ]
-  },
-  {
-    id: 'alevel-math',
-    title: 'A-Level Pure Math & Mechanics',
-    category: 'Calculus',
-    progress: 72,
-    tag: 'Advanced',
-    instructor: 'Malika Opa',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCV6_oqyLO4rOubcLIKHvaKFC77Ha8G7HozH9fVLWcvmFF3setBuSi7cI7qWoXDyRh68dZFqZwUxB3gg_-cFCvEa0TiF28wtZHVttSHjC-bqBtqaPY-FpEUQH-g9Ys3jdk_RtgxD8V4Y1zgqF2jho1wpQrI7B_Jmi57pNGlDmi6r3KGYaK31Wv0vxdkBBm3A4Y_NmOAk6Ud-ooqRndMt3z8hRcHQc9WylUU8nUzj9UhqlXeJfI2H8My9_Hc0q1w9SWqGUh68ye6UQO6',
-    description: 'Deep dive into differentiation, integration, and advanced trigonometric identities.',
-    lessons: [
-      { id: 1, title: '1. Kirish va Limitlar', duration: '20:10', completed: true, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 2, title: '2. Hosila olish qoidalari', duration: '50:40', completed: true, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
-      { id: 3, title: '3. Integrallash Asoslari', duration: '48:00', completed: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 4, title: '4. Murakkab Integrallar', duration: '55:30', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' }
-    ]
-  },
-  {
-    id: 'aslevel-math',
-    title: 'AS-Level Mathematics (Pure Math 1)',
-    category: 'AS-Level',
-    progress: 45,
-    tag: 'Intermediate',
-    instructor: 'Malika Opa',
-    hasDesmos: true,
-    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop',
-    description: 'Cambridge AS-Level Pure Mathematics 1: Coordinate Geometry, Quadratics, Trigonometry, and Calculus.',
-    lessons: [
-      { id: 1, title: '1. Quadratics & Coordinate Geometry', duration: '25:10', completed: true, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 2, title: '2. Circular Measure & Trigonometric Identities', duration: '40:30', completed: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
-      { id: 3, title: '3. Series & Binomial Expansion', duration: '35:00', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 4, title: '4. Differentiation & Integration Lab', duration: '50:00', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' }
-    ]
-  },
-  {
-    id: 'foundation-stats',
-    title: 'Mathematics Foundation',
-    category: 'Data & Stats',
-    progress: 15,
-    tag: 'Medium',
-    instructor: 'Malika Opa',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC0p7L3CK_EkYJ6_XeukUeLogbqG1eqk7UsvsMuri6f9WXUk6ReItHMeaNS4pt5kH2endtqmCpV9gpNbp4KbKTnXGXRGrK9LkgjUj9A-lBilCv2BYdM3POHkj-e8su1UKFAtOK9wMVeab66I0ilOf48C0bLAhFSZ-NlGri7Y2j4DYdatcutw5cB42P1n3lICmzeA6laDUIbVF4m0eESCfbGn7nuHFFzjeeNQeMixqYWm1GiuS2lku3tcfF5_E94cOPMPPjrn9vsU0BM',
-    description: 'Master probability distributions, hypothesis testing, and data interpretation.',
-    lessons: [
-      { id: 1, title: '1. Ehtimollar nazariyasi', duration: '22:15', completed: true, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-      { id: 2, title: '2. Tasodifiy miqdorlar', duration: '30:45', completed: false, videoUrl: 'https://www.w3schools.com/html/movie.mp4' },
-      { id: 3, title: '3. Gipotenzalarni tekshirish', duration: '40:00', completed: false, locked: false, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' }
-    ]
-  }
-];
+// LMS Course Data (Loaded dynamically from API or Admin Panel)
+const coursesData = [];
 
 // Rich Premium mock tests (30 SAT Math Questions with robust explanations and custom LaTeX markup)
 const studentTests = [
@@ -1193,10 +1128,85 @@ export default function App() {
         cheatAlerts: tabSwitchesCount
       });
 
+      // Save locally for instant real-time sync with Admin panel
+      try {
+        const stored = localStorage.getItem('mathscore_submissions');
+        const localList = stored ? JSON.parse(stored) : [];
+        const studentFullName = `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Musurmon Qahharov';
+        const newRecord = {
+          id: (data.result && data.result.id) || Date.now(),
+          userId: profile?.id || 'std_' + Date.now(),
+          userName: studentFullName,
+          userEmail: profile?.email || '',
+          userAvatar: profile?.avatar || null,
+          testId: activeQuizTest.id,
+          testTitle: activeQuizTest.title,
+          courseTitle: activeQuizTest.course || activeQuizTest.category || (activeCourse?.title || 'Barcha kurslar'),
+          score: finalScore,
+          earnedScore: finalCorrectCount,
+          totalPossibleScore: activeQuizTest.questions.length,
+          correctCount: finalCorrectCount,
+          incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
+          passed: finalScore >= (activeQuizTest.passingScore || 70),
+          timeSpent: timeSpentStr,
+          tabSwitches: tabSwitchesCount,
+          createdAt: new Date().toISOString()
+        };
+        const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
+        localStorage.setItem('mathscore_submissions', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.error('Local submission cache error:', e);
+      }
+
       setCurrentPage('test-results');
       syncData();
     } catch (err) {
-      alert(err.message);
+      console.warn('Submission network fallback:', err.message);
+      // Fallback: client-side evaluation
+      const finalScore = clientPercentage;
+      const finalCorrectCount = clientCorrectCount;
+      setQuizResult({
+        testId: activeQuizTest.id,
+        testTitle: activeQuizTest.title,
+        score: finalScore,
+        correctCount: finalCorrectCount,
+        incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
+        unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
+        timeSpent: timeSpentStr,
+        answers: quizAnswers,
+        cheatAlerts: tabSwitchesCount
+      });
+
+      try {
+        const stored = localStorage.getItem('mathscore_submissions');
+        const localList = stored ? JSON.parse(stored) : [];
+        const studentFullName = `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Musurmon Qahharov';
+        const newRecord = {
+          id: Date.now(),
+          userId: profile?.id || 'std_' + Date.now(),
+          userName: studentFullName,
+          userEmail: profile?.email || '',
+          userAvatar: profile?.avatar || null,
+          testId: activeQuizTest.id,
+          testTitle: activeQuizTest.title,
+          courseTitle: activeQuizTest.course || activeQuizTest.category || (activeCourse?.title || 'Barcha kurslar'),
+          score: finalScore,
+          earnedScore: finalCorrectCount,
+          totalPossibleScore: activeQuizTest.questions.length,
+          correctCount: finalCorrectCount,
+          incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
+          passed: finalScore >= (activeQuizTest.passingScore || 70),
+          timeSpent: timeSpentStr,
+          tabSwitches: tabSwitchesCount,
+          createdAt: new Date().toISOString()
+        };
+        const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
+        localStorage.setItem('mathscore_submissions', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {}
+
+      setCurrentPage('test-results');
     }
   };
 

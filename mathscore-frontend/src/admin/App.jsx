@@ -87,6 +87,18 @@ function App() {
   const [salesTimeframe, setSalesTimeframe] = useState('Oylik');
   const [revenueTimeframe, setRevenueTimeframe] = useState('Haftalik');
 
+  // Test Results Submissions State
+  const [submissions, setSubmissions] = useState(() => {
+    try {
+      const stored = localStorage.getItem('mathscore_submissions');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return [];
+  });
+  const [resultsFilterCourse, setResultsFilterCourse] = useState('all');
+  const [resultsFilterDate, setResultsFilterDate] = useState('');
+  const [resultsSearchQuery, setResultsSearchQuery] = useState('');
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newCourse, setNewCourse] = useState({
@@ -425,6 +437,31 @@ function App() {
       }
 
       try {
+        const subsRes = await fetchWithAuth('/api/submissions');
+        let serverSubs = [];
+        if (subsRes.ok) {
+          serverSubs = await subsRes.json();
+        }
+        let localSubs = [];
+        try {
+          const stored = localStorage.getItem('mathscore_submissions');
+          if (stored) localSubs = JSON.parse(stored);
+        } catch(e) {}
+
+        const subMap = new Map();
+        [...serverSubs, ...localSubs].forEach(s => {
+          if (s) {
+            const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.createdAt}`;
+            subMap.set(key, s);
+          }
+        });
+        const combined = Array.from(subMap.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setSubmissions(combined);
+      } catch (e) {
+        console.error('Submissions sync failed:', e);
+      }
+
+      try {
         const notifRes = await fetchWithAuth('/api/notifications');
         if (notifRes.ok) {
           const notifs = await notifRes.json();
@@ -515,6 +552,32 @@ function App() {
     checkNotifs();
     const interval = setInterval(checkNotifs, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Listen to cross-tab submissions updates
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e.key || e.key === 'mathscore_submissions') {
+        try {
+          const stored = localStorage.getItem('mathscore_submissions');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setSubmissions(prev => {
+              const map = new Map();
+              [...prev, ...parsed].forEach(s => {
+                if (s) {
+                  const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.createdAt}`;
+                  map.set(key, s);
+                }
+              });
+              return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            });
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const triggerNewTest = () => {
@@ -1937,15 +2000,16 @@ function App() {
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('mathscore_admin_categories');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.some(c => c.title === 'SAT Prep' || c.title === 'A-Level Mathematics')) {
+          localStorage.removeItem('mathscore_admin_categories');
+          return [];
+        }
+        return parsed;
+      }
     } catch (e) {}
-    return [
-      { id: 1, title: "SAT Prep", count: 4, students: 280, icon: "calculate", color: "from-blue-500/20 to-indigo-500/20 border-indigo-500/30" },
-      { id: 2, title: "A-Level Mathematics", count: 3, students: 140, icon: "functions", color: "from-purple-500/20 to-pink-500/20 border-purple-500/30" },
-      { id: 3, title: "Foundation Maths", count: 2, students: 95, icon: "square_foot", color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30" },
-      { id: 4, title: "Olympiad Math", count: 1, students: 48, icon: "trophy", color: "from-amber-500/20 to-orange-500/20 border-amber-500/30" },
-      { id: 5, title: "AP Calculus", count: 2, students: 64, icon: "analytics", color: "from-cyan-500/20 to-blue-500/20 border-cyan-500/30" }
-    ];
+    return [];
   });
 
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
@@ -2082,6 +2146,78 @@ function App() {
     });
 
     doc.save("Oquvchilar_hisoboti.pdf");
+  };
+
+  const filteredSubmissions = submissions.filter(sub => {
+    if (resultsSearchQuery.trim()) {
+      const q = resultsSearchQuery.toLowerCase().trim();
+      const nameMatch = (sub.userName || '').toLowerCase().includes(q);
+      const titleMatch = (sub.testTitle || '').toLowerCase().includes(q);
+      const emailMatch = (sub.userEmail || '').toLowerCase().includes(q);
+      if (!nameMatch && !titleMatch && !emailMatch) return false;
+    }
+    if (resultsFilterCourse !== 'all') {
+      const course = (sub.courseTitle || sub.course || '').toLowerCase();
+      if (!course.includes(resultsFilterCourse.toLowerCase())) return false;
+    }
+    if (resultsFilterDate) {
+      if (!sub.createdAt) return false;
+      const subDate = new Date(sub.createdAt).toISOString().split('T')[0];
+      if (subDate !== resultsFilterDate) return false;
+    }
+    return true;
+  });
+
+  const handleExportResultsExcel = () => {
+    if (filteredSubmissions.length === 0) {
+      alert("Eksport qilish uchun test natijalari mavjud emas.");
+      return;
+    }
+    const dataToExport = filteredSubmissions.map((sub, idx) => {
+      const total = sub.totalPossibleScore || sub.totalQuestions || 1;
+      const earned = sub.earnedScore !== undefined ? sub.earnedScore : (sub.correctCount || 0);
+      const dateStr = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('uz-UZ') : '-';
+      return {
+        "№": idx + 1,
+        "Talaba": sub.userName || 'Noma\'lum',
+        "Email": sub.userEmail || '-',
+        "Kurs": sub.courseTitle || sub.course || 'Barcha kurslar',
+        "Test Nomi": sub.testTitle || 'Test',
+        "To'plangan Ball": earned,
+        "Jami Ball": total,
+        "Foiz": `${sub.score || 0}%`,
+        "Holati": (sub.passed || (sub.score >= 70)) ? "O'tdi" : "O'tmadi",
+        "Ketgan Vaqt": sub.timeSpent || '00:00',
+        "Topshirilgan Sana": dateStr
+      };
+    });
+
+    try {
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Test Natijalari");
+      XLSX.writeFile(wb, `MathScore_Test_Natijalari_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      const headers = ["№", "Talaba", "Email", "Kurs", "Test Nomi", "Natija", "Foiz", "Ketgan Vaqt", "Sana"];
+      const rows = dataToExport.map(d => [
+        d["№"],
+        `"${d["Talaba"]}"`,
+        `"${d["Email"]}"`,
+        `"${d["Kurs"]}"`,
+        `"${d["Test Nomi"]}"`,
+        `"${d["To'plangan Ball"]}/${d["Jami Ball"]}"`,
+        `"${d["Foiz"]}"`,
+        `"${d["Ketgan Vaqt"]}"`,
+        `"${d["Topshirilgan Sana"]}"`
+      ]);
+      const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `MathScore_Test_Natijalari_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    }
   };
 
   const getSalesChartHeights = () => salesTimeframe === 'Haftalik' ? ['h-[35%]', 'h-[65%]', 'h-[45%]', 'h-[90%]', 'h-[75%]'] : salesTimeframe === 'Yillik' ? ['h-[90%]', 'h-[85%]', 'h-[75%]', 'h-[60%]', 'h-[80%]'] : ['h-[50%]', 'h-[66%]', 'h-[85%]', 'h-[33%]', 'h-[95%]'];
@@ -2429,6 +2565,7 @@ function App() {
                   hasSubmenu: true,
                   subItems: [
                     { id: 'tests', icon: 'quiz', label: 'Testlar' },
+                    { id: 'test-results', icon: 'grade', label: 'Test natijalari' },
                     { id: 'tasks', icon: 'assignment', label: 'Topshiriqlar' }
                   ]
                 },
@@ -2437,7 +2574,7 @@ function App() {
                 { id: 'landing', icon: 'web', label: 'Lending' }
               ].map(item => {
                 if (item.hasSubmenu) {
-                  const isParentActive = currentPage === 'tests' || currentPage === 'tasks';
+                  const isParentActive = currentPage === 'tests' || currentPage === 'test-results' || currentPage === 'tasks';
                   return (
                     <div key={item.id} className="flex flex-col gap-1">
                       <button
@@ -3227,6 +3364,323 @@ function App() {
                 {/* VIEW 9.1: TASKS DASHBOARD */}
                 {currentPage === 'tasks' && (
                   <TasksDashboard adminProfile={adminProfile} courses={courses} />
+                )}
+
+                {/* VIEW 9.2: TEST NATIJALARI (STUDENT TEST RESULTS) */}
+                {currentPage === 'test-results' && (
+                  <div className="space-y-6 animate-fade-in printable-area">
+                    {/* Header with Title and Action Buttons */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-indigo-500 text-[28px]">grade</span>
+                          <h2 className="text-xl font-black text-slate-900 dark:text-white">Talabalarning Test Natijalari</h2>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Talabalarning barcha topshirgan testlari, to'plagan ballari va tahlillari
+                        </p>
+                      </div>
+
+                      {/* Top Action Buttons (PDF, Excel, Print) */}
+                      <div className="flex flex-wrap items-center gap-2.5 no-print">
+                        <button
+                          onClick={() => window.print()}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          title="Natijalarni PDF fayl shaklida saqlash"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                          <span>PDF yuklab olish</span>
+                        </button>
+
+                        <button
+                          onClick={handleExportResultsExcel}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          title="Natijalarni Excel (.xlsx) faylida yuklab olish"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">table_view</span>
+                          <span>Excel yuklab olish</span>
+                        </button>
+
+                        <button
+                          onClick={() => window.print()}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          title="Printerdan chop etish"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">print</span>
+                          <span>Chop etish</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Summary Metrics Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+                      <div className="modern-card p-4 flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[22px]">assignment_turned_in</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Topshirildi</p>
+                          <p className="text-xl font-black text-slate-900 dark:text-white">{filteredSubmissions.length} ta</p>
+                        </div>
+                      </div>
+
+                      <div className="modern-card p-4 flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[22px]">verified</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Muvaffaqiyatli</p>
+                          <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                            {filteredSubmissions.filter(s => s.passed || s.score >= 70).length} ta
+                            <span className="text-xs font-semibold text-slate-400 ml-1.5">
+                              ({filteredSubmissions.length > 0 ? Math.round((filteredSubmissions.filter(s => s.passed || s.score >= 70).length / filteredSubmissions.length) * 100) : 0}%)
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="modern-card p-4 flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[22px]">analytics</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">O'rtacha Ball</p>
+                          <p className="text-xl font-black text-slate-900 dark:text-white">
+                            {filteredSubmissions.length > 0 ? Math.round(filteredSubmissions.reduce((acc, s) => acc + (s.score || 0), 0) / filteredSubmissions.length) : 0}%
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="modern-card p-4 flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[22px]">trophy</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Maksimal Natija</p>
+                          <p className="text-xl font-black text-amber-600 dark:text-amber-400">
+                            {filteredSubmissions.length > 0 ? Math.max(...filteredSubmissions.map(s => s.score || 0)) : 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Filter & Search Bar */}
+                    <div className="modern-card p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 no-print">
+                      <div className="flex flex-wrap items-center gap-3 flex-1">
+                        {/* Course Filter */}
+                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          <span className="material-symbols-outlined text-slate-400 text-[18px]">filter_alt</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">Kurs:</span>
+                          <select
+                            value={resultsFilterCourse}
+                            onChange={(e) => setResultsFilterCourse(e.target.value)}
+                            className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer pr-2"
+                          >
+                            <option value="all" className="dark:bg-slate-900">Barcha kurslar</option>
+                            {courses.map(c => (
+                              <option key={c.id} value={c.title} className="dark:bg-slate-900">{c.title}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Date Filter */}
+                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_today</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">Sana:</span>
+                          <input
+                            type="date"
+                            value={resultsFilterDate}
+                            onChange={(e) => setResultsFilterDate(e.target.value)}
+                            className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer"
+                          />
+                          {resultsFilterDate && (
+                            <button
+                              onClick={() => setResultsFilterDate('')}
+                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer ml-1"
+                              title="Sanani tozalash"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {(resultsFilterCourse !== 'all' || resultsFilterDate || resultsSearchQuery) && (
+                          <button
+                            onClick={() => {
+                              setResultsFilterCourse('all');
+                              setResultsFilterDate('');
+                              setResultsSearchQuery('');
+                            }}
+                            className="text-xs font-bold text-rose-500 hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                            Filtrni tozalash
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Search Bar */}
+                      <div className="relative w-full md:w-72">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                        <input
+                          type="text"
+                          placeholder="Talaba yoki test nomi..."
+                          value={resultsSearchQuery}
+                          onChange={(e) => setResultsSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Results Table */}
+                    <div className="modern-card overflow-hidden">
+                      {filteredSubmissions.length === 0 ? (
+                        <div className="p-12 text-center flex flex-col items-center gap-3">
+                          <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[28px]">quiz</span>
+                          </div>
+                          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Test natijalari topilmadi</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                            Talabalar platformada test ishlashgach, ularning barcha natijalari, sarflangan vaqti va to'plagan ballari avtomatik ravishda bu yerda aks etadi.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th className="p-4 w-12 text-center">#</th>
+                                <th className="p-4">Talaba</th>
+                                <th className="p-4">Kurs nomi</th>
+                                <th className="p-4">Test nomi</th>
+                                <th className="p-4 text-center">Natija (ball / jami)</th>
+                                <th className="p-4 text-center">Sarflangan vaqt</th>
+                                <th className="p-4 text-center">Topshirilgan sana</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                              {filteredSubmissions.map((sub, idx) => {
+                                const total = sub.totalPossibleScore || sub.totalQuestions || 1;
+                                const earned = sub.earnedScore !== undefined ? sub.earnedScore : (sub.correctCount || 0);
+                                const isPassed = sub.passed !== undefined ? sub.passed : (sub.score >= 70);
+
+                                // Format date as DD-MM-YYYY
+                                let formattedDate = '-';
+                                if (sub.createdAt) {
+                                  try {
+                                    const d = new Date(sub.createdAt);
+                                    const dd = String(d.getDate()).padStart(2, '0');
+                                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                    const yyyy = d.getFullYear();
+                                    formattedDate = `${dd}-${mm}-${yyyy}`;
+                                  } catch (e) {
+                                    formattedDate = '-';
+                                  }
+                                }
+
+                                return (
+                                  <tr key={sub.id || idx} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors">
+                                    {/* 1. Tartib raqami (avtomatik yoziladi) */}
+                                    <td className="p-4 text-center font-bold text-slate-400">
+                                      {idx + 1}
+                                    </td>
+
+                                    {/* 2 & 3. Profil rasmi, Familiyasi va Ismi */}
+                                    <td className="p-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-indigo-50 dark:bg-slate-800 flex items-center justify-center font-bold text-indigo-600 dark:text-indigo-400 text-xs shadow-xs">
+                                          {sub.userAvatar ? (
+                                            <img
+                                              src={getAuthMediaUrl(sub.userAvatar)}
+                                              alt={sub.userName || 'Talaba'}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
+                                          ) : (
+                                            <span>
+                                              {(sub.userName || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className="font-bold text-slate-900 dark:text-white leading-tight">
+                                            {sub.userName || 'Noma\'lum talaba'}
+                                          </p>
+                                          {sub.userEmail && (
+                                            <p className="text-[10px] text-slate-400 font-medium">
+                                              {sub.userEmail}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* 4. Kurs nomi */}
+                                    <td className="p-4 font-semibold text-slate-700 dark:text-slate-300">
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[11px] border border-indigo-500/20">
+                                        <span className="material-symbols-outlined text-[14px]">school</span>
+                                        {sub.courseTitle || sub.course || 'Barcha kurslar'}
+                                      </span>
+                                    </td>
+
+                                    {/* 5. Test nomi (Title test) */}
+                                    <td className="p-4">
+                                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-slate-400 text-[16px]">quiz</span>
+                                        <span>{sub.testTitle || 'Test'}</span>
+                                      </div>
+                                    </td>
+
+                                    {/* 6. Test natijasi (olgan ball/jami ball) */}
+                                    <td className="p-4 text-center">
+                                      <div className="inline-flex flex-col items-center gap-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-black text-slate-800 dark:text-slate-200 text-sm">
+                                            {earned} / {total}
+                                          </span>
+                                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${
+                                            isPassed
+                                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                              : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                                          }`}>
+                                            {sub.score || 0}%
+                                          </span>
+                                        </div>
+                                        <span className={`text-[9px] font-bold flex items-center gap-0.5 ${
+                                          isPassed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'
+                                        }`}>
+                                          <span className="material-symbols-outlined text-[11px]">
+                                            {isPassed ? 'check_circle' : 'cancel'}
+                                          </span>
+                                          {isPassed ? "Muvaffaqiyatli o'tdi" : "O'tmadi"}
+                                        </span>
+                                      </div>
+                                    </td>
+
+                                    {/* 7. Talabaning testni ishlashga ketgan vaqti */}
+                                    <td className="p-4 text-center">
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] border border-slate-200 dark:border-slate-700">
+                                        <span className="material-symbols-outlined text-slate-400 text-[14px]">timer</span>
+                                        {sub.timeSpent || '00:00'}
+                                      </span>
+                                    </td>
+
+                                    {/* 8. Testni ishlagan sanasi (kun-oy-yil) */}
+                                    <td className="p-4 text-center">
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] border border-slate-200 dark:border-slate-700">
+                                        <span className="material-symbols-outlined text-slate-400 text-[14px]">event</span>
+                                        {formattedDate}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {/* VIEW 9: TESTS (TEST DASHBOARD & TEST BUILDER) */}

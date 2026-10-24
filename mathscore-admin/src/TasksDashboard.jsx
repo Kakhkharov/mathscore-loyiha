@@ -2,73 +2,7 @@ const API_BASE = (typeof window !== 'undefined' && (window.location.hostname ===
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    courseTitle: 'Mathematics',
-    title: 'Algebra Practice',
-    description: 'Solve the given algebra problems and upload your answers. Show all steps where necessary.',
-    deadline: new Date(Date.now() + 5 * 24 * 3600 * 1000 + 9 * 3600 * 1000 + 21 * 60 * 1000 + 42 * 1000).toISOString(),
-    linkUrl: 'https://www.desmos.com/calculator?lang=ru',
-    fileName: 'Algebra_Worksheet_1.pdf',
-    fileUrl: '/template/MathScore_Test_Import_Template.docx',
-    tasksCount: 10,
-    uploadedStudentsCount: 6,
-    linksCount: 2,
-    submissions: [
-      {
-        id: 101,
-        studentName: 'Azizbek Rahimov',
-        studentPhone: '+998 90 123 45 67',
-        fileName: 'Azizbek_Algebra_HW.pdf',
-        fileUrl: '/template/MathScore_Test_Import_Template.docx',
-        submittedAt: new Date(Date.now() - 3600 * 1000 * 4).toISOString(),
-        grade: '95',
-        feedback: "Ajoyib yechim! Tenglamalar sistemasini yechishda grafik metoddan to'g'ri foydalanilgan.",
-        gradedAt: new Date(Date.now() - 3600 * 1000 * 2).toISOString()
-      },
-      {
-        id: 102,
-        studentName: 'Madina Karimova',
-        studentPhone: '+998 93 987 65 43',
-        fileName: 'Madina_Algebra_1.docx',
-        fileUrl: '/template/MathScore_Test_Import_Template.docx',
-        submittedAt: new Date(Date.now() - 3600 * 1000 * 8).toISOString(),
-        grade: null,
-        feedback: '',
-        gradedAt: null
-      }
-    ]
-  },
-  {
-    id: 2,
-    courseTitle: 'A-Level Pure Math & Mechanics',
-    title: 'Calculus & Integration Methods',
-    description: 'Master indefinite and definite integration, substitution methods, and differential calculus applications.',
-    deadline: new Date(Date.now() + 3 * 24 * 3600 * 1000 + 14 * 3600 * 1000 + 18 * 60 * 1000 + 10 * 1000).toISOString(),
-    linkUrl: 'https://www.desmos.com/calculator?lang=ru',
-    fileName: 'A_Level_Calculus_Practice_Sheet.pdf',
-    fileUrl: '/template/MathScore_Test_Import_Template.docx',
-    tasksCount: 8,
-    uploadedStudentsCount: 5,
-    linksCount: 1,
-    submissions: []
-  },
-  {
-    id: 3,
-    courseTitle: 'AS-Level Mathematics (Pure Math 1)',
-    title: 'Quadratic Functions & Coordinate Geometry',
-    description: 'Complete equations of straight lines, circle theorems, and quadratic inequality proofs.',
-    deadline: new Date(Date.now() + 2 * 24 * 3600 * 1000 + 8 * 3600 * 1000 + 45 * 60 * 1000).toISOString(),
-    linkUrl: '',
-    fileName: 'AS_Level_Coordinate_Geometry.pdf',
-    fileUrl: '/template/MathScore_Test_Import_Template.docx',
-    tasksCount: 6,
-    uploadedStudentsCount: 4,
-    linksCount: 0,
-    submissions: []
-  }
-];
+const INITIAL_TASKS = [];
 
 export default function TasksDashboard({ adminProfile, courses = [] }) {
   const [tasks, setTasks] = useState(() => {
@@ -76,22 +10,15 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       const saved = localStorage.getItem('mathscore_course_tasks');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (e) {}
     return INITIAL_TASKS;
   });
 
-  const availableCourses = Array.from(new Set([
-    ...(courses && courses.length > 0 ? courses.map(c => typeof c === 'string' ? c : (c.title || c.name)).filter(Boolean) : []),
-    'Mathematics',
-    'SAT Mathematics Intensive',
-    'A-Level Pure Math & Mechanics',
-    'AS-Level Mathematics (Pure Math 1)',
-    'Mathematics Foundation',
-    'SAT Quantitative Diagnostik Testi',
-    ...tasks.map(t => t.courseTitle).filter(Boolean)
-  ]));
+  const availableCourses = (courses && courses.length > 0)
+    ? Array.from(new Set(courses.map(c => typeof c === 'string' ? c : (c.title || c.name)).filter(Boolean)))
+    : [];
 
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
@@ -186,14 +113,16 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     fetch(`${API_BASE}/api/tasks`)
       .then(res => res.ok ? res.json() : null)
       .then(serverData => {
-        const merged = mergeTasks(serverData || [], localSaved);
-        if (merged.length > 0) {
+        if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+          const merged = mergeTasks(serverData, localSaved);
           setTasks(merged);
-          localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged));
+          try { localStorage.setItem('mathscore_course_tasks', JSON.stringify(merged)); } catch(e){}
+        } else if (localSaved && localSaved.length > 0) {
+          setTasks(localSaved);
         }
       })
       .catch(() => {
-        if (localSaved.length > 0) {
+        if (localSaved && localSaved.length > 0) {
           setTasks(localSaved);
         }
       });
@@ -394,7 +323,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setSavingGradeId(submissionId);
 
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${taskId}/grade`, {
+      await fetch(`${API_BASE}/api/tasks/${taskId}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -403,34 +332,13 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           feedback,
           gradedBy: adminProfile?.name || 'Malika (Admin)'
         })
-      });
+      }).catch(() => {});
+    } catch (e) {}
 
-      if (res.ok) {
-        const result = await res.json();
-        setTasks(prev => prev.map(t => t.id === taskId ? result.task : t));
-        setViewingTask(result.task);
-      } else {
-        // Fallback update
-        setTasks(prev => prev.map(t => {
-          if (t.id === taskId && t.submissions) {
-            const updatedSubs = t.submissions.map(s => {
-              if (String(s.id) === String(submissionId)) {
-                return { ...s, grade, feedback, gradedAt: new Date().toISOString() };
-              }
-              return s;
-            });
-            const updatedTask = { ...t, submissions: updatedSubs };
-            if (viewingTask && viewingTask.id === taskId) setViewingTask(updatedTask);
-            return updatedTask;
-          }
-          return t;
-        }));
-      }
-      alert("Talaba topshirig'i baholandi va feedback saqlandi!");
-    } catch (e) {
-      // Local fallback
-      setTasks(prev => prev.map(t => {
-        if (t.id === taskId && t.submissions) {
+    // Always update tasks state and localStorage
+    setTasks(prev => {
+      const updated = prev.map(t => {
+        if (String(t.id) === String(taskId) && t.submissions) {
           const updatedSubs = t.submissions.map(s => {
             if (String(s.id) === String(submissionId)) {
               return { ...s, grade, feedback, gradedAt: new Date().toISOString() };
@@ -438,21 +346,27 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
             return s;
           });
           const updatedTask = { ...t, submissions: updatedSubs };
-          if (viewingTask && viewingTask.id === taskId) setViewingTask(updatedTask);
+          if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
           return updatedTask;
         }
         return t;
-      }));
-      alert("Baho saqlandi!");
-    } finally {
-      setSavingGradeId(null);
-    }
+      });
+
+      try {
+        localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+      } catch (err) {}
+      return updated;
+    });
+
+    setSavingGradeId(null);
+    alert("Talaba topshirig'i baholandi va feedback saqlandi!");
   };
 
   // 2-talab: Admin talabaga 2-3-imkoniyat berishi
   const handleGrantResubmit = async (taskId, submissionId, attempts) => {
     try {
-      const res = await fetch(`${API_BASE}/api/tasks/${taskId}/allow-resubmit`, {
+      await fetch(`${API_BASE}/api/tasks/${taskId}/allow-resubmit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -460,19 +374,13 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           attemptsAllowed: attempts,
           feedback: gradingState[submissionId]?.feedback || undefined
         })
-      });
+      }).catch(() => {});
+    } catch (e) {}
 
-      if (res.ok) {
-        const result = await res.json();
-        setTasks(prev => prev.map(t => t.id === taskId ? result.task : t));
-        setViewingTask(result.task);
-        localStorage.setItem('mathscore_course_tasks', JSON.stringify(tasks));
-        alert(`Talabaga ${attempts}-imkoniyat muvaffaqiyatli berildi! Talaba panelida bildirishnoma aks etadi.`);
-      }
-    } catch (e) {
-      // Local fallback
-      setTasks(prev => prev.map(t => {
-        if (t.id === taskId && t.submissions) {
+    // Always update tasks state and localStorage
+    setTasks(prev => {
+      const updated = prev.map(t => {
+        if (String(t.id) === String(taskId) && t.submissions) {
           const updatedSubs = t.submissions.map(s => {
             if (String(s.id) === String(submissionId)) {
               return {
@@ -485,13 +393,20 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
             return s;
           });
           const updatedTask = { ...t, submissions: updatedSubs };
-          if (viewingTask && viewingTask.id === taskId) setViewingTask(updatedTask);
+          if (viewingTask && String(viewingTask.id) === String(taskId)) setViewingTask(updatedTask);
           return updatedTask;
         }
         return t;
-      }));
-      alert(`Talabaga ${attempts}-imkoniyat berildi!`);
-    }
+      });
+
+      try {
+        localStorage.setItem('mathscore_course_tasks', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+      } catch (err) {}
+      return updated;
+    });
+
+    alert(`Talabaga ${attempts}-imkoniyat muvaffaqiyatli berildi! Talaba panelida bildirishnoma aks etadi.`);
   };
 
   const handleRevokeResubmit = async (taskId, submissionId) => {
