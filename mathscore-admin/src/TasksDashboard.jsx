@@ -29,6 +29,73 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
   const currentViewingTask = viewingTask ? (tasks.find(t => String(t.id) === String(viewingTask.id)) || viewingTask) : null;
   const [gradingState, setGradingState] = useState({});
   const [savingGradeId, setSavingGradeId] = useState(null);
+  const [adminPushNotification, setAdminPushNotification] = useState(null);
+
+  // Talaba yechim yuklaganda Admin panelida Push bildirishnoma va ovozli signal
+  useEffect(() => {
+    if (!tasks || !Array.isArray(tasks)) return;
+
+    tasks.forEach(task => {
+      (task.submissions || []).forEach(sub => {
+        if (!sub || !sub.submittedAt) return;
+        const subNotifKey = `admin_notif_sub_${task.id}_${sub.id || sub.submittedAt}`;
+        const alreadyNotified = sessionStorage.getItem(subNotifKey);
+        if (!alreadyNotified) {
+          sessionStorage.setItem(subNotifKey, 'true');
+
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+          } catch (e) {}
+
+          setAdminPushNotification({
+            id: Date.now(),
+            taskId: task.id,
+            task,
+            studentName: sub.studentName || 'Talaba',
+            fileName: sub.fileName || 'yechim fayli',
+            submittedAt: sub.submittedAt,
+            title: "Yangi yechim topshirildi!",
+            message: `${sub.studentName || 'Talaba'} "${task.title}" topshirig'iga yangi fayl yukladi.`
+          });
+        }
+      });
+    });
+  }, [tasks]);
+
+  // Xavfsiz yuklab olish mexanizmi (Base64 data URI, HTTP url yoki server uploads)
+  const handleDownloadSubmissionFile = (sub) => {
+    if (!sub || !sub.fileUrl) {
+      alert("Fayl topilmadi yoki yuklanmagan.");
+      return;
+    }
+    const fileName = sub.fileName || 'topshiriq_yechimi.docx';
+    const url = sub.fileUrl;
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    window.open(`${API_BASE}/uploads/${url}`, '_blank');
+  };
 
   // 3-talab: 3-nuqtali Settings orqali Cardni edit qilish (Title & Deadline uzaytirish)
   const [editingTask, setEditingTask] = useState(null);
@@ -61,7 +128,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Vazifalarni birlashtiruvchi ishonchli mexanizm (Server va LocalStorage submissions larini merge qilish)
+  // Vazifalarni birlashtiruvchi ishonchli mexanizm (Server va LocalStorage submissions larini xavfsiz merge qilish)
   const mergeTasks = (serverList, localList) => {
     if (!Array.isArray(serverList)) serverList = [];
     if (!Array.isArray(localList)) localList = [];
@@ -84,7 +151,19 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
             subsMap.set(key, s);
           } else {
             const exSub = subsMap.get(key);
-            subsMap.set(key, { ...exSub, ...s });
+            subsMap.set(key, {
+              ...exSub,
+              ...s,
+              grade: s.grade || exSub.grade || null,
+              feedback: s.feedback || exSub.feedback || '',
+              gradedAt: s.gradedAt || exSub.gradedAt || null,
+              gradedBy: s.gradedBy || exSub.gradedBy || null,
+              resubmitAllowed: (s.resubmitAllowed !== undefined) ? s.resubmitAllowed : exSub.resubmitAllowed,
+              attemptsAllowed: s.attemptsAllowed || exSub.attemptsAllowed || 1,
+              resubmitGrantedAt: s.resubmitGrantedAt || exSub.resubmitGrantedAt || null,
+              fileUrl: (s.fileUrl && !s.fileUrl.startsWith('data:') && s.fileUrl.length > 5) ? s.fileUrl : (exSub.fileUrl || s.fileUrl || ''),
+              fileName: s.fileName || exSub.fileName || ''
+            });
           }
         });
         const mergedSubs = Array.from(subsMap.values());
@@ -109,13 +188,24 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       window.dispatchEvent(new Event('storage'));
     } catch (e) {}
 
+    // 95KB limitidan oshib ketmasligi uchun xavfsiz payload tayyorlash
+    const cleanPayload = (updatedTasks || []).map(t => ({
+      ...t,
+      submissions: (t.submissions || []).map(s => {
+        if (s.fileUrl && s.fileUrl.startsWith('data:') && s.fileUrl.length > 60000) {
+          return { ...s, fileUrl: s.fileName || '' };
+        }
+        return s;
+      })
+    }));
+
     // Persist to server via /api/settings tasksPayload (infallible VPS json store)
     try {
-      fetch(`${API_BASE}/api/settings`, {
+      await fetch(`${API_BASE}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasksPayload: updatedTasks })
-      }).catch(() => {});
+        body: JSON.stringify({ tasksPayload: cleanPayload })
+      });
     } catch (e) {}
   };
 
@@ -679,15 +769,14 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   </div>
                 </div>
 
-                {/* Bottom Row: View tugmasi (2-talab) & ... settings (3-talab) */}
+                {/* Bottom Row: View / Topshiriqlar tahlili tugmasi & ... settings (3-talab) */}
                 <div className="pt-2 flex items-center justify-between gap-3">
-                  {/* 2-talab: add tugmasining o'rniga VIEW tugmasi */}
                   <button
                     onClick={() => setViewingTask(task)}
                     className="flex-1 py-2.5 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[17px]">visibility</span>
-                    <span>View</span>
+                    <span>Topshiriqlar tahlili ({submittedCount} ta yuklandi)</span>
                   </button>
 
                   {/* 3-talab: 3-rasmdagi 3 ta nuqtali setting orqali cardni edit qilish */}
@@ -830,16 +919,15 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
 
                           {/* Download Button (2-talab) */}
                           {sub.fileUrl && (
-                            <a
-                              href={sub.fileUrl}
-                              download={sub.fileName}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadSubmissionFile(sub)}
                               className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800 transition-colors self-start sm:self-auto cursor-pointer"
+                              title="Talaba topshirgan yechim faylini yuklab olish"
                             >
                               <span className="material-symbols-outlined text-[16px]">file_download</span>
-                              <span>Faylni yuklab olish ({sub.fileName || 'yechim.pdf'})</span>
-                            </a>
+                              <span>Faylni yuklab olish ({sub.fileName || 'yechim.docx'})</span>
+                            </button>
                           )}
                         </div>
 
@@ -1417,6 +1505,46 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               >
                 <span className="material-symbols-outlined text-[16px]">check</span>
                 <span>{isSubmitting ? 'Saqlanmoqda...' : 'OK'}</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {/* ==================== ADMIN PUSH NOTIFICATION (YANGI YECHIM TOPSHIRILGANDA) ==================== */}
+      {adminPushNotification && typeof document !== 'undefined' && createPortal(
+        <div className="fixed top-5 right-5 z-[99999] max-w-sm sm:max-w-md w-full bg-white dark:bg-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/25 rounded-2xl p-4 flex items-start gap-3.5 animate-bounce-in">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[24px]">assignment_turned_in</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Yangi topshiriq topshirildi!
+              </span>
+              <button
+                onClick={() => setAdminPushNotification(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <p className="font-black text-sm text-slate-800 dark:text-white mt-0.5">
+              {adminPushNotification.title}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">
+              {adminPushNotification.message}
+            </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setViewingTask(adminPushNotification.task);
+                  setAdminPushNotification(null);
+                }}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px]">visibility</span>
+                <span>Yechimni ko'rish va baholash</span>
               </button>
             </div>
           </div>

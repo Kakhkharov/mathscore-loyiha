@@ -174,7 +174,19 @@ export default function CourseAssignments({
             subsMap.set(key, s);
           } else {
             const exSub = subsMap.get(key);
-            subsMap.set(key, { ...exSub, ...s });
+            subsMap.set(key, {
+              ...exSub,
+              ...s,
+              grade: s.grade || exSub.grade || null,
+              feedback: s.feedback || exSub.feedback || '',
+              gradedAt: s.gradedAt || exSub.gradedAt || null,
+              gradedBy: s.gradedBy || exSub.gradedBy || null,
+              resubmitAllowed: (s.resubmitAllowed !== undefined) ? s.resubmitAllowed : exSub.resubmitAllowed,
+              attemptsAllowed: s.attemptsAllowed || exSub.attemptsAllowed || 1,
+              resubmitGrantedAt: s.resubmitGrantedAt || exSub.resubmitGrantedAt || null,
+              fileUrl: (s.fileUrl && !s.fileUrl.startsWith('data:') && s.fileUrl.length > 5) ? s.fileUrl : (exSub.fileUrl || s.fileUrl || ''),
+              fileName: s.fileName || exSub.fileName || ''
+            });
           }
         });
         const mergedSubs = Array.from(subsMap.values());
@@ -338,11 +350,13 @@ export default function CourseAssignments({
       let uploadedServerUrl = '';
 
       // Serverga faylni yuklash (/api/upload orqali)
+      const token = localStorage.getItem('student_token') || localStorage.getItem('token') || localStorage.getItem('admin_token');
       try {
         const uploadForm = new FormData();
         uploadForm.append('file', file);
         const upRes = await fetch(`${API_BASE}/api/upload`, {
           method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           body: uploadForm
         });
         if (upRes.ok) {
@@ -351,7 +365,37 @@ export default function CourseAssignments({
         }
       } catch (e) {}
 
-      const effectiveFileUrl = uploadedServerUrl || fileDataUrl || URL.createObjectURL(file);
+      let effectiveFileUrl = uploadedServerUrl;
+      if (!effectiveFileUrl) {
+        if (fileDataUrl && fileDataUrl.length < 65000) {
+          effectiveFileUrl = fileDataUrl;
+        } else {
+          effectiveFileUrl = fileDataUrl || URL.createObjectURL(file);
+        }
+      }
+
+      // Agar oldin topshirgan bo'lsa, urinish sonini aniqlash
+      let currentTasks = (tasks && tasks.length > 0) ? tasks : [];
+      try {
+        const saved = localStorage.getItem('mathscore_course_tasks');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) currentTasks = parsed;
+        }
+      } catch (e) {}
+
+      let attemptNumber = 1;
+      const targetTask = currentTasks.find(t => String(t.id) === String(taskId));
+      if (targetTask && targetTask.submissions) {
+        const ex = targetTask.submissions.find(s => {
+          if (resolvedStudentEmail && s.studentEmail && s.studentEmail.toLowerCase() === resolvedStudentEmail.toLowerCase()) return true;
+          if (studentPhone && s.studentPhone && s.studentPhone === studentPhone) return true;
+          return false;
+        });
+        if (ex) {
+          attemptNumber = (ex.attemptNumber || 1) + 1;
+        }
+      }
 
       const localSubmission = {
         id: Date.now(),
@@ -362,6 +406,8 @@ export default function CourseAssignments({
         fileName: file.name,
         fileUrl: effectiveFileUrl,
         submittedAt: new Date().toISOString(),
+        attemptNumber,
+        resubmitAllowed: false,
         grade: null,
         feedback: ''
       };
@@ -380,19 +426,13 @@ export default function CourseAssignments({
         }).catch(() => {});
       } catch (e) {}
 
-      // Always save to state, localStorage and sync to /api/settings tasksPayload
-      let currentTasks = (tasks && tasks.length > 0) ? tasks : [];
-      try {
-        const saved = localStorage.getItem('mathscore_course_tasks');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) currentTasks = parsed;
-        }
-      } catch (e) {}
-
       const updated = currentTasks.map(t => {
         if (String(t.id) === String(taskId)) {
-          const existing = (t.submissions || []).filter(s => s.id !== localSubmission.id);
+          const existing = (t.submissions || []).filter(s => {
+            if (resolvedStudentEmail && s.studentEmail && s.studentEmail.toLowerCase() === resolvedStudentEmail.toLowerCase()) return false;
+            if (studentPhone && s.studentPhone && s.studentPhone === studentPhone) return false;
+            return s.id !== localSubmission.id;
+          });
           const subs = [...existing, localSubmission];
           return { ...t, submissions: subs, uploadedStudentsCount: subs.length };
         }
@@ -409,7 +449,7 @@ export default function CourseAssignments({
       const payloadToSync = updated.map(t => ({
         ...t,
         submissions: (t.submissions || []).map(s => {
-          if (s.fileUrl && s.fileUrl.startsWith('data:') && s.fileUrl.length > 50000) {
+          if (s.fileUrl && s.fileUrl.startsWith('data:') && s.fileUrl.length > 60000) {
             return { ...s, fileUrl: uploadedServerUrl || s.fileName || '' };
           }
           return s;
@@ -421,7 +461,7 @@ export default function CourseAssignments({
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tasksPayload: payloadToSync })
-        }).catch(() => {});
+        });
       } catch (e) {}
 
       setSelectedFiles(prev => ({ ...prev, [taskId]: null }));
@@ -690,7 +730,31 @@ export default function CourseAssignments({
                                 </span>
                               )}
                             </div>
-                            <p className="text-[10px] text-emerald-700/80 truncate">Fayl: {mySubmission.fileName}</p>
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <p className="text-[10px] text-emerald-700/80 truncate">Fayl: {mySubmission.fileName}</p>
+                              {mySubmission.fileUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (mySubmission.fileUrl.startsWith('http') || mySubmission.fileUrl.startsWith('data:') || mySubmission.fileUrl.startsWith('blob:')) {
+                                      const a = document.createElement('a');
+                                      a.href = mySubmission.fileUrl;
+                                      a.download = mySubmission.fileName || 'yechim.docx';
+                                      a.target = '_blank';
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                    } else {
+                                      window.open(`${API_BASE}/uploads/${mySubmission.fileUrl}`, '_blank');
+                                    }
+                                  }}
+                                  className="text-[10px] text-emerald-800 dark:text-emerald-200 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[12px]">download</span>
+                                  <span>Yuklab olish</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
 
