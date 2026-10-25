@@ -158,9 +158,10 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               feedback: s.feedback || exSub.feedback || '',
               gradedAt: s.gradedAt || exSub.gradedAt || null,
               gradedBy: s.gradedBy || exSub.gradedBy || null,
-              resubmitAllowed: (s.resubmitAllowed !== undefined) ? s.resubmitAllowed : exSub.resubmitAllowed,
-              attemptsAllowed: s.attemptsAllowed || exSub.attemptsAllowed || 1,
+              resubmitAllowed: (s.resubmitAllowed === true || exSub.resubmitAllowed === true),
+              attemptsAllowed: Math.max(s.attemptsAllowed || 1, exSub.attemptsAllowed || 1),
               resubmitGrantedAt: s.resubmitGrantedAt || exSub.resubmitGrantedAt || null,
+              previousSubmissions: (s.previousSubmissions && s.previousSubmissions.length > 0) ? s.previousSubmissions : (exSub.previousSubmissions || []),
               fileUrl: (s.fileUrl && !s.fileUrl.startsWith('data:') && s.fileUrl.length > 5) ? s.fileUrl : (exSub.fileUrl || s.fileUrl || ''),
               fileName: s.fileName || exSub.fileName || ''
             });
@@ -168,8 +169,8 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
         });
         const mergedSubs = Array.from(subsMap.values());
         map.set(idStr, {
-          ...existing,
           ...localTask,
+          ...existing,
           submissions: mergedSubs,
           uploadedStudentsCount: mergedSubs.length
         });
@@ -364,11 +365,13 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     let uploadedFileName = formFile ? formFile.name : '';
 
     if (formFile) {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
       try {
         const uploadForm = new FormData();
         uploadForm.append('file', formFile);
         const upRes = await fetch(`${API_BASE}/api/upload`, {
           method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           body: uploadForm
         });
         if (upRes.ok) {
@@ -376,6 +379,18 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           uploadedFileUrl = upData.url || upData.fileUrl || '';
         }
       } catch (e) {}
+
+      // Fallback: Agar /api/upload ishlamasa va fayl hajmi < 65KB bo'lsa, data URI qilib saqlaymiz (hamma talaba brauzerida xatosiz yuklanishi uchun)
+      if (!uploadedFileUrl && formFile.size < 65000) {
+        try {
+          uploadedFileUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(formFile);
+          });
+        } catch (e) {}
+      }
     }
 
     const localNewTask = {
@@ -386,7 +401,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       deadline: deadlineIso,
       linkUrl: formLink.trim(),
       fileName: uploadedFileName,
-      fileUrl: uploadedFileUrl || (formFile ? URL.createObjectURL(formFile) : ''),
+      fileUrl: uploadedFileUrl || '',
       tasksCount: 1,
       uploadedStudentsCount: 0,
       linksCount: formLink.trim() ? 1 : 0,
@@ -471,7 +486,14 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       if (String(t.id) === String(taskId) && t.submissions) {
         const updatedSubs = t.submissions.map(s => {
           if (String(s.id) === String(submissionId)) {
-            return { ...s, grade, feedback, gradedAt: new Date().toISOString() };
+            return {
+              ...s,
+              grade,
+              feedback,
+              gradedAt: new Date().toISOString(),
+              resubmitAllowed: s.resubmitAllowed !== undefined ? s.resubmitAllowed : false,
+              attemptsAllowed: s.attemptsAllowed || 1
+            };
           }
           return s;
         });

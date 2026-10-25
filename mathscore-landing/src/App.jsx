@@ -128,7 +128,7 @@ function App() {
             <span>Adminga yozish</span>
           </a>
           <button 
-            onClick={() => { window.location.href = "http://localhost:5174/"; }}
+            onClick={() => { window.location.href = "/student"; }}
             className="relative group bg-gradient-to-r from-primary to-purple-600 text-white font-label-md text-[14px] px-6 py-2.5 rounded-full font-bold shadow-[0_4px_14px_0_rgba(67,67,213,0.39)] hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2 overflow-hidden cursor-pointer"
           >
             <span className="relative z-10">Sign in</span>
@@ -150,7 +150,7 @@ function App() {
             </p>
             <div className="pt-4">
               <button 
-                onClick={() => { window.location.href = "http://localhost:5174/"; }}
+                onClick={() => { window.location.href = "/student"; }}
                 className="bg-primary text-on-primary font-label-md px-8 py-4 rounded-lg hover:opacity-90 hover:shadow-[0_0_30px_rgba(67,67,213,0.8)] hover:-translate-y-0.5 active:translate-y-px transition-all text-lg font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
               >
                 Kursga yozilish
@@ -242,7 +242,7 @@ function App() {
           
           <div className="mt-12 text-center">
             <button 
-              onClick={() => { window.location.href = "http://localhost:5174/"; }}
+              onClick={() => { window.location.href = "/student"; }}
               className="bg-primary text-on-primary font-label-md px-8 py-3 rounded-lg hover:opacity-90 hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
             >
               Ishtirok etish
@@ -290,7 +290,7 @@ function App() {
 
             <div className="mt-12 text-center">
               <button 
-                onClick={() => { window.location.href = "http://localhost:5174/"; }}
+                onClick={() => { window.location.href = "/student"; }}
                 className="bg-primary text-on-primary font-label-md px-8 py-3 rounded-lg hover:opacity-90 hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
               >
                 Ishtirok etish
@@ -344,7 +344,7 @@ function App() {
                       <span className="text-on-surface-variant text-sm"> so'm / oy</span>
                     </div>
                     <button 
-                      onClick={() => { window.location.href = "http://localhost:5174/"; }}
+                      onClick={() => { window.location.href = "/student"; }}
                       className={`w-full ${buttonStyle} font-label-md py-3 rounded-lg hover:opacity-90 transition-all hover:-translate-y-0.5 active:translate-y-0 font-bold cursor-pointer`}
                     >
                       Ishtirok etish
@@ -406,6 +406,8 @@ function App() {
                 <li><a href="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> Asosiy sahifa</a></li>
                 <li><a href="#tariflar" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> Tariflar</a></li>
                 <li><a href="#natijalar" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> O'quvchilar natijalari</a></li>
+                <li><a href="/student" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> O'quvchi portali</a></li>
+                <li><a href="/admin" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> O'qituvchi (Admin) portali</a></li>
               </ul>
             </div>
 

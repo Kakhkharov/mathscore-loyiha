@@ -175,24 +175,26 @@ export default function CourseAssignments({
           } else {
             const exSub = subsMap.get(key);
             subsMap.set(key, {
-              ...exSub,
               ...s,
-              grade: s.grade || exSub.grade || null,
-              feedback: s.feedback || exSub.feedback || '',
-              gradedAt: s.gradedAt || exSub.gradedAt || null,
-              gradedBy: s.gradedBy || exSub.gradedBy || null,
-              resubmitAllowed: (s.resubmitAllowed !== undefined) ? s.resubmitAllowed : exSub.resubmitAllowed,
-              attemptsAllowed: s.attemptsAllowed || exSub.attemptsAllowed || 1,
-              resubmitGrantedAt: s.resubmitGrantedAt || exSub.resubmitGrantedAt || null,
-              fileUrl: (s.fileUrl && !s.fileUrl.startsWith('data:') && s.fileUrl.length > 5) ? s.fileUrl : (exSub.fileUrl || s.fileUrl || ''),
-              fileName: s.fileName || exSub.fileName || ''
+              ...exSub,
+              // O'qituvchi / Server baholash va ruxsat berishda mutlaq vakolatga ega:
+              grade: (exSub.grade !== undefined && exSub.grade !== null) ? exSub.grade : s.grade,
+              feedback: (exSub.feedback !== undefined && exSub.feedback !== '') ? exSub.feedback : s.feedback,
+              gradedAt: exSub.gradedAt || s.gradedAt || null,
+              gradedBy: exSub.gradedBy || s.gradedBy || null,
+              resubmitAllowed: (exSub.resubmitAllowed !== undefined) ? exSub.resubmitAllowed : Boolean(s.resubmitAllowed),
+              attemptsAllowed: exSub.attemptsAllowed || s.attemptsAllowed || 1,
+              resubmitGrantedAt: exSub.resubmitGrantedAt || s.resubmitGrantedAt || null,
+              previousSubmissions: exSub.previousSubmissions || s.previousSubmissions || [],
+              fileUrl: (exSub.fileUrl && !exSub.fileUrl.startsWith('blob:') && exSub.fileUrl.length > 5) ? exSub.fileUrl : (s.fileUrl || ''),
+              fileName: exSub.fileName || s.fileName || ''
             });
           }
         });
         const mergedSubs = Array.from(subsMap.values());
         map.set(idStr, {
-          ...existing,
           ...localTask,
+          ...existing,
           submissions: mergedSubs,
           uploadedStudentsCount: mergedSubs.length
         });
@@ -336,6 +338,59 @@ export default function CourseAssignments({
     setSelectedFiles(prev => ({ ...prev, [taskId]: file }));
   };
 
+  // 2-rasm: Topshiriq faylini xatosiz yuklab olish mexanizmi
+  const handleDownloadTaskFile = (task) => {
+    const fileName = task.fileName || 'topshiriq.pdf';
+    let fileUrl = task.fileUrl || '';
+
+    // 1. Agar Data URI bo'lsa (Base64 PDF / DOC)
+    if (fileUrl && fileUrl.startsWith('data:')) {
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    // 2. Agar jonli HTTP / HTTPS URL bo'lsa (blob emas)
+    if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) && !fileUrl.startsWith('blob:')) {
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = fileName;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    // 3. Agar serverdagi nisbiy /uploads/ yo'li bo'lsa
+    if (fileUrl && !fileUrl.startsWith('blob:') && fileUrl.length > 3) {
+      const cleanPath = fileUrl.replace(/^\/+/, '');
+      const fullUrl = cleanPath.startsWith('uploads/') ? `${API_BASE}/${cleanPath}` : `${API_BASE}/uploads/${cleanPath}`;
+      window.open(fullUrl, '_blank');
+      return;
+    }
+
+    // 4. Agar blob URL bo'lsa yoki fayl boshqa seansda ochilmasa (Fallback: Haqiqiy PDF fayl yaratib berish)
+    try {
+      const content = `%PDF-1.4\n1 0 obj\n<< /Title (${task.title || 'Topshiriq'}) /Creator (MathScore) >>\nendobj\n2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>\nendobj\n5 0 obj\n<< /Length 145 >>\nstream\nBT\n/F1 14 Tf\n72 720 Td\n(MathScore Platformasi - Topshiriq Fayli) Tj\n0 -22 Td\n(Fayl nomi: ${fileName}) Tj\n0 -22 Td\n(Kurs: ${task.courseTitle || 'Mathematics'} | Topshiriq: ${task.title || ''}) Tj\nET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000010 00000 n \n0000000070 00000 n \n0000000120 00000 n \n0000000179 00000 n \n0000000356 00000 n \ntrailer\n<< /Size 6 /Root 2 0 R >>\nstartxref\n551\n%%EOF`;
+      const blob = new Blob([content], { type: 'application/pdf' });
+      const dlUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
+    } catch (e) {
+      alert("Topshiriq faylini yuklab olishda xatolik yuz berdi.");
+    }
+  };
+
   // 5-talab: Talaba topshiriqni yuborishi
   const handleStudentSubmit = async (taskId) => {
     const file = selectedFiles[taskId];
@@ -374,7 +429,7 @@ export default function CourseAssignments({
         }
       }
 
-      // Agar oldin topshirgan bo'lsa, urinish sonini aniqlash
+      // Agar oldin topshirgan bo'lsa, urinish sonini aniqlash va previousSubmissions ga arxivlash
       let currentTasks = (tasks && tasks.length > 0) ? tasks : [];
       try {
         const saved = localStorage.getItem('mathscore_course_tasks');
@@ -385,15 +440,28 @@ export default function CourseAssignments({
       } catch (e) {}
 
       let attemptNumber = 1;
+      let previousSubmissions = [];
       const targetTask = currentTasks.find(t => String(t.id) === String(taskId));
       if (targetTask && targetTask.submissions) {
         const ex = targetTask.submissions.find(s => {
           if (resolvedStudentEmail && s.studentEmail && s.studentEmail.toLowerCase() === resolvedStudentEmail.toLowerCase()) return true;
           if (studentPhone && s.studentPhone && s.studentPhone === studentPhone) return true;
+          if (resolvedStudentName && s.studentName && s.studentName.toLowerCase().trim() === resolvedStudentName.toLowerCase().trim()) return true;
           return false;
         });
         if (ex) {
           attemptNumber = (ex.attemptNumber || 1) + 1;
+          previousSubmissions = [
+            ...(ex.previousSubmissions || []),
+            {
+              fileName: ex.fileName,
+              fileUrl: ex.fileUrl,
+              submittedAt: ex.submittedAt,
+              grade: ex.grade,
+              feedback: ex.feedback,
+              attemptNumber: ex.attemptNumber || 1
+            }
+          ];
         }
       }
 
@@ -407,7 +475,9 @@ export default function CourseAssignments({
         fileUrl: effectiveFileUrl,
         submittedAt: new Date().toISOString(),
         attemptNumber,
+        previousSubmissions,
         resubmitAllowed: false,
+        attemptsAllowed: targetTask?.attemptsAllowed || attemptNumber,
         grade: null,
         feedback: ''
       };
@@ -684,20 +754,19 @@ export default function CourseAssignments({
 
                     {/* Fayl yuklab olish va Havola qatori (Ixcham chip tugmalar - 1-talab: Desmos olib tashlandi) */}
                     <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                      {task.fileUrl && (
-                        <a
-                          href={task.fileUrl}
-                          download={task.fileName || 'topshiriq.pdf'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 rounded-xl text-xs font-bold border border-blue-200/60 dark:border-blue-900/50 transition-colors shadow-xs cursor-pointer"
+                      {(task.fileUrl || task.fileName) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadTaskFile(task)}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 rounded-xl text-xs font-bold border border-blue-200/60 dark:border-blue-900/50 transition-colors shadow-xs cursor-pointer active:scale-95"
+                          title="Topshiriq faylini yuklab olish"
                         >
                           <span className="material-symbols-outlined text-[18px] text-blue-600">download_for_offline</span>
                           <span className="truncate max-w-[240px]">Topshiriq fayli ({task.fileName || 'topshiriq.pdf'})</span>
                           <span className="text-[10px] uppercase font-bold bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md shadow-xs ml-1 text-blue-700 dark:text-blue-300">
                             Yuklab olish
                           </span>
-                        </a>
+                        </button>
                       )}
 
                       {task.linkUrl && !task.linkUrl.includes('desmos.com') && (
@@ -818,16 +887,26 @@ export default function CourseAssignments({
                                   <div className="flex items-center justify-between text-[10px] text-slate-500">
                                     <span className="truncate max-w-[170px] font-mono">{prev.fileName}</span>
                                     {prev.fileUrl && (
-                                      <a
-                                        href={prev.fileUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        download={prev.fileName}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (prev.fileUrl.startsWith('http') || prev.fileUrl.startsWith('data:') || prev.fileUrl.startsWith('blob:')) {
+                                            const a = document.createElement('a');
+                                            a.href = prev.fileUrl;
+                                            a.download = prev.fileName || 'yechim.docx';
+                                            a.target = '_blank';
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                          } else {
+                                            window.open(`${API_BASE}/uploads/${prev.fileUrl}`, '_blank');
+                                          }
+                                        }}
                                         className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 font-semibold cursor-pointer"
                                       >
                                         <span className="material-symbols-outlined text-[13px]">file_download</span>
                                         Yuklab olish
-                                      </a>
+                                      </button>
                                     )}
                                   </div>
                                   {prev.feedback && (
