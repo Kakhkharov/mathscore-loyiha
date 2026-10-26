@@ -452,11 +452,11 @@ function App() {
         const subMap = new Map();
         [...serverSubs, ...localSubs].forEach(s => {
           if (s) {
-            const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.createdAt}`;
+            const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.submittedAt || s.createdAt}`;
             subMap.set(key, s);
           }
         });
-        const combined = Array.from(subMap.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        const combined = Array.from(subMap.values()).sort((a, b) => new Date(b.submittedAt || b.createdAt || 0) - new Date(a.submittedAt || a.createdAt || 0));
         setSubmissions(combined);
       } catch (e) {
         console.error('Submissions sync failed:', e);
@@ -567,11 +567,11 @@ function App() {
               const map = new Map();
               [...prev, ...parsed].forEach(s => {
                 if (s) {
-                  const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.createdAt}`;
+                  const key = s.id ? String(s.id) : `${s.userId}_${s.testId}_${s.submittedAt || s.createdAt}`;
                   map.set(key, s);
                 }
               });
-              return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+              return Array.from(map.values()).sort((a, b) => new Date(b.submittedAt || b.createdAt || 0) - new Date(a.submittedAt || a.createdAt || 0));
             });
           }
         } catch (err) {}
@@ -2193,9 +2193,14 @@ function App() {
       if (!course.includes(resultsFilterCourse.toLowerCase())) return false;
     }
     if (resultsFilterDate) {
-      if (!sub.createdAt) return false;
-      const subDate = new Date(sub.createdAt).toISOString().split('T')[0];
-      if (subDate !== resultsFilterDate) return false;
+      const rawDate = sub.submittedAt || sub.createdAt || sub.date || sub.timestamp;
+      if (!rawDate) return false;
+      try {
+        const subDate = new Date(rawDate).toISOString().split('T')[0];
+        if (subDate !== resultsFilterDate) return false;
+      } catch (e) {
+        return false;
+      }
     }
     return true;
   });
@@ -2208,7 +2213,19 @@ function App() {
     const dataToExport = filteredSubmissions.map((sub, idx) => {
       const total = sub.totalPossibleScore || sub.totalQuestions || 1;
       const earned = sub.earnedScore !== undefined ? sub.earnedScore : (sub.correctCount || 0);
-      const dateStr = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('uz-UZ') : '-';
+      const rawDate = sub.submittedAt || sub.createdAt || sub.date || sub.timestamp;
+      let dateStr = '-';
+      if (rawDate) {
+        try {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) {
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = d.getFullYear();
+            dateStr = `${dd}-${mm}-${yyyy}`;
+          }
+        } catch (e) {}
+      }
       return {
         "№": idx + 1,
         "Talaba": sub.userName || 'Noma\'lum',
@@ -3629,14 +3646,17 @@ function App() {
                                 const isPassed = sub.passed !== undefined ? sub.passed : (sub.score >= 70);
 
                                 // Format date as DD-MM-YYYY
+                                const rawDate = sub.submittedAt || sub.createdAt || sub.date || sub.timestamp;
                                 let formattedDate = '-';
-                                if (sub.createdAt) {
+                                if (rawDate) {
                                   try {
-                                    const d = new Date(sub.createdAt);
-                                    const dd = String(d.getDate()).padStart(2, '0');
-                                    const mm = String(d.getMonth() + 1).padStart(2, '0');
-                                    const yyyy = d.getFullYear();
-                                    formattedDate = `${dd}-${mm}-${yyyy}`;
+                                    const d = new Date(rawDate);
+                                    if (!isNaN(d.getTime())) {
+                                      const dd = String(d.getDate()).padStart(2, '0');
+                                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                      const yyyy = d.getFullYear();
+                                      formattedDate = `${dd}-${mm}-${yyyy}`;
+                                    }
                                   } catch (e) {
                                     formattedDate = '-';
                                   }

@@ -1398,6 +1398,7 @@ export default function App() {
           passed: finalPassed,
           timeSpent: timeSpentStr,
           tabSwitches: tabSwitchesCount,
+          submittedAt: new Date().toISOString(),
           createdAt: new Date().toISOString()
         };
         const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
@@ -1533,6 +1534,7 @@ export default function App() {
           passed: finalPassed,
           timeSpent: timeSpentStr,
           tabSwitches: tabSwitchesCount,
+          submittedAt: new Date().toISOString(),
           createdAt: new Date().toISOString()
         };
         const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
@@ -3714,7 +3716,7 @@ export default function App() {
       {/* -------------------- PREMIUM ACADEMIC TEST CERTIFICATE MODAL -------------------- */}
       {showCertificate && quizResult && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
-          <div className="printable-area bg-[#FFFDF9] text-zinc-900 rounded-3xl p-8 sm:p-10 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
+          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-3xl p-6 sm:p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-4 sm:space-y-5 relative overflow-hidden bg-cover bg-center">
 
             {/* Elegant Background Watermark Pattern */}
             <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[180px] font-serif text-amber-900">
@@ -3727,23 +3729,38 @@ export default function App() {
             <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-amber-600/40"></div>
             <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-amber-600/40"></div>
 
-            {/* Top Left Sigma Logo & Brand */}
-            <div className="absolute top-5 left-6 flex flex-col items-center z-20">
-              <img src="/sigma-logo.png" alt="Sigma Education" className="h-10 w-auto object-contain drop-shadow-sm" />
-              <span className="font-outfit font-black text-[9px] tracking-widest text-slate-900 uppercase mt-1">Sigma Education</span>
-              <span className="text-[7.5px] font-bold text-amber-700 tracking-wider uppercase">O'quv Markazi</span>
+            {/* Top Brand Bar */}
+            <div className="w-full flex items-center justify-between z-10 px-2 sm:px-6">
+              <div className="flex items-center gap-2.5">
+                <img src="/sigma-logo.png" alt="Sigma Education" className="h-11 sm:h-12 w-auto object-contain drop-shadow-sm" />
+                <div className="text-left leading-tight">
+                  <span className="font-outfit font-black text-xs sm:text-sm tracking-wider text-slate-900 uppercase block">Sigma Education</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-amber-700 tracking-wider uppercase block">O'quv Markazi</span>
+                </div>
+              </div>
+
+              <div className="text-right leading-tight">
+                <span className="font-outfit font-black text-xs sm:text-sm tracking-wider text-slate-900 uppercase block">MathScore LMS</span>
+                <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 tracking-wider uppercase block">Online Ta'lim</span>
+              </div>
             </div>
 
             {/* Certificate Header */}
-            <div className="space-y-1 z-10 pt-1">
-              <div className="text-amber-800 font-bold uppercase tracking-[0.25em] text-[10px] font-outfit">MathScore Online LMS &bull; Sigma Education</div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">MUVAFFAQIYAT SERTIFIKATI</h2>
-              <p className="font-sans text-[10px] tracking-[0.2em] font-semibold uppercase text-amber-700">Certificate of Academic Achievement</p>
-              <div className="w-24 h-[1.5px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-2"></div>
+            <div className="space-y-1.5 z-10 w-full text-center">
+              <div className="text-amber-800 font-bold uppercase tracking-[0.3em] text-[10px] sm:text-[11px] font-outfit">
+                MathScore Online LMS &bull; Sigma Education
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl font-black tracking-widest text-zinc-900 uppercase">
+                SERTIFIKAT
+              </h2>
+              <p className="font-sans text-[10px] sm:text-[11px] tracking-[0.25em] font-bold uppercase text-amber-700">
+                Certificate of Academic Achievement
+              </p>
+              <div className="w-28 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
             </div>
 
             {/* Certificate Main Text */}
-            <div className="space-y-4 z-10 max-w-md">
+            <div className="space-y-3.5 z-10 max-w-md">
               <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">Ushbu hujjat mamnuniyat bilan topshiriladi:</p>
 
               <h3 className="font-outfit text-xl sm:text-2xl font-black text-amber-900 border-b-2 border-amber-300 pb-1 px-6 inline-block tracking-wide uppercase">
@@ -3756,7 +3773,7 @@ export default function App() {
             </div>
 
             {/* Signatures & Seal */}
-            <div className="w-full grid grid-cols-3 items-end pt-6 z-10 text-[10px] font-bold">
+            <div className="w-full grid grid-cols-3 items-end pt-4 sm:pt-5 z-10 text-[10px] font-bold">
 
               {/* Left Sign: Toxirova Malika */}
               <div className="flex flex-col items-center">
@@ -3767,7 +3784,7 @@ export default function App() {
 
               {/* Gold Medal Seal */}
               <div className="flex justify-center">
-                <div className="relative w-16 h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-md border-4 border-amber-300 animate-spin-slow">
+                <div className="relative w-15 h-15 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-md border-4 border-amber-300 animate-spin-slow">
                   <div className="absolute inset-2 border border-dashed border-white/40 rounded-full"></div>
                   <span className="material-symbols-outlined text-[26px] text-white fill">verified</span>
                 </div>
@@ -3784,7 +3801,7 @@ export default function App() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-4 flex gap-3 z-10 text-xs font-semibold no-print">
+            <div className="pt-3 flex gap-3 z-10 text-xs font-semibold no-print">
               <button
                 onClick={() => { window.print(); }}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
@@ -3807,7 +3824,7 @@ export default function App() {
       {/* -------------------- VIDEO COURSE COMPLETION CERTIFICATE MODAL -------------------- */}
       {showCourseCertificate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
-          <div className="printable-area bg-[#FFFDF9] text-zinc-900 rounded-3xl p-8 sm:p-10 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
+          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-3xl p-6 sm:p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-4 sm:space-y-5 relative overflow-hidden bg-cover bg-center">
 
             {/* Elegant Background Watermark Pattern: Greek Sigma */}
             <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[200px] font-serif text-amber-900">
@@ -3820,29 +3837,38 @@ export default function App() {
             <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-amber-600/40"></div>
             <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-amber-600/40"></div>
 
-            {/* Top Left Sigma Logo & Brand */}
-            <div className="absolute top-5 left-6 flex flex-col items-center z-20">
-              <img src="/sigma-logo.png" alt="Sigma Education" className="h-11 w-auto object-contain drop-shadow-sm" />
-              <span className="font-outfit font-black text-[9px] tracking-widest text-slate-900 uppercase mt-1">Sigma Education</span>
-              <span className="text-[7.5px] font-bold text-amber-700 tracking-wider uppercase">O'quv Markazi</span>
+            {/* Top Brand Bar */}
+            <div className="w-full flex items-center justify-between z-10 px-2 sm:px-6">
+              <div className="flex items-center gap-2.5">
+                <img src="/sigma-logo.png" alt="Sigma Education" className="h-11 sm:h-12 w-auto object-contain drop-shadow-sm" />
+                <div className="text-left leading-tight">
+                  <span className="font-outfit font-black text-xs sm:text-sm tracking-wider text-slate-900 uppercase block">Sigma Education</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-amber-700 tracking-wider uppercase block">O'quv Markazi</span>
+                </div>
+              </div>
+
+              <div className="text-right leading-tight">
+                <span className="font-outfit font-black text-xs sm:text-sm tracking-wider text-slate-900 uppercase block">MathScore LMS</span>
+                <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 tracking-wider uppercase block">Online Ta'lim</span>
+              </div>
             </div>
 
             {/* Certificate Header */}
-            <div className="space-y-1 z-10 pt-1">
-              <div className="text-amber-800 font-bold uppercase tracking-[0.25em] text-[10px] font-outfit">
+            <div className="space-y-1.5 z-10 w-full text-center">
+              <div className="text-amber-800 font-bold uppercase tracking-[0.3em] text-[10px] sm:text-[11px] font-outfit">
                 MathScore Online LMS &bull; Sigma Education
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
-                KURS BITIRUV SERTIFIKATI
+              <h2 className="font-serif text-3xl sm:text-4xl font-black tracking-widest text-zinc-900 uppercase">
+                SERTIFIKAT
               </h2>
-              <p className="font-sans text-[10px] tracking-[0.2em] font-semibold uppercase text-amber-700">
+              <p className="font-sans text-[10px] sm:text-[11px] tracking-[0.25em] font-bold uppercase text-amber-700">
                 Certificate of Course Completion
               </p>
-              <div className="w-28 h-[1.5px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-2"></div>
+              <div className="w-28 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
             </div>
 
             {/* Certificate Main Text */}
-            <div className="space-y-4 z-10 max-w-lg">
+            <div className="space-y-3.5 z-10 max-w-lg">
               <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">
                 Ushbu rasmiy hujjat mamnuniyat bilan topshiriladi:
               </p>
@@ -3857,7 +3883,7 @@ export default function App() {
             </div>
 
             {/* Signatures & Seal */}
-            <div className="w-full grid grid-cols-3 items-end pt-6 z-10 text-[10px] font-bold">
+            <div className="w-full grid grid-cols-3 items-end pt-4 sm:pt-5 z-10 text-[10px] font-bold">
 
               {/* Left Sign: Toxirova Malika */}
               <div className="flex flex-col items-center">
@@ -3868,7 +3894,7 @@ export default function App() {
 
               {/* Gold Medal Seal */}
               <div className="flex justify-center">
-                <div className="relative w-16 h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300 animate-spin-slow">
+                <div className="relative w-15 h-15 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300 animate-spin-slow">
                   <div className="absolute inset-2 border border-dashed border-white/50 rounded-full"></div>
                   <span className="material-symbols-outlined text-[28px] text-white fill">verified</span>
                 </div>
@@ -3885,7 +3911,7 @@ export default function App() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-4 flex gap-3 z-10 text-xs font-semibold no-print">
+            <div className="pt-3 flex gap-3 z-10 text-xs font-semibold no-print">
               <button
                 onClick={() => { window.print(); }}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-amber-600/20 hover:scale-105"

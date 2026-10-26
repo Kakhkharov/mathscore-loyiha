@@ -432,16 +432,64 @@ body {
 .delay-200 { transition-delay: 200ms; }
 .delay-300 { transition-delay: 300ms; }
 
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
 @media print {
-  aside, header, nav, .no-print, button, .sidebar, .header-bar {
+  /* Hide all interactive elements, navigation, sidebars and headers */
+  aside, header, nav, .no-print, button, .sidebar, .header-bar, input, select {
     display: none !important;
+    visibility: hidden !important;
   }
-  body, #root, main {
-    background: #ffffff !important;
-    color: #000000 !important;
-    padding: 0 !important;
+
+  html, body {
+    width: 297mm !important;
+    height: 210mm !important;
+    max-width: 297mm !important;
+    max-height: 210mm !important;
     margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+
+  /* Hide the rest of the application tree */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the certificate */
+  .printable-certificate,
+  .printable-certificate * {
+    visibility: visible !important;
+  }
+
+  .printable-certificate {
+    position: fixed !important;
+    left: 8mm !important;
+    top: 8mm !important;
+    right: 8mm !important;
+    bottom: 8mm !important;
+    width: calc(297mm - 16mm) !important;
+    height: calc(210mm - 16mm) !important;
+    margin: 0 auto !important;
+    padding: 24px 36px !important;
+    border: 8px double #d97706 !important;
+    border-radius: 20px !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    z-index: 999999 !important;
+  }
+
   .printable-area {
     width: 100% !important;
     margin: 0 !important;
