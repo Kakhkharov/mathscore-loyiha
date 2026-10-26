@@ -105,6 +105,7 @@ model Question {
   explanation   String?
   hint          String?
   imageUrl      String?
+  markingScheme String?  // Stored as JSON: { modelAnswer, criteria: [{ id, text, marks }], acceptedAlternatives, misconceptions, aiInstructions }
   testId        String
   test          Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
 }
@@ -122,6 +123,7 @@ model Submission {
   tabSwitches    Int      @default(0)
   timeSpent      String?  
   passed         Boolean
+  details        String?  // Stored as JSON: question-by-question review results, AI short answer evaluations
   submittedAt    DateTime @default(now())
   
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)

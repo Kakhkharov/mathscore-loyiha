@@ -310,29 +310,29 @@ body {
   --color-on-surface-variant: #464555;
   --color-tertiary-container: #00842e;
   --color-outline: #767586;
-  --color-on-surface: #161d1f;
+  --color-on-surface: var(--on-surface);
   --color-primary-fixed: #e1e0ff;
-  --color-surface-container-high: #e2e9ec;
+  --color-surface-container-high: var(--surface-container-high);
   --color-surface-tint: #4849da;
   --color-on-primary-container: #faf7ff;
   --color-tertiary-fixed: #73fe84;
   --color-inverse-surface: #2b3234;
-  --color-surface-container-low: #eef5f7;
+  --color-surface-container-low: var(--surface-container-low);
   --color-on-tertiary-fixed-variant: #005319;
-  --color-surface: #f4fafd;
+  --color-surface: var(--surface);
   --color-on-tertiary: #ffffff;
   --color-on-secondary-fixed-variant: #6d3a00;
   --color-error-container: #ffdad6;
-  --color-on-background: #161d1f;
+  --color-on-background: var(--on-background);
   --color-tertiary: #006822;
-  --color-surface-container: #e8eff1;
+  --color-surface-container: var(--surface-container);
   --color-primary-fixed-dim: #c1c1ff;
   --color-primary-container: #5d5fef;
   --color-inverse-primary: #c1c1ff;
   --color-on-error-container: #93000a;
   --color-on-primary: #ffffff;
   --color-tertiary-fixed-dim: #55e16b;
-  --color-background: #f4fafd;
+  --color-background: var(--background);
   --color-on-secondary-container: #6b3900;
   --color-secondary: #8f4e00;
   --color-inverse-on-surface: #ebf2f4;
@@ -340,7 +340,7 @@ body {
   --color-error: #ba1a1a;
   --color-on-secondary: #ffffff;
   --color-secondary-fixed-dim: #ffb77a;
-  --color-outline-variant: #c7c4d7;
+  --color-outline-variant: var(--outline-variant);
   --color-surface-container-lowest: #ffffff;
 
   --spacing-margin-desktop: 64px;
@@ -363,8 +363,8 @@ body {
 
 body { 
   font-family: 'Plus Jakarta Sans', sans-serif; 
-  background-color: var(--color-surface); 
-  color: var(--color-on-surface); 
+  background-color: var(--background); 
+  color: var(--on-background); 
 }
 
 .material-symbols-outlined { 

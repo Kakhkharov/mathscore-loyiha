@@ -12,6 +12,7 @@ const { v4: uuidv4 } = require('uuid');
 const { sendStudentCredentials, sendPasswordReset } = require('./mailer');
 
 const db = require('./db');
+const { gradeShortAnswerQuestion } = require('./geminiGrader');
 const {
   JWT_SECRET,
   corsOptions,
@@ -645,6 +646,23 @@ app.delete('/api/tests/:id', authenticateToken, requireRole('admin'), async (req
   res.json({ message: 'Test o\'chirildi.' });
 });
 
+// Helper to normalize MCQ option index (supports 0, 1, 2, 3 OR "A", "B", "C", "D" OR exact text)
+function normalizeOptionIndex(val, options = []) {
+  if (val === undefined || val === null || val === '') return -1;
+  if (typeof val === 'number') return val;
+  const str = String(val).trim();
+  const num = Number(str);
+  if (!isNaN(num) && Number.isInteger(num)) return num;
+  if (/^[A-Za-z]$/.test(str)) {
+    return str.toUpperCase().charCodeAt(0) - 65;
+  }
+  if (Array.isArray(options) && options.length > 0) {
+    const idx = options.findIndex(opt => String(opt).trim().toLowerCase() === str.toLowerCase());
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
 // Submissions
 app.post('/api/submissions', authenticateToken, async (req, res) => {
   const { testId, answers, tabSwitches, timeSpent } = req.body;
@@ -654,32 +672,62 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
   let correctCount = 0;
   let totalPossibleScore = 0;
   let earnedScore = 0;
+  const questionResults = [];
 
-  (test.questions || []).forEach((q, idx) => {
-    const qScore = Number(q.score) || 1;
+  const questions = test.questions || [];
+
+  for (let idx = 0; idx < questions.length; idx++) {
+    const q = questions[idx];
+    const qScore = Math.max(1, Math.round(Number(q.score) || 1));
     totalPossibleScore += qScore;
-    const studentAns = answers ? answers[idx] : undefined;
+
+    // Student answer can be mapped by question id or by array index
+    let studentAns = undefined;
+    if (answers) {
+      if (q.id && answers[q.id] !== undefined) {
+        studentAns = answers[q.id];
+      } else if (answers[idx] !== undefined) {
+        studentAns = answers[idx];
+      } else if (answers[String(idx)] !== undefined) {
+        studentAns = answers[String(idx)];
+      }
+    }
+
     let isCorrect = false;
+    let awardedMarks = 0;
+    let feedback = '';
+    let aiGrading = null;
 
     const qType = (q.type || 'single').toLowerCase();
+    const options = Array.isArray(q.options) ? q.options : [];
 
     if (qType === 'single' || qType === 'mcq') {
-      const correctIdx = Number(q.correctAnswer);
-      if (studentAns !== undefined && studentAns !== null && Number(studentAns) === correctIdx) {
+      const correctIdx = normalizeOptionIndex(q.correctAnswer, options);
+      const studentIdx = normalizeOptionIndex(studentAns, options);
+
+      if (studentIdx !== -1 && correctIdx !== -1 && studentIdx === correctIdx) {
         isCorrect = true;
+        awardedMarks = qScore;
+        feedback = "To'g'ri javob!";
+      } else {
+        feedback = studentIdx === -1 ? "Javob belgilanmadi." : "Noto'g'ri variant tanlandi.";
       }
     } else if (qType === 'multiple') {
-      let correctArr = [];
+      let correctIndices = [];
       try {
-        correctArr = Array.isArray(q.correctAnswer)
-          ? q.correctAnswer.map(Number)
-          : JSON.parse(q.correctAnswer || '[]').map(Number);
+        const rawArr = Array.isArray(q.correctAnswer)
+          ? q.correctAnswer
+          : JSON.parse(q.correctAnswer || '[]');
+        correctIndices = rawArr.map(v => normalizeOptionIndex(v, options)).filter(v => v !== -1);
       } catch (e) {
-        correctArr = [];
+        correctIndices = [];
       }
-      const studentArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
-      const sortedCorrect = [...correctArr].sort((a, b) => a - b);
-      const sortedStudent = [...studentArr].sort((a, b) => a - b);
+      const studentArr = Array.isArray(studentAns)
+        ? studentAns.map(v => normalizeOptionIndex(v, options)).filter(v => v !== -1)
+        : [];
+
+      const sortedCorrect = [...new Set(correctIndices)].sort((a, b) => a - b);
+      const sortedStudent = [...new Set(studentArr)].sort((a, b) => a - b);
 
       if (
         sortedCorrect.length > 0 &&
@@ -687,9 +735,13 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
         sortedCorrect.every((val, i) => val === sortedStudent[i])
       ) {
         isCorrect = true;
+        awardedMarks = qScore;
+        feedback = "Barcha to'g'ri variantlar to'g'ri tanlandi!";
+      } else {
+        feedback = "To'g'ri variantlar to'liq yoki to'g'ri tanlanmadi.";
       }
     } else if (qType === 'truefalse') {
-      const correctBool = String(q.correctAnswer) === 'true' || q.correctAnswer === true || q.correctAnswer === 1;
+      const correctBool = String(q.correctAnswer) === 'true' || q.correctAnswer === true || q.correctAnswer === 1 || q.correctAnswer === 0;
       let studentBool;
       if (typeof studentAns === 'boolean') {
         studentBool = studentAns;
@@ -697,54 +749,145 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
         const s = studentAns.toLowerCase().trim();
         studentBool = s === 'true' || s === 'rost' || s === '1';
       } else if (typeof studentAns === 'number') {
-        studentBool = studentAns === 1;
+        studentBool = studentAns === 1 || studentAns === 0;
       }
       if (studentBool !== undefined && studentBool === correctBool) {
         isCorrect = true;
+        awardedMarks = qScore;
+        feedback = "To'g'ri!";
+      } else {
+        feedback = "Noto'g'ri.";
       }
-    } else if (qType === 'short' || qType === 'math') {
+    } else if (qType === 'short') {
+      // Short Answer Question with Gemini AI Semantic Evaluation
+      const rawText = String(studentAns !== undefined && studentAns !== null ? studentAns : '').trim();
+
+      if (!rawText) {
+        awardedMarks = 0;
+        isCorrect = false;
+        feedback = "Javob kiritilmadi.";
+        aiGrading = {
+          grading_status: 'graded',
+          awarded_marks: 0,
+          maximum_marks: qScore,
+          student_feedback: "Javob kiritilmadi.",
+          criterion_results: []
+        };
+      } else {
+        // Evaluate with Gemini AI
+        try {
+          aiGrading = await gradeShortAnswerQuestion({
+            questionId: q.id || `q_${idx + 1}`,
+            questionText: q.text,
+            maximumMarks: qScore,
+            studentAnswer: rawText,
+            markingScheme: q.markingScheme
+          });
+
+          awardedMarks = Number(aiGrading.awarded_marks) || 0;
+          if (awardedMarks > qScore) awardedMarks = qScore;
+          if (awardedMarks < 0) awardedMarks = 0;
+
+          isCorrect = awardedMarks === qScore;
+          feedback = aiGrading.student_feedback || (isCorrect ? "To'liq to'g'ri javob!" : `${awardedMarks}/${qScore} ball`);
+        } catch (aiErr) {
+          console.error(`[Grading] Gemini grading error on question ${idx + 1}:`, aiErr);
+          // Fallback: Check simple string match if available
+          const cleanStudent = rawText.toLowerCase();
+          const simpleExpected = String(q.correctAnswer || '').split(/[,|]/).map(a => a.trim().toLowerCase()).filter(Boolean);
+          if (simpleExpected.includes(cleanStudent)) {
+            awardedMarks = qScore;
+            isCorrect = true;
+            feedback = "To'g'ri javob!";
+          } else {
+            awardedMarks = 0;
+            isCorrect = false;
+            feedback = "O'qituvchi tekshiruviga yuborildi.";
+          }
+          aiGrading = {
+            grading_status: 'pending_review',
+            awarded_marks: awardedMarks,
+            maximum_marks: qScore,
+            student_feedback: feedback
+          };
+        }
+      }
+    } else if (qType === 'math') {
+      // Math equation solver
       if (studentAns !== undefined && studentAns !== null && String(studentAns).trim().length > 0) {
-        const cleanStudent = String(studentAns).trim().toLowerCase();
+        const cleanStudent = String(studentAns).trim().toLowerCase().replace(/\s+/g, '');
         let acceptedAnswers = [];
         try {
           if (Array.isArray(q.correctAnswer)) {
-            acceptedAnswers = q.correctAnswer.map(a => String(a).trim().toLowerCase());
-          } else if (typeof q.correctAnswer === 'string' && q.correctAnswer.startsWith('[') && q.correctAnswer.endsWith(']')) {
-            acceptedAnswers = JSON.parse(q.correctAnswer).map(a => String(a).trim().toLowerCase());
+            acceptedAnswers = q.correctAnswer.map(a => String(a).trim().toLowerCase().replace(/\s+/g, ''));
           } else {
-            acceptedAnswers = String(q.correctAnswer || '').split(/[,|]/).map(a => a.trim().toLowerCase()).filter(Boolean);
+            acceptedAnswers = String(q.correctAnswer || '').split(/[,|]/).map(a => a.trim().toLowerCase().replace(/\s+/g, '')).filter(Boolean);
             if (acceptedAnswers.length === 0 && q.correctAnswer) {
-              acceptedAnswers = [String(q.correctAnswer).trim().toLowerCase()];
+              acceptedAnswers = [String(q.correctAnswer).trim().toLowerCase().replace(/\s+/g, '')];
             }
           }
         } catch (e) {
-          acceptedAnswers = [String(q.correctAnswer || '').trim().toLowerCase()];
+          acceptedAnswers = [String(q.correctAnswer || '').trim().toLowerCase().replace(/\s+/g, '')];
         }
 
         if (acceptedAnswers.includes(cleanStudent)) {
           isCorrect = true;
+          awardedMarks = qScore;
+          feedback = "To'g'ri yechim!";
+        } else {
+          feedback = "Noto'g'ri hisoblash.";
         }
+      } else {
+        feedback = "Javob kiritilmadi.";
       }
     }
 
     if (isCorrect) {
       correctCount++;
-      earnedScore += qScore;
     }
-  });
+    earnedScore += awardedMarks;
 
-  const totalQuestions = (test.questions && test.questions.length > 0) ? test.questions.length : 1;
+    questionResults.push({
+      questionId: q.id || idx + 1,
+      index: idx,
+      type: qType,
+      text: q.text,
+      options: options,
+      imageUrl: q.imageUrl || null,
+      topic: q.topic || test.category || 'Umumiy',
+      studentAnswer: studentAns,
+      correctAnswer: q.correctAnswer, // Send official correct answer AFTER submission
+      isCorrect,
+      awardedMarks,
+      maxScore: qScore,
+      explanation: q.explanation || '',
+      feedback,
+      aiGrading,
+      markingScheme: q.markingScheme || null
+    });
+  }
+
+  const totalQuestions = questions.length > 0 ? questions.length : 1;
   const score = totalPossibleScore > 0 ? Math.round((earnedScore / totalPossibleScore) * 100) : 0;
   const passed = score >= (test.passingPercentage || 70);
 
   const insertedSub = await db.insert('submissions', {
-    userId: req.user.id, userName: req.user.name, userEmail: req.user.email,
+    userId: req.user.id,
+    userName: req.user.name,
+    userEmail: req.user.email,
     userAvatar: req.user.avatar || null,
-    testId, testTitle: test.title,
+    testId,
+    testTitle: test.title,
     courseTitle: test.course || test.courseTitle || test.category || 'Barcha kurslar',
-    score, earnedScore, totalPossibleScore: totalPossibleScore || totalQuestions,
-    correctCount, incorrectCount: totalQuestions - correctCount,
-    tabSwitches: tabSwitches || 0, timeSpent: timeSpent || '00:00', passed,
+    score,
+    earnedScore,
+    totalPossibleScore: totalPossibleScore || totalQuestions,
+    correctCount,
+    incorrectCount: totalQuestions - correctCount,
+    tabSwitches: tabSwitches || 0,
+    timeSpent: timeSpent || '00:00',
+    passed,
+    details: questionResults,
     createdAt: new Date().toISOString()
   });
 
@@ -756,10 +899,76 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
   // Notify admins in real-time
   await sendNotificationToAdmins(
     "Yangi test topshirildi 📝",
-    `${req.user.name} "${test.title}" imtihon testini ${score}% ball bilan topshirdi (${passed ? "O'tdi ✅" : "O'tmadi ❌"}).`
+    `${req.user.name} "${test.title}" imtihon testini ${score}% (${earnedScore}/${totalPossibleScore} ball) bilan topshirdi (${passed ? "O'tdi ✅" : "O'tmadi ❌"}).`
   );
 
-  res.status(201).json({ message: 'Natijangiz saqlandi!', result: { id: insertedSub?.id || Date.now(), score, correctCount, totalQuestions, passed, tabSwitches } });
+  res.status(201).json({
+    message: 'Natijangiz saqlandi!',
+    result: {
+      id: insertedSub?.id || Date.now(),
+      score,
+      earnedScore,
+      totalPossibleScore,
+      correctCount,
+      totalQuestions,
+      passed,
+      tabSwitches,
+      reviews: questionResults
+    }
+  });
+});
+
+app.get('/api/submissions/:id', authenticateToken, async (req, res) => {
+  const sub = await db.getById('submissions', req.params.id);
+  if (!sub) return res.status(404).json({ error: 'Natija topilmadi.' });
+  if (req.user.role === 'student' && sub.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Ruxsat berilmagan.' });
+  }
+  res.json(sub);
+});
+
+// Teacher / Admin manual grade adjustment for Short Answer Questions
+app.put('/api/submissions/:id/grade', authenticateToken, requireRole('admin'), async (req, res) => {
+  const { questionId, newMarks, teacherFeedback } = req.body;
+  const sub = await db.getById('submissions', req.params.id);
+  if (!sub) return res.status(404).json({ error: 'Natija topilmadi.' });
+
+  const details = Array.isArray(sub.details) ? [...sub.details] : [];
+  const targetQ = details.find(q => String(q.questionId) === String(questionId));
+  if (!targetQ) return res.status(404).json({ error: 'Savol topilmadi.' });
+
+  const maxScore = targetQ.maxScore || 1;
+  const validMarks = Math.max(0, Math.min(maxScore, Number(newMarks) || 0));
+
+  targetQ.awardedMarks = validMarks;
+  targetQ.isCorrect = validMarks === maxScore;
+  if (teacherFeedback) targetQ.feedback = teacherFeedback;
+  if (targetQ.aiGrading) {
+    targetQ.aiGrading.grading_status = 'teacher_reviewed';
+    targetQ.aiGrading.awarded_marks = validMarks;
+  }
+
+  // Recalculate submission score
+  let earned = 0;
+  let totalPos = 0;
+  let correctC = 0;
+  details.forEach(d => {
+    earned += Number(d.awardedMarks) || 0;
+    totalPos += Number(d.maxScore) || 1;
+    if (d.isCorrect) correctC++;
+  });
+
+  const newScore = totalPos > 0 ? Math.round((earned / totalPos) * 100) : 0;
+  const updatedSub = await db.update('submissions', req.params.id, {
+    earnedScore: earned,
+    score: newScore,
+    correctCount: correctC,
+    incorrectCount: details.length - correctC,
+    passed: newScore >= 70,
+    details: JSON.stringify(details)
+  });
+
+  res.json({ message: 'Baho muvaffaqiyatli yangilandi!', submission: updatedSub });
 });
 
 app.get('/api/submissions', authenticateToken, async (req, res) => {

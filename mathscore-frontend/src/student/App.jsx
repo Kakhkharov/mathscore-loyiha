@@ -966,17 +966,48 @@ export default function App() {
       );
     }
 
-    // 3. Short Answer / Math Equation (Qisqa matn yoki formula javob)
-    if (qType === 'short' || qType === 'math') {
+    // 3. Short Answer Question (Descriptive yozma javob)
+    if (qType === 'short') {
+      const textVal = currentAnswer !== undefined && currentAnswer !== null ? String(currentAnswer) : '';
+
+      return (
+        <div className="space-y-3 pt-4 border-t border-outline-variant/60 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+              <span className="material-symbols-outlined text-[18px]">edit_note</span>
+              <span>Yozma javobingizni o'z so'zlaringiz bilan batafsil yozing:</span>
+            </div>
+            <span className="text-[10px] text-outline font-semibold">
+              {textVal.length} ta belgi
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <textarea
+              rows={5}
+              value={textVal}
+              onChange={(e) => handleTextAnswer(activeQuestion, e.target.value)}
+              placeholder="Javobingizni bu yerga erkin va tushunarli qilib yozing. Gemini AI sun'iy intellekti uni belgilangan baholash mezonlari (Marking Scheme) asosida semantik baholaydi..."
+              className="w-full p-4 rounded-xl border border-outline-variant bg-surface text-on-surface font-medium text-xs sm:text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs transition-all leading-relaxed"
+            />
+            <div className="flex items-center gap-1.5 text-[11px] text-outline font-medium">
+              <span className="material-symbols-outlined text-[15px] text-indigo-500">smart_toy</span>
+              <span>Javobingiz so'zma-so'z nusxa bo'lishi shart emas — tushunchalar to'g'ri ifodalangan bo'lsa, to'liq ball beriladi.</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 4. Math Equation Answer (Matematik formula / qiymat yechimi)
+    if (qType === 'math') {
       const textVal = currentAnswer !== undefined && currentAnswer !== null ? String(currentAnswer) : '';
 
       return (
         <div className="space-y-3 pt-4 border-t border-outline-variant/60">
           <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-bold">
-            <span className="material-symbols-outlined text-[16px]">edit_note</span>
-            <span>
-              {qType === 'math' ? "Matematik formula / qiymat yechimini kiriting:" : "Qisqa matnli javobingizni kiriting:"}
-            </span>
+            <span className="material-symbols-outlined text-[16px]">calculate</span>
+            <span>Matematik formula / qiymat yechimini kiriting:</span>
           </div>
 
           <div className="space-y-2">
@@ -984,7 +1015,7 @@ export default function App() {
               type="text"
               value={textVal}
               onChange={(e) => handleTextAnswer(activeQuestion, e.target.value)}
-              placeholder={qType === 'math' ? "Javobingiz (masalan: 7 yoki x=4)..." : "Javobingizni bu yerga yozing..."}
+              placeholder="Javobingiz (masalan: 7 yoki x=4)..."
               className="w-full p-4 rounded-xl border border-outline-variant bg-surface text-on-surface font-semibold text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs transition-all"
             />
             <p className="text-[11px] text-outline font-medium">
@@ -1109,10 +1140,10 @@ export default function App() {
         throw new Error(data.error || 'Natijani saqlashda xatolik.');
       }
 
-      const finalScore = (data.result && typeof data.result.score === 'number' && data.result.score > 0)
+      const finalScore = (data.result && typeof data.result.score === 'number')
         ? data.result.score
         : clientPercentage;
-      const finalCorrectCount = (data.result && typeof data.result.correctCount === 'number' && data.result.correctCount > 0)
+      const finalCorrectCount = (data.result && typeof data.result.correctCount === 'number')
         ? data.result.correctCount
         : clientCorrectCount;
 
@@ -1120,11 +1151,14 @@ export default function App() {
         testId: activeQuizTest.id,
         testTitle: activeQuizTest.title,
         score: finalScore,
+        earnedScore: data.result?.earnedScore,
+        totalPossibleScore: data.result?.totalPossibleScore,
         correctCount: finalCorrectCount,
         incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
         unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
         timeSpent: timeSpentStr,
         answers: quizAnswers,
+        reviews: data.result?.reviews || null,
         cheatAlerts: tabSwitchesCount
       });
 
@@ -2885,20 +2919,49 @@ export default function App() {
                       <div className="space-y-4">
                         {activeQuizTest.questions.map((q, qIdx) => {
                           const studentAns = quizResult.answers[qIdx];
-                          const isCorrect = studentAns === q.correct;
+                          const review = (quizResult.reviews && quizResult.reviews[qIdx]) ? quizResult.reviews[qIdx] : null;
+                          
+                          // Determine real accuracy from server review if available
+                          const isCorrect = review ? review.isCorrect : (studentAns !== undefined && studentAns !== null && Number(studentAns) === Number(q.correct));
+                          const awardedMarks = review ? (review.awardedMarks !== undefined ? review.awardedMarks : (isCorrect ? (review.maxScore || q.score || 1) : 0)) : (isCorrect ? (q.score || 1) : 0);
+                          const maxMarks = review ? (review.maxScore || q.score || 1) : (q.score || 1);
+
+                          // Normalize official correct answer index for MCQ
+                          let correctIdx = -1;
+                          if (review && review.correctAnswer !== undefined) {
+                            if (typeof review.correctAnswer === 'number') correctIdx = review.correctAnswer;
+                            else if (!isNaN(Number(review.correctAnswer))) correctIdx = Number(review.correctAnswer);
+                            else if (/^[A-Za-z]$/.test(String(review.correctAnswer).trim())) {
+                              correctIdx = String(review.correctAnswer).trim().toUpperCase().charCodeAt(0) - 65;
+                            }
+                          } else if (q.correct !== undefined) {
+                            correctIdx = Number(q.correct);
+                          }
+
+                          const qType = (q.type || 'single').toLowerCase();
 
                           return (
-                            <details key={q.id || qIdx} className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-xs group">
+                            <details key={q.id || qIdx} className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-xs group" open={!isCorrect}>
                               <summary className="p-4 flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors select-none font-bold text-xs">
                                 <div className="flex items-center gap-2">
-                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${studentAns === undefined ? 'bg-zinc-200 text-zinc-600' :
-                                      isCorrect ? 'bg-tertiary/20 text-tertiary' : 'bg-error/20 text-error'
-                                    }`}>
+                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                    studentAns === undefined ? 'bg-zinc-200 text-zinc-600' :
+                                    isCorrect ? 'bg-tertiary/20 text-tertiary' :
+                                    awardedMarks > 0 ? 'bg-amber-500/20 text-amber-600' :
+                                    'bg-error/20 text-error'
+                                  }`}>
                                     {qIdx + 1}
                                   </span>
                                   <span className="text-on-surface text-left line-clamp-1">{renderMathContent(q.question)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[10px] text-outline font-bold">
+                                  <span className={`px-2 py-0.5 rounded-md font-bold ${
+                                    isCorrect ? 'bg-emerald-500/10 text-emerald-600' :
+                                    awardedMarks > 0 ? 'bg-amber-500/10 text-amber-600' :
+                                    'bg-rose-500/10 text-rose-600'
+                                  }`}>
+                                    {awardedMarks} / {maxMarks} ball
+                                  </span>
                                   <span>{q.topic}</span>
                                   <span className="material-symbols-outlined text-base transition-transform group-open:rotate-180">expand_more</span>
                                 </div>
@@ -2917,39 +2980,132 @@ export default function App() {
                                   )}
                                 </div>
 
-                                {/* Options list in review */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                                  {q.options.map((opt, oIdx) => {
-                                    const isChoice = studentAns === oIdx;
-                                    const isRight = q.correct === oIdx;
+                                {/* 1. MCQ OPTIONS REVIEW */}
+                                {(qType === 'single' || qType === 'mcq' || qType === 'multiple') && Array.isArray(q.options) && q.options.length > 0 && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                    {q.options.map((opt, oIdx) => {
+                                      const isChoice = qType === 'multiple'
+                                        ? (Array.isArray(studentAns) && studentAns.includes(oIdx))
+                                        : (studentAns === oIdx || Number(studentAns) === oIdx);
+                                      const isRight = qType === 'multiple'
+                                        ? (Array.isArray(review?.correctAnswer) ? review.correctAnswer.includes(oIdx) : false)
+                                        : (correctIdx === oIdx);
 
-                                    let cardStyle = "border-outline-variant bg-surface text-on-surface";
-                                    if (isChoice && !isRight) cardStyle = "border-error/40 bg-error/5 text-error";
-                                    if (isRight) cardStyle = "border-tertiary/40 bg-tertiary/5 text-tertiary font-bold";
+                                      let cardStyle = "border-outline-variant bg-surface text-on-surface";
+                                      if (isChoice && !isRight) cardStyle = "border-error/50 bg-error/5 text-error ring-1 ring-error/20";
+                                      if (isRight) cardStyle = "border-tertiary/60 bg-tertiary/10 text-tertiary font-bold ring-1 ring-tertiary/30";
 
-                                    return (
-                                      <div key={oIdx} className={`p-3 rounded-lg border flex items-center gap-2.5 ${cardStyle}`}>
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border ${isRight ? 'bg-tertiary text-on-tertiary border-tertiary' :
-                                            isChoice ? 'bg-error text-on-error border-error' : 'bg-surface-container text-outline border-outline-variant'
+                                      return (
+                                        <div key={oIdx} className={`p-3 rounded-lg border flex items-center gap-2.5 transition-all ${cardStyle}`}>
+                                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 ${
+                                            isRight ? 'bg-tertiary text-on-tertiary border-tertiary' :
+                                            isChoice ? 'bg-error text-on-error border-error' :
+                                            'bg-surface-container text-outline border-outline-variant'
                                           }`}>
-                                          {String.fromCharCode(65 + oIdx)}
+                                            {isRight ? '✓' : (isChoice ? '✕' : String.fromCharCode(65 + oIdx))}
+                                          </div>
+                                          <span className="text-xs">{renderMathContent(opt)}</span>
                                         </div>
-                                        <span>{renderMathContent(opt)}</span>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* 2. SHORT ANSWER QUESTION REVIEW (GEMINI AI FEEDBACK & CRITERIA BREAKDOWN) */}
+                                {qType === 'short' && (
+                                  <div className="space-y-3 pt-2">
+                                    <div className="p-3.5 bg-surface rounded-xl border border-outline-variant space-y-1.5">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-outline uppercase tracking-wider">
+                                          Sizning javobingiz:
+                                        </span>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                          isCorrect ? 'bg-emerald-500/10 text-emerald-600' :
+                                          awardedMarks > 0 ? 'bg-amber-500/10 text-amber-600' :
+                                          'bg-rose-500/10 text-rose-600'
+                                        }`}>
+                                          {isCorrect ? "To'liq to'g'ri ✅" : (awardedMarks > 0 ? "Qisman to'g'ri ⚠️" : "Noto'g'ri ❌")} ({awardedMarks}/{maxMarks} ball)
+                                        </span>
                                       </div>
-                                    );
-                                  })}
-                                </div>
+                                      <p className="text-xs font-semibold text-on-surface whitespace-pre-wrap leading-relaxed">
+                                        {review?.studentAnswer || studentAns || "(Javob yozilmadi)"}
+                                      </p>
+                                    </div>
+
+                                    {/* AI Evaluation & Feedback */}
+                                    {review?.aiGrading && (
+                                      <div className="p-3.5 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl border border-indigo-500/20 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                                            <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                                            <span>Gemini AI Semantik Baholash Xulosasi:</span>
+                                          </div>
+                                          {review.aiGrading.grading_status === 'pending_review' && (
+                                            <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                                              O'qituvchi tekshiruvida ⏳
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <p className="text-xs text-on-surface leading-relaxed">
+                                          {review.aiGrading.student_feedback || review.feedback}
+                                        </p>
+
+                                        {/* Individual Criteria Results */}
+                                        {Array.isArray(review.aiGrading.criterion_results) && review.aiGrading.criterion_results.length > 0 && (
+                                          <div className="space-y-1.5 pt-2 border-t border-indigo-500/10">
+                                            <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">
+                                              Mezonlar bo'yicha tahlil:
+                                            </span>
+                                            <div className="grid grid-cols-1 gap-1.5">
+                                              {review.aiGrading.criterion_results.map((cr, cIdx) => (
+                                                <div key={cr.criterion_id || cIdx} className="p-2 bg-surface/80 rounded-lg border border-outline-variant flex items-center justify-between gap-2 text-[11px]">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                                                      cr.awarded_marks >= cr.maximum_marks ? 'bg-emerald-500 text-white' : (cr.awarded_marks > 0 ? 'bg-amber-500 text-white' : 'bg-zinc-300 text-zinc-700')
+                                                    }`}>
+                                                      {cr.awarded_marks >= cr.maximum_marks ? '✓' : (cr.awarded_marks > 0 ? '½' : '✕')}
+                                                    </span>
+                                                    <span className="text-on-surface">{cr.reason || `Mezon ${cIdx + 1}`}</span>
+                                                  </div>
+                                                  <span className="font-mono font-bold text-indigo-600 shrink-0">
+                                                    {cr.awarded_marks}/{cr.maximum_marks} ball
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Model Answer preview */}
+                                    {review?.markingScheme?.modelAnswer && (
+                                      <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 space-y-1">
+                                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+                                          <span className="material-symbols-outlined text-[13px]">lightbulb</span>
+                                          Namunaviy to'liq javob (Model Answer):
+                                        </span>
+                                        <p className="text-xs text-on-surface italic leading-relaxed">
+                                          {review.markingScheme.modelAnswer}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
 
                                 {/* Step-by-step math explanation */}
-                                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 mt-3 space-y-2 text-left">
-                                  <h4 className="font-outfit text-xs font-bold text-primary flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                                    Mukammal Masala Yechimi:
-                                  </h4>
-                                  <div className="text-on-surface leading-relaxed font-semibold font-serif italic text-xs whitespace-pre-line flex flex-wrap items-center gap-1.5">
-                                    {renderMathContent(q.explanation)}
+                                {q.explanation && (
+                                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 mt-3 space-y-2 text-left">
+                                    <h4 className="font-outfit text-xs font-bold text-primary flex items-center gap-1.5">
+                                      <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                                      Mukammal Masala Yechimi:
+                                    </h4>
+                                    <div className="text-on-surface leading-relaxed font-semibold font-serif italic text-xs whitespace-pre-line flex flex-wrap items-center gap-1.5">
+                                      {renderMathContent(q.explanation)}
+                                    </div>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             </details>
                           );

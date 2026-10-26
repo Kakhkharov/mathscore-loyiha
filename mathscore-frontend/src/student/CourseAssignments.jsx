@@ -673,7 +673,7 @@ export default function CourseAssignments({
             return (
               <div
                 key={task.id}
-                className="w-full bg-white dark:bg-slate-900 rounded-[28px] overflow-hidden shadow-sm hover:shadow-md transition-all border border-slate-200/80 dark:border-slate-800 flex flex-col group"
+                className="w-full bg-surface rounded-[28px] overflow-hidden shadow-sm hover:shadow-md transition-all border border-outline-variant flex flex-col group"
               >
                 {/* Top Banner (Yashil to'lqinli qism - Keng gorizontal banner) */}
                 <div className="relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400 px-6 sm:px-8 pt-5 pb-8 overflow-hidden">
@@ -702,7 +702,7 @@ export default function CourseAssignments({
                   </div>
 
                   {/* Silliq to'lqinsimon o'tish (Wave Curve) */}
-                  <div className="absolute -bottom-1 left-0 right-0 h-6 bg-white dark:bg-slate-900 rounded-t-[28px]" />
+                  <div className="absolute -bottom-1 left-0 right-0 h-6 bg-surface rounded-t-[28px]" />
 
                   {/* Top Row: [📖 Kurs nomi] + Timer + Holat nishoni */}
                   <div className="relative z-10 flex items-center justify-between gap-3 flex-wrap">
@@ -744,10 +744,10 @@ export default function CourseAssignments({
                   {/* Chap / Markaziy qism: Sarlavha, Tavsif, Materiallar */}
                   <div className="flex-1 space-y-3.5 min-w-0">
                     <div>
-                      <h3 className="font-black text-xl sm:text-2xl text-slate-800 dark:text-white tracking-tight">
+                      <h3 className="font-black text-xl sm:text-2xl text-on-surface tracking-tight">
                         {task.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed max-w-3xl">
+                      <p className="text-xs sm:text-sm text-outline mt-1.5 leading-relaxed max-w-3xl">
                         {task.description || "Solve the given algebra problems and upload your answers. Show all steps where necessary."}
                       </p>
                     </div>
@@ -873,9 +873,9 @@ export default function CourseAssignments({
                             </span>
                             <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                               {mySubmission.previousSubmissions.map((prev, idx) => (
-                                <div key={idx} className="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 text-xs space-y-1 shadow-2xs">
+                                <div key={idx} className="p-2.5 bg-surface rounded-xl border border-outline-variant text-xs space-y-1 shadow-2xs">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
+                                    <span className="font-bold text-on-surface text-[11px]">
                                       {prev.attemptNumber ? `${prev.attemptNumber}-urinish` : `${idx + 1}-urinish`}
                                     </span>
                                     {prev.grade && (

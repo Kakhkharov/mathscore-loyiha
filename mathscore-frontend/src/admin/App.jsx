@@ -627,15 +627,25 @@ function App() {
     const finalStatus = statusVal || newTest.status;
     if (!newTest.title) return alert("Iltimos, test nomini kiriting!");
 
-    // Safely prepare questions for Prisma compatibility (correctAnswer must be integer for database validation)
+    // Safely prepare questions for Prisma compatibility
     const preparedQuestions = (newTest.questions || []).map((q, idx) => {
       const qType = (q.type || 'single').toLowerCase();
       let safeIntCorrectAnswer = 0;
       let hintMarker = q.hint || '';
       let safeOptions = Array.isArray(q.options) ? [...q.options] : [];
+      const qScore = Math.max(1, Math.round(Number(q.score) || 1));
 
       if (qType === 'single' || qType === 'mcq') {
-        safeIntCorrectAnswer = Number.isInteger(Number(q.correctAnswer)) ? Number(q.correctAnswer) : 0;
+        if (Number.isInteger(Number(q.correctAnswer))) {
+          safeIntCorrectAnswer = Number(q.correctAnswer);
+        } else if (typeof q.correctAnswer === 'string' && /^[A-Za-z]$/.test(q.correctAnswer.trim())) {
+          safeIntCorrectAnswer = q.correctAnswer.trim().toUpperCase().charCodeAt(0) - 65;
+        } else if (Array.isArray(safeOptions) && safeOptions.length > 0) {
+          const matchedIdx = safeOptions.findIndex(o => String(o).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase());
+          safeIntCorrectAnswer = matchedIdx !== -1 ? matchedIdx : 0;
+        } else {
+          safeIntCorrectAnswer = 0;
+        }
       } else if (qType === 'multiple') {
         const arr = Array.isArray(q.correctAnswer) ? q.correctAnswer : [0];
         safeIntCorrectAnswer = Number(arr[0]) || 0;
@@ -663,13 +673,27 @@ function App() {
         }
       }
 
+      // Ensure markingScheme structure is cleanly prepared
+      let safeMarkingScheme = q.markingScheme || null;
+      if (qType === 'short' && !safeMarkingScheme) {
+        const ansStr = String(q.correctAnswer || '').trim();
+        safeMarkingScheme = {
+          modelAnswer: ansStr,
+          criteria: [{ id: 'c1', text: ansStr || "To'g'ri javob", marks: qScore }],
+          acceptedAlternatives: [],
+          misconceptions: [],
+          aiInstructions: ''
+        };
+      }
+
       return {
         ...q,
         type: qType,
         options: safeOptions,
         correctAnswer: safeIntCorrectAnswer,
-        score: Math.max(1, Math.round(Number(q.score) || 1)),
-        hint: hintMarker
+        score: qScore,
+        hint: hintMarker,
+        markingScheme: safeMarkingScheme
       };
     });
 
@@ -4428,12 +4452,12 @@ function App() {
                                   </div>
                                 )}
 
-                                {/* Short / Math text answer configuration */}
-                                {(newTest.questions[activeQuestionIndex].type === 'short' || newTest.questions[activeQuestionIndex].type === 'math') && (
+                                {/* Math Equation Configuration */}
+                                {newTest.questions[activeQuestionIndex].type === 'math' && (
                                   <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Qabul qilinadigan to'g'ri javob(lar)</span>
-                                      <span className="text-[10px] font-semibold text-slate-400">Katta-kichik harflar va probellar hisobga olinmaydi</span>
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Qabul qilinadigan matematik yechim(lar)</span>
+                                      <span className="text-[10px] font-semibold text-slate-400">Probellar hisobga olinmaydi</span>
                                     </div>
                                     <input
                                       value={newTest.questions[activeQuestionIndex].correctAnswer || ""}
@@ -4442,14 +4466,202 @@ function App() {
                                         updated[activeQuestionIndex].correctAnswer = e.target.value;
                                         setNewTest({ ...newTest, questions: updated });
                                       }}
-                                      placeholder={newTest.questions[activeQuestionIndex].type === 'math' ? "Tenglama javobi, masalan: x=7 yoki 4" : "Kutilayotgan javob (bir nechta bo'lsa vergul bilan ajrating: javob1, javob2)"}
+                                      placeholder="Tenglama javobi, masalan: x=7 yoki 4, 2x+1"
                                       className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                     />
-                                    <p className="text-[10px] text-slate-400 font-medium">
-                                      💡 Agar bir nechta to'g'ri variantlar bo'lsa, ularni vergul bilan kiriting. Masalan: <code>10, o'n, on</code>
-                                    </p>
                                   </div>
                                 )}
+
+                                {/* Short Answer Question: Gemini AI Semantic Marking Scheme Configuration */}
+                                {newTest.questions[activeQuestionIndex].type === 'short' && (() => {
+                                  const curQ = newTest.questions[activeQuestionIndex];
+                                  const qMaxMarks = Math.max(1, Math.round(Number(curQ.score) || 1));
+                                  const scheme = curQ.markingScheme || {
+                                    modelAnswer: typeof curQ.correctAnswer === 'string' ? curQ.correctAnswer : '',
+                                    criteria: [{ id: 'c1', text: typeof curQ.correctAnswer === 'string' && curQ.correctAnswer ? curQ.correctAnswer : 'Asosiy tushunchani to\'g\'ri yoritish', marks: qMaxMarks }],
+                                    acceptedAlternatives: [],
+                                    misconceptions: [],
+                                    aiInstructions: ''
+                                  };
+
+                                  const criteria = Array.isArray(scheme.criteria) ? scheme.criteria : [];
+                                  const sumCriteriaMarks = criteria.reduce((sum, c) => sum + (Number(c.marks) || 0), 0);
+                                  const isSumMatched = sumCriteriaMarks === qMaxMarks;
+
+                                  const updateScheme = (newSchemeFields) => {
+                                    const updatedQuestions = [...newTest.questions];
+                                    const updatedScheme = { ...scheme, ...newSchemeFields };
+                                    updatedQuestions[activeQuestionIndex] = {
+                                      ...curQ,
+                                      markingScheme: updatedScheme,
+                                      correctAnswer: updatedScheme.modelAnswer || curQ.correctAnswer || ''
+                                    };
+                                    setNewTest({ ...newTest, questions: updatedQuestions });
+                                  };
+
+                                  return (
+                                    <div className="space-y-4 p-4 bg-gradient-to-br from-indigo-50/50 via-slate-50 to-purple-50/30 dark:from-indigo-950/20 dark:via-slate-900/40 dark:to-purple-950/20 border-2 border-indigo-500/20 rounded-2xl animate-fade-in">
+                                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-slate-800 pb-3">
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-7 h-7 rounded-lg bg-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                                            <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                                          </span>
+                                          <div>
+                                            <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wide">
+                                              Gemini AI Semantik Baholash & Mezonlar Tizimi (Marking Scheme)
+                                            </h4>
+                                            <p className="text-[10px] text-slate-500 font-medium">
+                                              O'quvchi javobi faqat qat'iy so'zma-so'z emas, balki ma'no va belgilangan mezonlar bo'yicha baholanadi.
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 self-start sm:self-auto ${
+                                          isSumMatched
+                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse'
+                                        }`}>
+                                          <span className="material-symbols-outlined text-[14px]">{isSumMatched ? 'check_circle' : 'warning'}</span>
+                                          <span>Mezonlar: {sumCriteriaMarks} / {qMaxMarks} ball</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1">
+                                            <span>Namunaviy (To'liq) Javob — Model Answer</span>
+                                            <span className="text-rose-500">*</span>
+                                          </label>
+                                          <span className="text-[9px] text-slate-400 font-semibold">AI ushbu namunaga asoslanadi</span>
+                                        </div>
+                                        <textarea
+                                          rows={2}
+                                          value={scheme.modelAnswer || ""}
+                                          onChange={e => updateScheme({ modelAnswer: e.target.value })}
+                                          placeholder="Masalan: CPU xotiradan buyruqni oladi (fetch), MAR/MDR orqali CIR ga uzatadi va boshqaruv qurilmasi uni dekodlaydi (decode)..."
+                                          className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-medium text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all shadow-2xs"
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2.5">
+                                        <div className="flex justify-between items-center">
+                                          <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[14px] text-indigo-500">checklist</span>
+                                            <span>Baholash Mezonlari (Individual Marking Criteria)</span>
+                                          </label>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const nextId = `c${criteria.length + 1}`;
+                                              const updatedCrit = [...criteria, { id: nextId, text: '', marks: 1 }];
+                                              updateScheme({ criteria: updatedCrit });
+                                            }}
+                                            className="px-2.5 py-1 bg-indigo-500 text-white rounded-lg text-[10px] font-bold hover:bg-indigo-600 flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+                                          >
+                                            <span className="material-symbols-outlined text-[12px]">add</span> Mezon qo'shish
+                                          </button>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          {criteria.map((crit, cIdx) => (
+                                            <div key={crit.id || cIdx} className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center gap-2.5 shadow-2xs">
+                                              <span className="w-5 h-5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-black text-[10px] flex items-center justify-center shrink-0">
+                                                {cIdx + 1}
+                                              </span>
+
+                                              <input
+                                                type="text"
+                                                value={crit.text || ""}
+                                                onChange={e => {
+                                                  const copy = [...criteria];
+                                                  copy[cIdx] = { ...copy[cIdx], text: e.target.value };
+                                                  updateScheme({ criteria: copy });
+                                                }}
+                                                placeholder={`Mezon ${cIdx + 1}: masalan, "CPU asosiy xotiradan buyruqni olishini (fetch) tushuntiradi"`}
+                                                className="flex-1 p-2 bg-transparent border-0 font-medium text-xs text-slate-900 dark:text-white outline-none"
+                                              />
+
+                                              <div className="flex items-center gap-1 shrink-0 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                                                <input
+                                                  type="number"
+                                                  min="0.5"
+                                                  max={qMaxMarks}
+                                                  step="0.5"
+                                                  value={crit.marks !== undefined ? crit.marks : 1}
+                                                  onChange={e => {
+                                                    const copy = [...criteria];
+                                                    copy[cIdx] = { ...copy[cIdx], marks: Number(e.target.value) || 0 };
+                                                    updateScheme({ criteria: copy });
+                                                  }}
+                                                  className="w-10 bg-transparent text-center font-bold text-xs text-indigo-600 dark:text-indigo-400 outline-none"
+                                                />
+                                                <span className="text-[10px] text-slate-400 font-bold">ball</span>
+                                              </div>
+
+                                              {criteria.length > 1 && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const copy = criteria.filter((_, idx) => idx !== cIdx);
+                                                    updateScheme({ criteria: copy });
+                                                  }}
+                                                  className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition-colors"
+                                                  title="Mezonni o'chirish"
+                                                >
+                                                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                </button>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[13px] text-emerald-500">done_all</span>
+                                            <span>Muqobil qabul qilinadigan ifodalar</span>
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={Array.isArray(scheme.acceptedAlternatives) ? scheme.acceptedAlternatives.join(', ') : (scheme.acceptedAlternatives || '')}
+                                            onChange={e => updateScheme({ acceptedAlternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                                            placeholder="Vergul bilan: xotiradan yuklash, RAM dan qabul qilish..."
+                                            className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none"
+                                          />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[13px] text-rose-500">block</span>
+                                            <span>Keng tarqalgan xato tushunchalar</span>
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={Array.isArray(scheme.misconceptions) ? scheme.misconceptions.join(', ') : (scheme.misconceptions || '')}
+                                            onChange={e => updateScheme({ misconceptions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                                            placeholder="Vergul bilan: qattiq diskdan o'qish, monitorda chiqarish..."
+                                            className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-1 pt-1">
+                                        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase flex items-center gap-1">
+                                          <span className="material-symbols-outlined text-[13px] text-indigo-500">tune</span>
+                                          <span>AI ga maxsus baholash ko'rsatmasi (Ixtiyoriy)</span>
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={scheme.aiInstructions || ""}
+                                          onChange={e => updateScheme({ aiInstructions: e.target.value })}
+                                          placeholder="Masalan: Rus yoki ingliz tilidagi javoblarni ham qabul qil."
+                                          className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none"
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
 
                                 {/* Question Explanation, Hint, and Settings */}
                                 <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">

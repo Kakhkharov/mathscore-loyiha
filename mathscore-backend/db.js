@@ -27,15 +27,29 @@ const db = {
             } else if (q.type === 'single' || q.type === 'mcq') {
               parsedAns = isNaN(Number(q.correctAnswer)) ? q.correctAnswer : Number(q.correctAnswer);
             }
+            let parsedMarkingScheme = null;
+            if (q.markingScheme) {
+              try { parsedMarkingScheme = JSON.parse(q.markingScheme); } catch (e) { parsedMarkingScheme = null; }
+            }
             return {
               ...q,
               options: JSON.parse(q.options || '[]'),
-              correctAnswer: parsedAns
+              correctAnswer: parsedAns,
+              markingScheme: parsedMarkingScheme
             };
           })
         }));
       }
-      case 'submissions': return await prisma.submission.findMany();
+      case 'submissions': {
+        const subs = await prisma.submission.findMany({ orderBy: { submittedAt: 'desc' } });
+        return subs.map(s => {
+          let parsedDetails = null;
+          if (s.details) {
+            try { parsedDetails = JSON.parse(s.details); } catch(e) {}
+          }
+          return { ...s, details: parsedDetails };
+        });
+      }
       case 'securityLogs': return await prisma.securityLog.findMany({ orderBy: { timestamp: 'desc' }, take: 100 });
       case 'apiLogs': return await prisma.apiLog.findMany({ orderBy: { timestamp: 'desc' }, take: 100 });
       default: return [];
@@ -64,15 +78,28 @@ const db = {
             } else if (q.type === 'single' || q.type === 'mcq') {
               parsedAns = isNaN(Number(q.correctAnswer)) ? q.correctAnswer : Number(q.correctAnswer);
             }
+            let parsedMarkingScheme = null;
+            if (q.markingScheme) {
+              try { parsedMarkingScheme = JSON.parse(q.markingScheme); } catch (e) { parsedMarkingScheme = null; }
+            }
             return {
               ...q,
               options: JSON.parse(q.options || '[]'),
-              correctAnswer: parsedAns
+              correctAnswer: parsedAns,
+              markingScheme: parsedMarkingScheme
             };
           })
         };
       }
-      case 'submissions': return await prisma.submission.findUnique({ where: { id } });
+      case 'submissions': {
+        const s = await prisma.submission.findUnique({ where: { id } });
+        if (!s) return null;
+        let parsedDetails = null;
+        if (s.details) {
+          try { parsedDetails = JSON.parse(s.details); } catch(e) {}
+        }
+        return { ...s, details: parsedDetails };
+      }
       default: return null;
     }
   },
@@ -80,6 +107,13 @@ const db = {
   insert: async (table, record) => {
     switch (table) {
       case 'users': return await prisma.user.create({ data: record });
+      case 'submissions': {
+        const subData = { ...record };
+        if (typeof subData.details === 'object' && subData.details !== null) {
+          subData.details = JSON.stringify(subData.details);
+        }
+        return await prisma.submission.create({ data: subData });
+      }
       case 'courses': {
         const data = {
           title: record.title,
@@ -114,7 +148,10 @@ const db = {
             score: Number(qData.score !== undefined ? qData.score : 1),
             explanation: qData.explanation || '',
             hint: qData.hint || '',
-            imageUrl: qData.imageUrl || null
+            imageUrl: qData.imageUrl || null,
+            markingScheme: typeof qData.markingScheme === 'object' && qData.markingScheme !== null
+              ? JSON.stringify(qData.markingScheme)
+              : (qData.markingScheme || null)
           };
         }) : [];
 
@@ -257,7 +294,10 @@ const db = {
                 score: Number(qData.score !== undefined ? qData.score : 1),
                 explanation: qData.explanation || '',
                 hint: qData.hint || '',
-                imageUrl: qData.imageUrl || null
+                imageUrl: qData.imageUrl || null,
+                markingScheme: typeof qData.markingScheme === 'object' && qData.markingScheme !== null
+                  ? JSON.stringify(qData.markingScheme)
+                  : (qData.markingScheme || null)
               };
             })
           };
