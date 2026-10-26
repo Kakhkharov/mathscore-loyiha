@@ -441,7 +441,6 @@ body {
   /* Hide all interactive elements, navigation, sidebars and headers */
   aside, header, nav, .no-print, button, .sidebar, .header-bar, input, select {
     display: none !important;
-    visibility: hidden !important;
   }
 
   html, body {
@@ -454,14 +453,9 @@ body {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  /* Hide the rest of the application tree */
-  body * {
-    visibility: hidden !important;
   }
 
   /* Show only the certificate */

@@ -1,5 +1,5 @@
 const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) ? 'http://localhost:5000' : 'https://api.mathscore.uz';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from './cropImage';
 import { initialCourses, initialStudents, initialActivities } from './mockData';
@@ -11,6 +11,45 @@ import 'katex/dist/katex.min.css';
 import katex from 'katex';
 import TasksDashboard from './TasksDashboard';
 import MathDiagramStudio from './MathDiagramStudio';
+
+// Global active input tracker for Uzbek Alphabet Toolbar
+let lastFocusedAdminInput = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('focusin', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      lastFocusedAdminInput = e.target;
+    }
+  });
+}
+
+export function insertAdminUzbekChar(char) {
+  const target = (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA'))
+    ? document.activeElement
+    : lastFocusedAdminInput;
+
+  if (!target || target.readOnly || target.disabled) return;
+
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const val = target.value || '';
+
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    target.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
+    'value'
+  )?.set;
+
+  const newVal = val.substring(0, start) + char + val.substring(end);
+  if (nativeSetter) {
+    nativeSetter.call(target, newVal);
+  } else {
+    target.value = newVal;
+  }
+
+  target.selectionStart = target.selectionEnd = start + char.length;
+  target.dispatchEvent(new Event('input', { bubbles: true }));
+  target.dispatchEvent(new Event('change', { bubbles: true }));
+  target.focus();
+}
 
 const yearlyData = [
   { name: 'Yan', daromad: 4000000, sotuv: 24 },
@@ -514,13 +553,8 @@ function App() {
     }
   }, []);
 
-  // Real-time admin notifications polling & push toasts
+  // Real-time admin notifications polling & push toasts (In-app, no intrusive browser popups)
   useEffect(() => {
-    // Request browser notification permission once if supported
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      try { Notification.requestPermission(); } catch (e) {}
-    }
-
     const checkNotifs = async () => {
       const token = localStorage.getItem('admin_token');
       if (!token) return;
@@ -535,7 +569,7 @@ function App() {
             if (newUnread.length > 0 && prev.length > 0) {
               setAdminPushToast(newUnread[0]);
 
-              // Audio chime
+              // Smooth in-app audio chime
               try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -550,16 +584,6 @@ function App() {
                 osc.start();
                 osc.stop(ctx.currentTime + 0.35);
               } catch (e) {}
-
-              // Native browser Push notification
-              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                try {
-                  new Notification(newUnread[0].title, {
-                    body: newUnread[0].message,
-                    icon: '/sigma-logo.png'
-                  });
-                } catch (e) {}
-              }
             }
             return notifs;
           });
@@ -4360,6 +4384,27 @@ function App() {
                                     <button type="button" onClick={() => handleMathSymbolClick('\\sum')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Yig'indi (Sigma)">∑</button>
                                     <button type="button" onClick={() => handleMathSymbolClick('\\sqrt{x}')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Kvadrat Ildiz">√x</button>
                                     <button type="button" onClick={() => handleMathSymbolClick('x^2')} className="px-2 h-8 text-[11px] font-bold bg-indigo-500/10 text-indigo-500 rounded hover:bg-indigo-500 hover:text-white transition-colors" title="Daraja">x²</button>
+
+                                    <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+
+                                    {/* New Uzbek Alphabet Quick Characters */}
+                                    <div className="flex items-center gap-1 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-1 rounded-lg border border-amber-500/30">
+                                      <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400">Yangi harflar:</span>
+                                      {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
+                                        <button
+                                          key={ch}
+                                          type="button"
+                                          onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            insertAdminUzbekChar(ch);
+                                          }}
+                                          className="w-6 h-6 rounded bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs hover:bg-amber-500 hover:text-white transition-colors flex items-center justify-center shadow-xs cursor-pointer"
+                                          title={`"${ch}" harfini kiritish`}
+                                        >
+                                          {ch}
+                                        </button>
+                                      ))}
+                                    </div>
                                   </div>
 
                                   <textarea
@@ -5436,6 +5481,30 @@ function App() {
               </button>
             </div>
           )}
+
+          {/* Uzbek New Alphabet Quick Character Bar */}
+          <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-full px-3 py-1.5 shadow-xl flex items-center gap-1.5 select-none animate-fade-in no-print">
+            <div className="flex items-center gap-1 pr-1.5 border-r border-slate-200 dark:border-slate-700 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+              <span className="material-symbols-outlined text-[15px]">keyboard</span>
+              <span className="hidden sm:inline">Alifbo</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
+                <button
+                  key={ch}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertAdminUzbekChar(ch);
+                  }}
+                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white font-bold text-xs text-slate-800 dark:text-slate-200 transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                  title={`"${ch}" harfini yozish`}
+                >
+                  {ch}
+                </button>
+              ))}
+            </div>
+          </div>
 
         </div>
       )}
