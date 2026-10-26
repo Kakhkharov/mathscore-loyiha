@@ -142,60 +142,62 @@ function App() {
 
   return (
     <div className="bg-surface antialiased text-on-surface">
-      {/* TopAppBar */}
-      <header className="bg-surface/80 backdrop-blur-md text-primary sticky top-0 z-50 border-b-2 border-outline-variant/30 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
-        <div className="flex items-center gap-2 select-none cursor-pointer group">
-          <div className="bg-gradient-to-br from-primary to-purple-600 text-white p-1.5 rounded-lg shadow-md group-hover:rotate-12 transition-transform">
-            <span className="material-symbols-outlined text-[24px] block">calculate</span>
+      {/* Frozen TopAppBar on scroll down & up */}
+      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-surface/90 backdrop-blur-md text-primary border-b-2 border-outline-variant/30 shadow-[0_2px_15px_rgba(0,0,0,0.05)] transition-all">
+        <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-3.5 max-w-container-max mx-auto">
+          <div className="flex items-center gap-2 select-none cursor-pointer group">
+            <div className="bg-gradient-to-br from-primary to-purple-600 text-white p-1.5 rounded-lg shadow-md group-hover:rotate-12 transition-transform">
+              <span className="material-symbols-outlined text-[24px] block">calculate</span>
+            </div>
+            <span className="font-outfit text-2xl font-black tracking-tight text-on-surface">
+              Math<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Score</span>
+            </span>
           </div>
-          <span className="font-outfit text-2xl font-black tracking-tight text-on-surface">
-            Math<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Score</span>
-          </span>
-        </div>
 
-        <nav className="hidden md:flex relative items-center bg-surface-container-high/40 p-1 rounded-full border border-outline-variant/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-md">
-          {/* Sliding Background Capsule */}
-          <span 
-            className="absolute top-1 bottom-1 bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0"
-            style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
-          ></span>
-          {navItems.map((item, index) => (
-            <a
-              key={item.name}
-              ref={el => tabsRef.current[index] = el}
-              onClick={() => setActiveTab(item.name)}
-              href={item.href}
-              className={`relative font-label-md text-[14px] px-5 py-1.5 z-10 transition-colors duration-300 rounded-full ${
-                activeTab === item.name ? 'font-bold text-primary' : 'font-medium text-on-surface-variant hover:text-on-surface'
-              }`}
+          <nav className="hidden md:flex relative items-center bg-surface-container-high/40 p-1 rounded-full border border-outline-variant/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-md">
+            {/* Sliding Background Capsule */}
+            <span 
+              className="absolute top-1 bottom-1 bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0"
+              style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+            ></span>
+            {navItems.map((item, index) => (
+              <a
+                key={item.name}
+                ref={el => tabsRef.current[index] = el}
+                onClick={() => setActiveTab(item.name)}
+                href={item.href}
+                className={`relative font-label-md text-[14px] px-5 py-1.5 z-10 transition-colors duration-300 rounded-full ${
+                  activeTab === item.name ? 'font-bold text-primary' : 'font-medium text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {item.name}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <a 
+              href="https://t.me/math_teacher_m" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 border-2 border-primary/30 text-primary hover:border-primary/85 hover:shadow-[0_0_15px_rgba(67,67,213,0.3)] font-bold font-label-md text-[14px] px-5 py-2.5 rounded-full hover:bg-primary/5 transition-all active:translate-y-px cursor-pointer"
             >
-              {item.name}
+              <span className="material-symbols-outlined text-[18px]">send</span>
+              <span>Adminga yoziş</span>
             </a>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <a 
-            href="https://t.me/math_teacher_m" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 border-2 border-primary/30 text-primary hover:border-primary/85 hover:shadow-[0_0_15px_rgba(67,67,213,0.3)] font-bold font-label-md text-[14px] px-5 py-2.5 rounded-full hover:bg-primary/5 transition-all active:translate-y-px cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">send</span>
-            <span>Adminga yoziş</span>
-          </a>
-          <button 
-            onClick={() => { window.location.href = "/student"; }}
-            className="relative group bg-gradient-to-r from-primary to-purple-600 text-white font-label-md text-[14px] px-6 py-2.5 rounded-full font-bold shadow-[0_4px_14px_0_rgba(67,67,213,0.39)] hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2 overflow-hidden cursor-pointer"
-          >
-            <span className="relative z-10">Sign in</span>
-            <span className="material-symbols-outlined text-[18px] relative z-10 transition-transform group-hover:translate-x-1">arrow_forward</span>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
-          </button>
+            <button 
+              onClick={() => { window.location.href = "/student"; }}
+              className="relative group bg-gradient-to-r from-primary to-purple-600 text-white font-label-md text-[14px] px-6 py-2.5 rounded-full font-bold shadow-[0_4px_14px_0_rgba(67,67,213,0.39)] hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2 overflow-hidden cursor-pointer"
+            >
+              <span className="relative z-10">Sign in</span>
+              <span className="material-symbols-outlined text-[18px] relative z-10 transition-transform group-hover:translate-x-1">arrow_forward</span>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+            </button>
+          </div>
         </div>
       </header>
 
-      <main>
+      <main className="pt-20">
         {/* Hero Section */}
         <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 flex flex-col md:flex-row items-center gap-12 scroll-reveal">
           <div className="flex-1 space-y-6">

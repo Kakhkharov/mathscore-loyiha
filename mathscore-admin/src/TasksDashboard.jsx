@@ -31,7 +31,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
   const [savingGradeId, setSavingGradeId] = useState(null);
   const [adminPushNotification, setAdminPushNotification] = useState(null);
 
-  // Talaba yechim yuklaganda Admin panelida Push bildirishnoma va ovozli signal
+  // Talaba yeçim yuklaganda Admin panelida Push bildirishnoma va ovozli signal
   useEffect(() => {
     if (!tasks || !Array.isArray(tasks)) return;
 
@@ -64,9 +64,9 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
             taskId: task.id,
             task,
             studentName: sub.studentName || 'Talaba',
-            fileName: sub.fileName || 'yechim fayli',
+            fileName: sub.fileName || 'yeçim fayli',
             submittedAt: sub.submittedAt,
-            title: "Yangi yechim topshirildi!",
+            title: "Yangi yeçim topshirildi!",
             message: `${sub.studentName || 'Talaba'} "${task.title}" topshirig'iga yangi fayl yukladi.`
           });
         }
@@ -80,7 +80,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       alert("Fayl topilmadi yoki yuklanmagan.");
       return;
     }
-    const fileName = sub.fileName || 'topshiriq_yechimi.docx';
+    const fileName = sub.fileName || 'topşiriq_yeçimi.docx';
     const url = sub.fileUrl;
 
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
@@ -189,7 +189,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
       window.dispatchEvent(new Event('storage'));
     } catch (e) {}
 
-    // 95KB limitidan oshib ketmasligi uchun xavfsiz payload tayyorlash
+    // 95KB limitidan oshib ketmasligi uçun xavfsiz payload tayyorlash
     const cleanPayload = (updatedTasks || []).map(t => ({
       ...t,
       submissions: (t.submissions || []).map(s => {
@@ -350,11 +350,11 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
   const handleOkSubmitTask = async (e) => {
     e.preventDefault();
     if (!formTitle.trim()) {
-      alert("Iltimos, topshiriq nomini kiriting!");
+      alert("Iltimos, topşiriq nomini kiriting!");
       return;
     }
     if (!formDueDate) {
-      alert("Iltimos, topshiriq muddatini tanlang!");
+      alert("Iltimos, topşiriq muddatini tanlang!");
       return;
     }
 
@@ -380,7 +380,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
         }
       } catch (e) {}
 
-      // Fallback: Agar /api/upload ishlamasa va fayl hajmi < 65KB bo'lsa, data URI qilib saqlaymiz (hamma talaba brauzerida xatosiz yuklanishi uchun)
+      // Fallback: Agar /api/upload ishlamasa va fayl hajmi < 65KB bölsa, data URI qilib saqlaymiz (hamma talaba brauzerida xatosiz yuklanishi uçun)
       if (!uploadedFileUrl && formFile.size < 65000) {
         try {
           uploadedFileUrl = await new Promise((resolve) => {
@@ -436,7 +436,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setFormLink('');
     setFormFile(null);
     setFormFileError('');
-    alert("Topshiriq muvaffaqiyatli chop etildi!");
+    alert("Topşiriq muvaffaqiyatli çop etildi!");
   };
 
   // Confirm delete (2-rasm - Yes tugmasi)
@@ -455,14 +455,14 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setTaskToDelete(null);
   };
 
-  // 2-talab: Baholash va feedbackni saqlash
+  // 2-talab: Baholash va feedbackni saqlaş
   const handleSaveGradeAndFeedback = async (taskId, submissionId) => {
     const data = gradingState[submissionId] || {};
     const grade = (data.grade || '').trim();
     const feedback = (data.feedback || '').trim();
 
     if (!grade) {
-      alert("Iltimos, talaba uchun bahoni kiriting!");
+      alert("Iltimos, talaba uçun bahoni kiriting!");
       return;
     }
 
@@ -596,11 +596,11 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
     setEditDeadline(newTarget.toISOString());
   };
 
-  // 3-talab c): O'zgarishlarni saqlash
+  // 3-talab c): Özgarişlarni saqlaş
   const handleSaveEditTask = async (e) => {
     e.preventDefault();
     if (!editTitle.trim()) {
-      alert("Iltimos, topshiriq nomini kiriting!");
+      alert("Iltimos, topşiriq nomini kiriting!");
       return;
     }
 
@@ -629,7 +629,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
 
     setIsSavingEdit(false);
     setEditingTask(null);
-    alert("Topshiriq muvaffaqiyatli yangilandi!");
+    alert("Topşiriq muvaffaqiyatli yangilandi!");
   };
 
   return (
@@ -644,7 +644,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            O'quvchilar uchun topshiriqlar, muddatlar va nazorat kartalari
+            Öquvçilar uçun topşiriqlar, muddatlar va nazorat kartalari
           </p>
         </div>
 
@@ -700,10 +700,10 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   </svg>
                 </div>
 
-                {/* Silliq to'lqinsimon o'tish (Wave Curve) */}
+                {/* Silliq to'lqinsimon ötiş (Wave Curve) */}
                 <div className="absolute -bottom-1 left-0 right-0 h-6 bg-white dark:bg-slate-900 rounded-t-[28px]" />
 
-                {/* Top Row: [📖 Kurs / Fan nomi (2 qatorgacha sig'adigan)] + Aylana Delete Button */}
+                {/* Top Row: [📖 Kurs / Fan nomi (2 qatorgacha siğadigan)] + Aylana Delete Button */}
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   {/* Left: Green badge with book icon */}
                   <div className="bg-white/20 backdrop-blur-md text-white font-bold text-xs px-3.5 py-1.5 rounded-2xl flex items-center gap-2 shadow-xs border border-white/25 max-w-[calc(100%-46px)]">
@@ -716,7 +716,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                     type="button"
                     onClick={() => setTaskToDelete(task)}
                     className="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full shrink-0 bg-white flex items-center justify-center shadow-md hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all cursor-pointer group/del"
-                    title="Topshiriqni o'chirish"
+                    title="Topşiriqni öçiriş"
                   >
                     <span className="material-symbols-outlined text-rose-500 text-[19px] group-hover/del:rotate-12 transition-transform">
                       delete
@@ -724,7 +724,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   </button>
                 </div>
 
-                {/* Kreativ va o'qishga oson Deadline Countdown badge (2-rasm talabi) */}
+                {/* Kreativ va öqişga oson Deadline Countdown badge (2-rasm talabi) */}
                 <div className="relative z-10 mt-2.5 flex items-center">
                   <div className={`inline-flex items-center gap-1.5 px-3 py-1 bg-black/30 backdrop-blur-md rounded-full text-white text-[11px] font-mono font-bold border border-white/20 shadow-xs whitespace-nowrap ${countdown.isExpired ? 'bg-rose-900/40 text-rose-200 border-rose-300/30' : ''}`}>
                     <span className={`material-symbols-outlined text-[14px] ${countdown.isExpired ? 'text-rose-400' : 'text-amber-300'}`}>
@@ -746,7 +746,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   </p>
                 </div>
 
-                {/* 3 ta statistika qutichasi (3-rasm: Total, Submit, Links to'liq sig'adigan qilingan) */}
+                {/* 3 ta statistika qutichasi (3-rasm: Total, Submit, Links töliq siğadigan qilingan) */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
                   {/* 1. Total */}
                   <div className="bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 border border-purple-100/60 dark:border-purple-900/40">
@@ -808,7 +808,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   <button
                     onClick={() => handleOpenEditTask(task)}
                     className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
-                    title="Topshiriqni tahrirlash (Edit)"
+                    title="Topşiriqni tahrirlaş (Edit)"
                   >
                     <span className="material-symbols-outlined text-[20px]">more_horiz</span>
                   </button>
@@ -857,7 +857,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               {/* Task Details Summary */}
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between gap-4">
                 <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Topshiriq izohi:</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Topşiriq izohi:</span>
                   <p className="line-clamp-2">{currentViewingTask.description || "Izoh mavjud emas."}</p>
                 </div>
                 {currentViewingTask.fileName && (
@@ -879,17 +879,17 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
                     <span className="material-symbols-outlined text-blue-500 text-[18px]">group</span>
-                    <span>Talabalar tomonidan topshirilgan yechimlar</span>
+                    <span>Talabalar tomonidan topshirilgan yeçimlar</span>
                   </h4>
                   <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 text-xs font-bold">
-                    {(currentViewingTask.submissions || []).length} ta yechim
+                    {(currentViewingTask.submissions || []).length} ta yeçim
                   </span>
                 </div>
 
                 {(!currentViewingTask.submissions || currentViewingTask.submissions.length === 0) ? (
                   <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
                     <span className="material-symbols-outlined text-3xl text-slate-300">hourglass_empty</span>
-                    <p className="text-xs text-slate-500 font-medium">Hozircha hech bir talaba ushbu topshiriqqa fayl yuklamagan.</p>
+                    <p className="text-xs text-slate-500 font-medium">Hozirça heç bir talaba ushbu topşiriqqa fayl yuklamagan.</p>
                   </div>
                 ) : (
                   currentViewingTask.submissions.map((sub, idx) => {
@@ -948,10 +948,10 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                               type="button"
                               onClick={() => handleDownloadSubmissionFile(sub)}
                               className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800 transition-colors self-start sm:self-auto cursor-pointer"
-                              title="Talaba topshirgan yechim faylini yuklab olish"
+                              title="Talaba topshirgan yeçim faylini yuklab olish"
                             >
                               <span className="material-symbols-outlined text-[16px]">file_download</span>
-                              <span>Faylni yuklab olish ({sub.fileName || 'yechim.docx'})</span>
+                              <span>Faylni yuklab olish ({sub.fileName || 'yeçim.docx'})</span>
                             </button>
                           )}
                         </div>
@@ -977,7 +977,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
 
                           <div>
                             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                              Feedback (O'qituvchi fikri va tavsiyasi):
+                              Feedback (Öqituvçi fikri va tavsiyasi):
                             </label>
                             <textarea
                               rows={2}
@@ -986,12 +986,12 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                                 ...prev,
                                 [sub.id]: { ...(prev[sub.id] || {}), feedback: e.target.value }
                               }))}
-                              placeholder="Talabaga topshiriq bo'yicha fikringizni yozing..."
+                              placeholder="Talabaga topşiriq böyiça fikringizni yozing..."
                               className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-white focus:border-blue-500 focus:outline-hidden resize-none"
                             />
                           </div>
 
-                          {/* 2-talab: Qayta topshirish uchun 2-3-imkoniyat berish boshqaruvi */}
+                          {/* 2-talab: Qayta topshirish uçun 2-3-imkoniyat berish boşqaruvi */}
                           <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                             <div className="flex items-center gap-1.5">
                               <span className="material-symbols-outlined text-[17px] text-blue-600">replay</span>
@@ -1043,9 +1043,9 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                                   type="button"
                                   onClick={() => handleRevokeResubmit(currentViewingTask.id, sub.id)}
                                   className="px-2 py-1 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                                  title="Qayta topshirish ruxsatini bekor qilish"
+                                  title="Qayta topshirish ruxsatini bekor qiliş"
                                 >
-                                  Bekor qilish
+                                  Bekor qiliş
                                 </button>
                               )}
                             </div>
@@ -1061,7 +1061,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                               className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                             >
                               <span className="material-symbols-outlined text-[15px]">check</span>
-                              <span>{isSaving ? "Saqlanmoqda..." : "Baholash va saqlash"}</span>
+                              <span>{isSaving ? "Saqlanmoqda..." : "Baholash va saqlaş"}</span>
                             </button>
                           </div>
                         </div>
@@ -1129,7 +1129,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                 onClick={() => setViewingTask(null)}
                 className="px-6 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs"
               >
-                Yopish
+                Yopiş
               </button>
             </div>
           </div>
@@ -1148,7 +1148,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   <span className="material-symbols-outlined text-[18px]">edit</span>
                 </div>
                 <h3 className="font-black text-base text-slate-900 dark:text-white">
-                  Topshiriqni tahrirlash (Edit Task)
+                  Topşiriqni tahrirlaş (Edit Task)
                 </h3>
               </div>
 
@@ -1171,7 +1171,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               {/* b) Card Title ni edit qila oladi */}
               <div>
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                  Card Title (Topshiriq nomi) <span className="text-rose-500">*</span>
+                  Card Title (Topşiriq nomi) <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -1257,14 +1257,14 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               </div>
             </form>
 
-            {/* c) Pinned Footer with Saqlash */}
+            {/* c) Pinned Footer with Saqlaş */}
             <div className="p-4 sm:px-6 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setEditingTask(null)}
                 className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs transition-all cursor-pointer shadow-xs"
               >
-                Bekor qilish
+                Bekor qiliş
               </button>
               <button
                 type="submit"
@@ -1273,7 +1273,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                 className="px-7 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[16px]">save</span>
-                <span>{isSavingEdit ? "Saqlanmoqda..." : "Saqlash"}</span>
+                <span>{isSavingEdit ? "Saqlanmoqda..." : "Saqlaş"}</span>
               </button>
             </div>
           </div>
@@ -1545,7 +1545,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                Yangi topshiriq topshirildi!
+                Yangi topşiriq topshirildi!
               </span>
               <button
                 onClick={() => setAdminPushNotification(null)}
@@ -1569,7 +1569,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[15px]">visibility</span>
-                <span>Yechimni ko'rish va baholash</span>
+                <span>Yeçimni köriş va baholash</span>
               </button>
             </div>
           </div>

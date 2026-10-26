@@ -159,7 +159,7 @@ function App() {
   });
   const [tempLesson, setTempLesson] = useState({ title: '', duration: '', videoUrl: '', videoFile: '' });
 
-  // Video yuklash animatsiyasini simulyatsiya qilish
+  // Video yuklaş animatsiyasini simulyatsiya qilish
   const [isUploadingPromo, setIsUploadingPromo] = useState(false);
   const [promoUploadProgress, setPromoUploadProgress] = useState(0);
   const [isUploadingLesson, setIsUploadingLesson] = useState(false);
@@ -197,7 +197,7 @@ function App() {
     } catch (err) {
       console.error("Upload error", err);
       setIsUploadingPromo(false);
-      alert(`Video yuklashda xatolik: ${err.message}.\nAgar serverga joylagan bo'lsangiz, NGINX da katta fayllar yuklashga ruxsat yo'q bo'lishi mumkin (client_max_body_size).`);
+      alert(`Video yuklaşda xatolik: ${err.message}.\nAgar serverga joylagan bölsangiz, NGINX da katta fayllar yuklaşga ruxsat yöq bo'lishi mumkin (client_max_body_size).`);
     }
   };
 
@@ -233,7 +233,7 @@ function App() {
     } catch (err) {
       console.error("Upload error", err);
       setIsUploadingLesson(false);
-      alert(`Video yuklashda xatolik: ${err.message}.\nAgar serverga joylagan bo'lsangiz, NGINX da katta fayllar yuklashga ruxsat yo'q bo'lishi mumkin (client_max_body_size).`);
+      alert(`Video yuklaşda xatolik: ${err.message}.\nAgar serverga joylagan bölsangiz, NGINX da katta fayllar yuklaşga ruxsat yöq bo'lishi mumkin (client_max_body_size).`);
     }
   };
 
@@ -284,12 +284,12 @@ function App() {
       questions.push({
         id: i,
         type: i % 4 === 0 ? 'truefalse' : (i % 4 === 1 ? 'single' : (i % 4 === 2 ? 'multiple' : 'short')),
-        text: `Quyidagi ${topic} savolini yeching: Agar f(x) = x^2 bo'lsa, f'(${i}) qiymatini hisoblang. Formula: \\frac{d}{dx}(x^2) = 2x.`,
-        options: i % 4 === 0 ? ['Rost', 'Yolg\'on'] : (i % 4 === 2 ? [`${i * 2}`, `${i + 4}`, `${i * 3}`, `${i * 2} (To'g'ri)`] : [`${i * 2}`, `${i + 4}`, `${i * 3}`, `${i - 2}`]),
+        text: `Quyidagi ${topic} savolini yeçing: Agar f(x) = x^2 bölsa, f'(${i}) qiymatini hisoblang. Formula: \\frac{d}{dx}(x^2) = 2x.`,
+        options: i % 4 === 0 ? ['Rost', 'Yolg\'on'] : (i % 4 === 2 ? [`${i * 2}`, `${i + 4}`, `${i * 3}`, `${i * 2} (Töğri)`] : [`${i * 2}`, `${i + 4}`, `${i * 3}`, `${i - 2}`]),
         correctAnswer: i % 4 === 2 ? [0, 3] : 0,
         score: 4,
         difficulty: i % 2 === 0 ? 'Easy' : 'Medium',
-        explanation: `Funksiyadan hosila olsak f'(x) = 2x bo'ladi. x ning o'rniga ${i} ni qo'ysak, natija ${i * 2} bo'ladi.`,
+        explanation: `Funksiyadan hosila olsak f'(x) = 2x böladi. x ning örniga ${i} ni qöysak, natija ${i * 2} böladi.`,
         hint: 'Hosilaning formulasidan foydalaning.',
         imageUrl: ''
       });
@@ -361,7 +361,7 @@ function App() {
   const [testStatusFilter, setTestStatusFilter] = useState('All');
   const [testSort, setTestSort] = useState('newest');
 
-  const [studentFilterCourse, setStudentFilterCourse] = useState('Barchasi');
+  const [studentFilterCourse, setStudentFilterCourse] = useState('Barçasi');
   const [studentFilterStatus, setStudentFilterStatus] = useState('Hammasi');
 
   // New test draft/creation state
@@ -747,7 +747,7 @@ function App() {
         const ansStr = String(q.correctAnswer || '').trim();
         safeMarkingScheme = {
           modelAnswer: ansStr,
-          criteria: [{ id: 'c1', text: ansStr || "To'g'ri javob", marks: qScore }],
+          criteria: [{ id: 'c1', text: ansStr || "Töğri javob", marks: qScore }],
           acceptedAlternatives: [],
           misconceptions: [],
           aiInstructions: ''
@@ -788,7 +788,7 @@ function App() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Testni saqlashda xatolik.');
+        throw new Error(data.error || 'Testni saqlaşda xatolik.');
       }
 
       const savedItem = data || testData;
@@ -797,7 +797,7 @@ function App() {
         localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_updated', at: Date.now() }));
         window.dispatchEvent(new Event('storage'));
       } catch (e) {}
-      alert(finalStatus === 'Published' ? "Test muvaffaqiyatli chop etildi!" : "Test qoralama sifatida saqlandi!");
+      alert(finalStatus === 'Published' ? "Test muvaffaqiyatli çop etildi!" : "Test qoralama sifatida saqlandi!");
       setIsBuildingTest(false);
       syncData();
     } catch (err) {
@@ -806,7 +806,7 @@ function App() {
   };
 
   const handleDeleteTest = async (testId) => {
-    if (!window.confirm("Haqiqatan ham bu testni o'chirmoqchimisiz?")) return;
+    if (!window.confirm("Haqiqatan ham bu testni öçirmoqçimisiz?")) return;
     try {
       const response = await fetchWithAuth(`/api/tests/${testId}`, {
         method: 'DELETE'
@@ -819,7 +819,7 @@ function App() {
         localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_deleted', at: Date.now() }));
         window.dispatchEvent(new Event('storage'));
       } catch (e) {}
-      alert("Test platformadan o'chirildi!");
+      alert("Test platformadan öçirildi!");
       syncData();
     } catch (err) {
       alert(err.message);
@@ -901,7 +901,7 @@ function App() {
           body: formData
         });
 
-        if (!res.ok) throw new Error("Rasm yuklashda xatolik yuz berdi");
+        if (!res.ok) throw new Error("Rasm yuklaşda xatolik yuz berdi");
 
         const data = await res.json();
 
@@ -923,7 +923,7 @@ function App() {
   };
 
   const renderMathPreview = (text, imageUrl) => {
-    if (!text && !imageUrl) return <div className="text-slate-400 text-xs italic">Formula va matn oldindan ko'rinishi shu yerda chiqadi...</div>;
+    if (!text && !imageUrl) return <div className="text-slate-400 text-xs italic">Formula va matn oldindan körinişi shu yerda chiqadi...</div>;
     try {
       const parts = (text || '').split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
       return (
@@ -1023,7 +1023,7 @@ function App() {
     let currentQuestion = null;
 
     lines.forEach(line => {
-      // 1. Javob kaliti: "Javob: A" yoki "To'g'ri javob: B" yoki "Answer: C"
+      // 1. Javob kaliti: "Javob: A" yoki "Töğri javob: B" yoki "Answer: C"
       const ansKeyMatch = line.match(/^(?:javob|to['`ʻ]?g['`ʻ]?ri javob|answer|correct(?:\s*answer)?)\s*[:=-]\s*([A-D])/i);
       if (ansKeyMatch && currentQuestion && currentQuestion.options.length > 0) {
         const char = ansKeyMatch[1].toUpperCase();
@@ -1072,7 +1072,7 @@ function App() {
           optionText = plusMatch[2].trim();
         }
 
-        // Agar matn ichida yoki oxirida * yoki (to'g'ri) yoki (correct) belgisi bo'lsa
+        // Agar matn içida yoki oxirida * yoki (töğri) yoki (correct) belgisi bölsa
         if (optionText.endsWith('*') || optionText.match(/\((?:to['`ʻ]?g['`ʻ]?ri|correct)\)$/i)) {
           isCorrect = true;
           optionText = optionText.replace(/\*$/, '').replace(/\((?:to['`ʻ]?g['`ʻ]?ri|correct)\)$/i, '').trim();
@@ -1120,7 +1120,7 @@ function App() {
           const parsedQuestions = parseTestText(text);
 
           if (parsedQuestions.length === 0) {
-            alert("Hech qanday test savoli topilmadi. Iltimos, faylda savollar '1. ...' va variantlar 'A) ...' yoki '+A) ...' formatida ekanligini tekshiring.");
+            alert("Heç qanday test savoli topilmadi. Iltimos, faylda savollar '1. ...' va variantlar 'A) ...' yoki '+A) ...' formatida ekanligini tekshiring.");
             return;
           }
 
@@ -1151,18 +1151,18 @@ function App() {
             questions: updatedQuestions
           }));
 
-          alert(`Muvaffaqiyatli! ${parsedQuestions.length} ta savol Word (.docx) hujjatidan import qilindi va tizimga o'tkazildi!`);
+          alert(`Muvaffaqiyatli! ${parsedQuestions.length} ta savol Word (.docx) hujjatidan import qilindi va tizimga ötkazildi!`);
           setActiveQuestionIndex(0);
         } catch (err) {
           console.error("Docx parsing error:", err);
-          alert("Hujjatni o'qishda xatolik yuz berdi: " + err.message);
+          alert("Hujjatni öqişda xatolik yuz berdi: " + err.message);
         }
       };
 
       reader.readAsArrayBuffer(file);
     } catch (err) {
       console.error("Mammoth loading error:", err);
-      alert("Word faylini o'qish kutubxonasini yuklashda xatolik yuz berdi.");
+      alert("Word faylini öqiş kutubxonasini yuklaşda xatolik yuz berdi.");
     }
   };
 
@@ -1303,7 +1303,7 @@ function App() {
     }
 
     if (!file.name.endsWith('.docx')) {
-      alert("Xatolik: Faqat .docx formatidagi Word fayllarini yuklashingiz mumkin!");
+      alert("Xatolik: Faqat .docx formatidagi Word fayllarini yuklaşingiz mumkin!");
       return;
     }
 
@@ -1398,7 +1398,7 @@ function App() {
             }, 400);
           } catch (err) {
             console.error("Mammoth read error:", err);
-            alert("Word faylini o'qishda xatolik: " + err.message);
+            alert("Word faylini öqişda xatolik: " + err.message);
             setIsProcessingImport(false);
           }
         };
@@ -1419,7 +1419,7 @@ function App() {
               <span className="material-symbols-outlined text-indigo-500 text-[28px]">description</span>
               MS Word (.docx) Test Import System
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Word hujjatidagi savollarni avtomatik ravishda onlayn test rejimiga o'tkazish.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Word hujjatidagi savollarni avtomatik ravishda onlayn test rejimiga ötkaziş.</p>
           </div>
           <button
             onClick={() => {
@@ -1430,7 +1430,7 @@ function App() {
               setIsBuildingTest(false);
             }}
             className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
-            title="Bekor qilish"
+            title="Bekor qiliş"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -1439,8 +1439,8 @@ function App() {
         {/* Stepper Bar */}
         <div className="flex justify-between items-center max-w-2xl mx-auto py-2">
           {[
-            { step: 1, label: "Fayl yuklash" },
-            { step: 2, label: "Tahrirlash & Validation" },
+            { step: 1, label: "Fayl yuklaş" },
+            { step: 2, label: "Tahrirlaş & Validation" },
             { step: 3, label: "Test Sozlamalari" }
           ].map((s, idx) => (
             <React.Fragment key={s.step}>
@@ -1481,7 +1481,7 @@ function App() {
                     <span className="material-symbols-outlined text-slate-400 text-3xl">description</span>
                     <div className="text-left">
                       <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300">Word import shabloni (Template)</h4>
-                      <p className="text-[10px] text-slate-400 font-medium">To'g'ri integratsiya bo'lishi uchun namuna faylni yuklab oling.</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Töğri integratsiya bo'lishi uçun namuna faylni yuklab oling.</p>
                     </div>
                   </div>
                   <button
@@ -1525,7 +1525,7 @@ function App() {
                 <div>
                   <h4 className="font-black text-xs text-amber-500 uppercase tracking-wide">Validation Alerts Detected</h4>
                   <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 leading-relaxed">
-                    Yuklangan hujjatda {totalErrors} ta muammo aniqlandi (Masalan: javobi belgilanmagan savol, duplicate yoki formula render xatoligi). Iltimos, quyidagi jadval orqali ularni to'g'rilang.
+                    Yuklangan hujjatda {totalErrors} ta muammo aniqlandi (Masalan: javobi belgilanmagan savol, duplicate yoki formula render xatoligi). Iltimos, quyidagi jadval orqali ularni töğrilang.
                   </p>
                 </div>
               </div>
@@ -1533,9 +1533,9 @@ function App() {
               <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3 animate-fade-in">
                 <span className="material-symbols-outlined text-emerald-500">verified</span>
                 <div>
-                  <h4 className="font-black text-xs text-emerald-500 uppercase tracking-wide">Tizim to'liq tekshirildi (All Validated!)</h4>
+                  <h4 className="font-black text-xs text-emerald-500 uppercase tracking-wide">Tizim töliq tekshirildi (All Validated!)</h4>
                   <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 leading-relaxed">
-                    Barcha {importedQuestions.length} ta savol muvaffaqiyatli import qilindi. Formula va to'g'ri javob variantlari to'g'ri aniqlandi. Keyingi bosqichga o'tishingiz mumkin!
+                    Barça {importedQuestions.length} ta savol muvaffaqiyatli import qilindi. Formula va töğri javob variantlari töğri aniqlandi. Keyingi bosqichga ötişingiz mumkin!
                   </p>
                 </div>
               </div>
@@ -1548,7 +1548,7 @@ function App() {
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-900 text-[10px] font-black text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                       <th className="py-4 px-4 w-12 text-center">#</th>
-                      <th className="py-4 px-4 w-1/3">Savol matni (Tahrirlash)</th>
+                      <th className="py-4 px-4 w-1/3">Savol matni (Tahrirlaş)</th>
                       <th className="py-4 px-4 w-1/3">Javob Variantlari</th>
                       <th className="py-4 px-4">LaTeX rendered math preview</th>
                       <th className="py-4 px-4 w-12 text-center">Amallar</th>
@@ -1625,7 +1625,7 @@ function App() {
                         {/* LaTeX visual math preview */}
                         <td className="py-4 px-4 align-top space-y-2">
                           <div className="p-3 bg-indigo-500/5 dark:bg-slate-900/80 border border-indigo-500/10 dark:border-slate-800 rounded-xl space-y-2 min-h-24">
-                            <span className="text-[9px] font-black text-indigo-500 uppercase tracking-wider block">Savol ko'rinishi:</span>
+                            <span className="text-[9px] font-black text-indigo-500 uppercase tracking-wider block">Savol körinişi:</span>
                             <div className="text-xs text-slate-800 dark:text-slate-100 font-semibold leading-relaxed">
                               {renderMathInline(q.text)}
                             </div>
@@ -1650,7 +1650,7 @@ function App() {
                               setImportedQuestions(updated);
                             }}
                             className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                            title="O'chirish"
+                            title="Öçiriş"
                           >
                             <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
@@ -1682,7 +1682,7 @@ function App() {
                 }}
                 className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-1 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">add</span> Yangi Savol Qo'shish
+                <span className="material-symbols-outlined text-[16px]">add</span> Yangi Savol Qöşiş
               </button>
 
               <div className="flex gap-2 w-full sm:w-auto">
@@ -1708,7 +1708,7 @@ function App() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Kurs yo'nalishi (Course)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">Kurs yönalişi (Course)</label>
                 <select
                   value={docxSettings.course}
                   onChange={e => setDocxSettings({ ...docxSettings, course: e.target.value })}
@@ -1728,7 +1728,7 @@ function App() {
                 >
                   <option value="">Kategoriyani tanlang</option>
                   {Array.from(new Set(courses.map(c => c.category))).map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
-                  <option value="Custom">Boshqa (Custom)</option>
+                  <option value="Custom">Boşqa (Custom)</option>
                 </select>
               </div>
 
@@ -1762,7 +1762,7 @@ function App() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300">Savollarni tasodifiy almashtirish (Shuffle Questions)</h4>
-                    <p className="text-[9px] text-slate-400 font-medium">Har bir o'quvchiga savollar alohida tartibda chiqadi.</p>
+                    <p className="text-[9px] text-slate-400 font-medium">Har bir öquvçiga savollar alohida tartibda chiqadi.</p>
                   </div>
                   <button
                     onClick={() => setDocxSettings({ ...docxSettings, shuffleQuestions: !docxSettings.shuffleQuestions })}
@@ -1790,7 +1790,7 @@ function App() {
             {/* Save Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
               <button onClick={() => setImportStep(2)} className="w-full sm:w-auto px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Ortga</button>
-              <button onClick={() => handleSaveImportedTest('Draft')} className="w-full sm:w-auto px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Qoralama sifatida saqlash</button>
+              <button onClick={() => handleSaveImportedTest('Draft')} className="w-full sm:w-auto px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Qoralama sifatida saqlaş</button>
               <button onClick={() => handleSaveImportedTest('Published')} className="w-full sm:w-auto px-6 py-3 bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 flex items-center justify-center gap-1 cursor-pointer">Testni Chop Etish (Nashr)</button>
             </div>
           </div>
@@ -1811,7 +1811,7 @@ function App() {
 
   const handleCreateCourseSubmit = async (e) => {
     e.preventDefault();
-    if (!newCourse.title || !newCourse.price) return alert("Iltimos, barcha zaruriy maydonlarni to'ldiring!");
+    if (!newCourse.title || !newCourse.price) return alert("Iltimos, barça zaruriy maydonlarni töldiring!");
 
     try {
       const bodyPayload = {
@@ -1837,10 +1837,10 @@ function App() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Kursni saqlashda xatolik.');
+        throw new Error(data.error || 'Kursni saqlaşda xatolik.');
       }
 
-      alert(isEditing ? "Kurs yangilandi!" : "Yangi kurs qo'shildi!");
+      alert(isEditing ? "Kurs yangilandi!" : "Yangi kurs qöşildi!");
       setIsEditing(false);
       setEditingId(null);
       setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Toxirova Malika', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' });
@@ -1897,8 +1897,8 @@ function App() {
         const data = await response.json();
         throw new Error(data.error || 'O\'chirishda xatolik.');
       }
-      alert("Kurs o'chirildi!");
-      setActivities(prev => [{ id: Date.now(), type: 'course', content: `Kurs o'chirildi: ${deleteCourseTarget?.title || courseId}`, detail: "Admin tomonidan", time: "Hozirgina" }, ...prev]);
+      alert("Kurs öçirildi!");
+      setActivities(prev => [{ id: Date.now(), type: 'course', content: `Kurs öçirildi: ${deleteCourseTarget?.title || courseId}`, detail: "Admin tomonidan", time: "Hozirgina" }, ...prev]);
       setDeleteCourseTarget(null);
       setDeleteCourseInput('');
       syncData();
@@ -1991,7 +1991,7 @@ function App() {
 
   const handleAddLandingResult = async () => {
     if (landingResults.length >= 10) {
-      alert("Maksimal 10 ta sertifikat yuklash mumkin!");
+      alert("Maksimal 10 ta sertifikat yuklaş mumkin!");
       return;
     }
     try {
@@ -2024,7 +2024,7 @@ function App() {
         body: JSON.stringify(landingResults)
       });
       if (res.ok) {
-        alert("Barcha natijalar va sertifikatlar muvaffaqiyatli saqlandi va asosiy Landing sahifaga integratsiya qilindi!");
+        alert("Barça natijalar va sertifikatlar muvaffaqiyatli saqlandi va asosiy Landing sahifaga integratsiya qilindi!");
       }
     } catch (e) { alert("Xatolik!"); }
   };
@@ -2082,7 +2082,7 @@ function App() {
   };
 
   const handleDeleteStudent = async (studentId) => {
-    if (window.confirm("Talabani o'chirmoqchimisiz?")) {
+    if (window.confirm("Talabani öçirmoqçimisiz?")) {
       try {
         const res = await fetchWithAuth(`/api/students/${studentId}`, {
           method: 'DELETE'
@@ -2091,7 +2091,7 @@ function App() {
           const data = await res.json();
           throw new Error(data.error || 'O\'chirishda xatolik.');
         }
-        alert("O'quvchi tizimdan o'chirildi!");
+        alert("Öquvçi tizimdan öçirildi!");
         syncData();
       } catch (err) {
         alert(err.message);
@@ -2150,7 +2150,7 @@ function App() {
 
   const handleDeleteCategory = (catId) => {
     const cat = categories.find(c => c.id === catId);
-    if (window.confirm(`"${cat?.title}" kategoriyasini o'chirmoqchimisiz?`)) {
+    if (window.confirm(`"${cat?.title}" kategoriyasini öçirmoqçimisiz?`)) {
       const updated = categories.filter(c => c.id !== catId);
       setCategories(updated);
       try { localStorage.setItem('mathscore_admin_categories', JSON.stringify(updated)); } catch(e){}
@@ -2160,7 +2160,7 @@ function App() {
   const [settings, setSettings] = useState({
     adminName: 'Malika', // admin name
     brandName: 'MathScore Academy',
-    primaryColor: "Ko'k (Royal Indigo)",
+    primaryColor: "Kök (Royal Indigo)",
     newPassword: '',
     supabaseKey: 'sb_proj_key_mathscore_18972412',
     vimeoToken: ''
@@ -2172,7 +2172,7 @@ function App() {
     const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.course.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Course Filter
-    const matchesCourse = studentFilterCourse === 'Barchasi' || (s.courses && s.courses.some(c => c.title === studentFilterCourse)) || s.course === studentFilterCourse;
+    const matchesCourse = studentFilterCourse === 'Barçasi' || (s.courses && s.courses.some(c => c.title === studentFilterCourse)) || s.course === studentFilterCourse;
 
     // Status Filter
     let matchesStatus = true;
@@ -2205,25 +2205,25 @@ function App() {
       "Email": s.email,
       "Telefon": s.phone || '-',
       "Kursi": (s.courses && s.courses.length > 0) ? s.courses.map(c => c.title).join(', ') : s.course,
-      "Qo'shilgan sana": s.createdAt ? new Date(s.createdAt).toLocaleDateString('uz-UZ') : '-',
+      "Qöşilgan sana": s.createdAt ? new Date(s.createdAt).toLocaleDateString('uz-UZ') : '-',
       "Tugash muddati": s.deadline ? new Date(s.deadline).toLocaleDateString('uz-UZ') : '-',
       "Holati": s.status === 'Muddati tugagan' ? 'Muddati tugagan' : s.status === 'Chetlashtirilgan' ? 'Chetlashtirilgan' : 'Aktiv'
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "O'quvchilar");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Öquvçilar");
     XLSX.writeFile(workbook, "Oquvchilar_hisoboti.xlsx");
   };
 
   const exportStudentsToPDF = () => {
     const doc = new jsPDF('landscape');
     doc.setFontSize(18);
-    doc.text("O'quvchilar Hisoboti", 14, 22);
+    doc.text("Öquvçilar Hisoboti", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`Umumiy soni: ${filteredStudents.length} ta o'quvchi`, 14, 30);
+    doc.text(`Umumiy soni: ${filteredStudents.length} ta öquvçi`, 14, 30);
 
-    const tableColumn = ["F.I.SH.", "Email", "Telefon", "Kursi", "Qo'shilgan sana", "Tugash muddati", "Holati"];
+    const tableColumn = ["F.I.SH.", "Email", "Telefon", "Kursi", "Qöşilgan sana", "Tugash muddati", "Holati"];
     const tableRows = [];
 
     filteredStudents.forEach(s => {
@@ -2281,7 +2281,7 @@ function App() {
 
   const handleExportResultsExcel = () => {
     if (filteredSubmissions.length === 0) {
-      alert("Eksport qilish uchun test natijalari mavjud emas.");
+      alert("Eksport qilish uçun test natijalari mavjud emas.");
       return;
     }
     const dataToExport = filteredSubmissions.map((sub, idx) => {
@@ -2304,9 +2304,9 @@ function App() {
         "№": idx + 1,
         "Talaba": sub.userName || 'Noma\'lum',
         "Email": sub.userEmail || '-',
-        "Kurs": sub.courseTitle || sub.course || 'Barcha kurslar',
+        "Kurs": sub.courseTitle || sub.course || 'Barça kurslar',
         "Test Nomi": sub.testTitle || 'Test',
-        "To'plangan Ball": earned,
+        "Töplangan Ball": earned,
         "Jami Ball": total,
         "Foiz": `${sub.score || 0}%`,
         "Holati": (sub.passed || (sub.score >= 70)) ? "O'tdi" : "O'tmadi",
@@ -2328,7 +2328,7 @@ function App() {
         `"${d["Email"]}"`,
         `"${d["Kurs"]}"`,
         `"${d["Test Nomi"]}"`,
-        `"${d["To'plangan Ball"]}/${d["Jami Ball"]}"`,
+        `"${d["Töplangan Ball"]}/${d["Jami Ball"]}"`,
         `"${d["Foiz"]}"`,
         `"${d["Ketgan Vaqt"]}"`,
         `"${d["Topshirilgan Sana"]}"`
@@ -2381,7 +2381,7 @@ function App() {
         });
 
         const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || 'Rasmni yuklashda xatolik');
+        if (!uploadRes.ok) throw new Error(uploadData.error || 'Rasmni yuklaşda xatolik');
         currentAvatar = uploadData.url;
       }
 
@@ -2408,7 +2408,7 @@ function App() {
         setSettings(prev => ({ ...prev, newPassword: '' }));
       }
       setActivities(prev => [{ id: Date.now(), type: 'settings', content: "Tizim sozlamalari yangilandi", detail: `Brend: ${settings.brandName}`, time: "Hozirgina" }, ...prev]);
-      alert("Sozlamalar muvaffaqiyatli saqlandi! Agar parolni yangilagan bo'lsangiz, emailingizga xabar yuborildi.");
+      alert("Sozlamalar muvaffaqiyatli saqlandi! Agar parolni yangilagan bölsangiz, emailingizga xabar yuborildi.");
     } catch (err) {
       alert(err.message);
     }
@@ -2470,7 +2470,7 @@ function App() {
               />
             </div>
             <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setCropModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer">Bekor qilish</button>
+              <button onClick={() => setCropModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer">Bekor qiliş</button>
               <button
                 onClick={async () => {
                   try {
@@ -2505,7 +2505,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Platformaga Kirish</h1>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Boshqaruv tizimiga xush kelibsiz</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Boşqaruv tizimiga xuş kelibsiz</p>
               </div>
             </div>
 
@@ -2605,7 +2605,7 @@ function App() {
                           }}
                           className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 cursor-pointer"
                         >
-                          Barchasi o'qildi
+                          Barçasi öqildi
                         </button>
                       )}
                     </div>
@@ -2613,7 +2613,7 @@ function App() {
                     <div className="space-y-2 overflow-y-auto pr-1 flex-1">
                       {adminNotifications.length === 0 ? (
                         <div className="p-6 text-center text-xs text-slate-400 font-medium">
-                          Hozircha yangi bildirishnomalar yo'q
+                          Hozirça yangi bildirishnomalar yöq
                         </div>
                       ) : (
                         adminNotifications.map(n => (
@@ -2654,7 +2654,7 @@ function App() {
                 <span className="material-symbols-outlined text-[20px]">help</span>
               </button>
 
-              <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all cursor-pointer" title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}>
+              <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all cursor-pointer" title={darkMode ? "Yoruğ rejim" : "Qoronği rejim"}>
                 <span className="material-symbols-outlined text-[20px]">{darkMode ? 'light_mode' : 'dark_mode'}</span>
               </button>
 
@@ -2692,7 +2692,7 @@ function App() {
             <aside className="w-56 shrink-0 rounded-[24px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] h-full flex flex-col p-2.5 gap-1 z-30 overflow-y-auto hidden lg:flex select-none">
               {[
                 { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
-                { id: 'home', icon: 'home', label: 'Bosh sahifa' },
+                { id: 'home', icon: 'home', label: 'Boş sahifa' },
                 { id: 'categories', icon: 'category', label: 'Kategoriyalar' },
                 { id: 'courses', icon: 'smart_display', label: 'Videolar' },
                 {
@@ -2703,7 +2703,7 @@ function App() {
                   subItems: [
                     { id: 'tests', icon: 'quiz', label: 'Testlar' },
                     { id: 'test-results', icon: 'grade', label: 'Test natijalari' },
-                    { id: 'tasks', icon: 'assignment', label: 'Topshiriqlar' }
+                    { id: 'tasks', icon: 'assignment', label: 'Topşiriqlar' }
                   ]
                 },
                 { id: 'settings', icon: 'settings', label: 'Sozlamalar' },
@@ -2738,7 +2738,7 @@ function App() {
                         </span>
                       </button>
 
-                      {/* Submenu: Testlar & Topshiriqlar */}
+                      {/* Submenu: Testlar & Topşiriqlar */}
                       {testsMenuOpen && (
                         <div className="ml-3 pl-2.5 py-0.5 flex flex-col gap-0.5 border-l border-indigo-100 dark:border-indigo-900/60 animate-fade-in">
                           {item.subItems.map(sub => (
@@ -2784,7 +2784,7 @@ function App() {
                 onClick={() => setCurrentPage('login')}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-auto rounded-xl font-bold text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer select-none"
               >
-                <span className="material-symbols-outlined text-[18px]">logout</span> Chiqish
+                <span className="material-symbols-outlined text-[18px]">logout</span> Çiqiş
               </button>
             </aside>
 
@@ -2828,7 +2828,7 @@ function App() {
                           </div>
                         </div>
                         <p className="text-xs font-bold text-emerald-500 mt-4 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[16px]">trending_up</span> +12.4% o'tgan oydan
+                          <span className="material-symbols-outlined text-[16px]">trending_up</span> +12.4% ötgan oydan
                         </p>
                       </div>
 
@@ -2858,7 +2858,7 @@ function App() {
                           </div>
                         </div>
                         <p className="text-xs font-bold text-pink-500 mt-4 flex items-center gap-1">
-                          Platformadagi yo'nalishlar
+                          Platformadagi yönalişlar
                         </p>
                       </div>
                     </div>
@@ -2948,8 +2948,8 @@ function App() {
                   <div className="space-y-6 animate-fade-in">
                     <div className="modern-card p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                       <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">Kurslar Ro'yxati</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Platformadagi barcha faol ta'lim yo'nalishlari.</p>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">Kurslar Röyxati</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Platformadagi barça faol ta'lim yönalişlari.</p>
                       </div>
                       <button onClick={() => { setIsEditing(false); setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Toxirova Malika', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' }); setCurrentPage('course-management'); }} className="bg-indigo-500 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 hover:opacity-90 transition-all">
                         <span className="material-symbols-outlined">add</span> Yangi Kurs
@@ -2992,7 +2992,7 @@ function App() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
                     <div className="modern-card p-8 space-y-6">
                       <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">{isEditing ? "Kursni Tahrirlash" : "Yangi Kurs Yaratish"}</h2>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">{isEditing ? "Kursni Tahrirlaş" : "Yangi Kurs Yaratish"}</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Platformaga yangi darslik kiriting.</p>
                       </div>
                       <form onSubmit={handleCreateCourseSubmit} className="space-y-5">
@@ -3029,7 +3029,7 @@ function App() {
                             </div>
 
                             <div className="space-y-1">
-                              <span className="text-[11px] font-bold text-slate-500">Video Fayli Yuklash</span>
+                              <span className="text-[11px] font-bold text-slate-500">Video Fayli Yuklaş</span>
                               <label className="flex items-center justify-center w-full h-[38px] bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-xl cursor-pointer transition-colors relative overflow-hidden">
                                 {isUploadingPromo ? (
                                   <div className="absolute inset-0 bg-indigo-500/10 flex items-center justify-center">
@@ -3062,14 +3062,14 @@ function App() {
                           </div>
                         </div>
 
-                        <button className="w-full py-4 bg-indigo-500 text-white font-black text-sm rounded-xl shadow-lg shadow-indigo-500/30 hover:opacity-90 transition-all">{isEditing ? "O'zgarishlarni Saqlash" : "Kursni Nashr Etish"}</button>
+                        <button className="w-full py-4 bg-indigo-500 text-white font-black text-sm rounded-xl shadow-lg shadow-indigo-500/30 hover:opacity-90 transition-all">{isEditing ? "Özgarişlarni Saqlaş" : "Kursni Nashr Etish"}</button>
                       </form>
                     </div>
 
                     <div className="modern-card p-8 space-y-6">
                       <div>
                         <h3 className="text-xl font-black text-slate-900 dark:text-white">O'quv Dasturi (Curriculum)</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Kurs tarkibidagi darslar ro'yxati.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Kurs tarkibidagi darslar röyxati.</p>
                       </div>
                       <div className="p-5 bg-white/30 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-4">
                         <input value={tempLesson.title} onChange={e => setTempLesson({ ...tempLesson, title: e.target.value })} placeholder="Dars nomi" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white" />
@@ -3090,7 +3090,7 @@ function App() {
                             </div>
 
                             <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400">Yoki Fayl Yuklash</span>
+                              <span className="text-[10px] font-bold text-slate-400">Yoki Fayl Yuklaş</span>
                               <label className="flex items-center justify-center w-full h-[38px] bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-xl cursor-pointer transition-colors relative overflow-hidden">
                                 {isUploadingLesson ? (
                                   <div className="absolute inset-0 bg-indigo-500/10 flex items-center justify-center">
@@ -3124,7 +3124,7 @@ function App() {
                         </div>
 
                         <button disabled={isUploadingLesson} onClick={handleAddLesson} type="button" className={`w-full py-3 font-bold rounded-xl transition-colors text-slate-900 dark:text-white ${isUploadingLesson ? 'bg-slate-200 dark:bg-slate-700 opacity-50 cursor-not-allowed' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-500/10 hover:text-indigo-500'}`}>
-                          {isUploadingLesson ? 'Video yuklanmoqda...' : "Dars Qo'shish"}
+                          {isUploadingLesson ? 'Video yuklanmoqda...' : "Dars Qöşiş"}
                         </button>
                       </div>
                       <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
@@ -3152,8 +3152,8 @@ function App() {
                   <div className="space-y-6 animate-fade-in">
                     <div className="modern-card p-6 flex justify-between items-center">
                       <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">O'quvchilar Tizimi</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Platformada ta'lim olayotgan o'quvchilarni boshqarish.</p>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white">Öquvçilar Tizimi</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Platformada ta'lim olayotgan öquvçilarni boşqariş.</p>
                       </div>
                       <button onClick={() => setShowAddStudentModal(true)} className="bg-indigo-500 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 hover:opacity-90">
                         <span className="material-symbols-outlined">person_add</span> Yangi Talaba
@@ -3198,7 +3198,7 @@ function App() {
                           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
                           <input
                             type="text"
-                            placeholder="Ism yoki familiya qidirish..."
+                            placeholder="Ism yoki familiya qidiriş..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="h-10 w-full sm:w-auto pl-10 pr-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[200px]"
@@ -3209,7 +3209,7 @@ function App() {
                           onChange={(e) => setStudentFilterCourse(e.target.value)}
                           className="h-10 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[150px]"
                         >
-                          <option value="Barchasi">Barcha Kurslar</option>
+                          <option value="Barçasi">Barça Kurslar</option>
                           {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
                         </select>
 
@@ -3219,7 +3219,7 @@ function App() {
                           className="h-10 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:outline-none min-w-[200px]"
                         >
                           <option value="Hammasi">Hammasi (Faol & Tugagan)</option>
-                          <option value="Tugash muddati bo'yicha">Tugash muddati borlar</option>
+                          <option value="Tugash muddati böyiça">Tugash muddati borlar</option>
                           <option value="Tugash muddati oy hisobida">Shu oyda tugaydiganlar</option>
                           <option value="Faqat aktivlar">Faqat Aktivlar</option>
                           <option value="Faqat muddati tugaganlar">Faqat Muddati Tugaganlar</option>
@@ -3242,7 +3242,7 @@ function App() {
                         <div className="p-5 border-b border-slate-200 dark:border-slate-700 bg-white/30 dark:bg-slate-800/30 grid grid-cols-7 font-black text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                           <div className="col-span-2">Talaba Ma'lumotlari</div>
                           <div>Kurs nomi</div>
-                          <div>Qo'shilgan sana</div>
+                          <div>Qöşilgan sana</div>
                           <div>Tugash muddati</div>
                           <div>Holati</div>
                           <div className="text-right">Amallar</div>
@@ -3314,7 +3314,7 @@ function App() {
                     <div className="modern-card p-8 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-500/20 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
                       <div className="space-y-2 text-center md:text-left">
                         <h2 className="text-3xl font-black text-slate-900 dark:text-white">Xush kelibsiz, Toxirova Malika! 👋</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Platformaning umumiy boshqaruvi va o'quvchilar ko'rsatkichlari nazorati sizning qo'lingizda.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Platformaning umumiy boşqaruvi va öquvçilar ko'rsatkichlari nazorati sizning qölingizda.</p>
                       </div>
                       <div className="flex gap-3">
                         <button onClick={triggerNewTest} className="px-5 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-all flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">quiz</span> Yangi Test</button>
@@ -3326,7 +3326,7 @@ function App() {
                       {[
                         { title: "Bugungi faoliyat", value: `${tests.length} ta test`, detail: "Umumiy tizimdagi testlar", icon: "update", color: "text-indigo-500 bg-indigo-500/10" },
                         { title: "Sotuvlar soni", value: `${students.reduce((acc, s) => acc + (s.courses?.length || 1), 0)} ta kurs`, detail: "Tizimdagi xaridlar", icon: "trending_up", color: "text-emerald-500 bg-emerald-500/10" },
-                        { title: "Ortacha reyting", value: "4.92 / 5.0", detail: `${students.length} o'quvchi fikri`, icon: "star", color: "text-amber-500 bg-amber-500/10" },
+                        { title: "Örtaça reyting", value: "4.92 / 5.0", detail: `${students.length} öquvçi fikri`, icon: "star", color: "text-amber-500 bg-amber-500/10" },
                         { title: "Yuklangan darslar", value: `${courses.reduce((acc, c) => acc + (c.lessons ? c.lessons.length : 0), 0)} ta video`, detail: "Sifatli HD formatda", icon: "smart_display", color: "text-pink-500 bg-pink-500/10" }
                       ].map((item, i) => (
                         <div key={i} className="modern-card p-6 flex items-center gap-4">
@@ -3344,11 +3344,11 @@ function App() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="modern-card p-6 lg:col-span-2 space-y-4">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">Tezkor E'lonlar va Topshiriqlar</h3>
+                        <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">Tezkor E'lonlar va Topşiriqlar</h3>
                         <div className="space-y-3">
                           {[
-                            { title: "SAT Math yangi standart test versiyasi", desc: "Talabalar o'rtasida katta sinov testi rejalashtirildi.", date: "22-May, 14:00" },
-                            { title: "A-Level darslarining integratsiya tahlili", desc: "Integrallash bo'limidagi yangi savollar yuklandi.", date: "Hozirgina" }
+                            { title: "SAT Math yangi standart test versiyasi", desc: "Talabalar örtasida katta sinov testi rejalashtirildi.", date: "22-May, 14:00" },
+                            { title: "A-Level darslarining integratsiya tahlili", desc: "Integrallash bölimidagi yangi savollar yuklandi.", date: "Hozirgina" }
                           ].map((ann, i) => (
                             <div key={i} className="p-4 bg-white/30 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
                               <div className="flex justify-between items-center">
@@ -3363,14 +3363,14 @@ function App() {
                       </div>
 
                       <div className="modern-card p-6 space-y-4">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">O'qituvchi Ma'lumotlari</h3>
+                        <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">Öqituvçi Ma'lumotlari</h3>
                         <div className="flex flex-col items-center text-center p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl space-y-3">
                           <img className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-500/30" src={getAuthMediaUrl(adminProfile.avatar)} alt={adminProfile.name} />
                           <div>
                             <h4 className="font-black text-slate-900 dark:text-white">{adminProfile.name}</h4>
-                            <p className="text-xs text-indigo-500 font-bold uppercase mt-1">Loyiha Asoschisi & Bosh Ustoz</p>
+                            <p className="text-xs text-indigo-500 font-bold uppercase mt-1">Loyiha Asoschisi & Boş Ustoz</p>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Algebra, Geometriya, SAT va A-Level Matematikasi bo'yicha 8 yillik xalqaro tajriba.</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Algebra, Geometriya, SAT va A-Level Matematikasi böyiça 8 yillik xalqaro tajriba.</p>
                         </div>
                       </div>
                     </div>
@@ -3383,7 +3383,7 @@ function App() {
                     <div className="modern-card p-6 flex justify-between items-center">
                       <div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white">Kurs Kategoriyalari</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Platformada o'tiladigan matematik yo'nalishlar.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Platformada o'tiladigan matematik yönalişlar.</p>
                       </div>
                       <button onClick={() => setShowAddCategoryModal(true)} className="bg-indigo-500 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 hover:opacity-90">
                         <span className="material-symbols-outlined">add_circle</span> Yangi Kategoriya
@@ -3400,7 +3400,7 @@ function App() {
                               <button
                                 onClick={() => handleDeleteCategory(cat.id)}
                                 className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                                title="Kategoriyani o'chirish"
+                                title="Kategoriyani öçiriş"
                               >
                                 <span className="material-symbols-outlined text-[14px]">close</span>
                               </button>
@@ -3408,10 +3408,10 @@ function App() {
                           </div>
                           <div>
                             <h3 className="text-lg font-black text-slate-900 dark:text-white">{cat.title}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platformadagi yetakchi ta'lim yo'nalishlaridan biri.</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platformadagi yetakchi ta'lim yönalişlaridan biri.</p>
                           </div>
                           <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-400">
-                            <span>A'zo o'quvchilar:</span>
+                            <span>A'zo öquvçilar:</span>
                             <span className="text-indigo-500 font-black">{cat.students} nafar</span>
                           </div>
                         </div>
@@ -3465,17 +3465,17 @@ function App() {
                           <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-500 uppercase">Asosiy rang mavzusi</label>
                             <select value={settings.primaryColor} onChange={e => setSettings({ ...settings, primaryColor: e.target.value })} className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
-                              <option value="Ko'k (Royal Indigo)">Ko'k (Royal Indigo)</option>
+                              <option value="Kök (Royal Indigo)">Kök (Royal Indigo)</option>
                               <option value="Yashil (Forest Emerald)">Yashil (Forest Emerald)</option>
                               <option value="Qizil (Sunset Rose)">Qizil (Sunset Rose)</option>
                             </select>
                           </div>
                           <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Kirish uchun yangi parol</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase">Kirish uçun yangi parol</label>
                             <input type="password" value={settings.newPassword} onChange={e => setSettings({ ...settings, newPassword: e.target.value })} placeholder="••••••••" className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" />
                           </div>
                         </div>
-                        <button type="submit" className="px-5 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-all">O'zgarishlarni Saqlash</button>
+                        <button type="submit" className="px-5 py-3 bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition-all">Özgarişlarni Saqlaş</button>
                       </form>
 
                       <div className="modern-card p-6 space-y-5">
@@ -3483,13 +3483,13 @@ function App() {
                         <div className="space-y-4">
                           <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl space-y-2">
                             <h4 className="font-bold text-xs text-indigo-500 uppercase tracking-wider">Supabase Video Storage</h4>
-                            <p className="text-[10px] text-slate-500">Video fayllarini bulutga to'g'ridan-to'g'ri yuklash uchun API kaliti konfiguratsiyasi.</p>
+                            <p className="text-[10px] text-slate-500">Video fayllarini bulutga töğridan-töğri yuklaş uçun API kaliti konfiguratsiyasi.</p>
                             <input type="password" value={settings.supabaseKey} onChange={e => setSettings({ ...settings, supabaseKey: e.target.value })} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
                           </div>
 
                           <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl space-y-2">
                             <h4 className="font-bold text-xs text-purple-500 uppercase tracking-wider">Vimeo API Config</h4>
-                            <p className="text-[10px] text-slate-500">Dars videolarini o'quvchilarga oqimli va xavfsiz (stream) uzatish kaliti.</p>
+                            <p className="text-[10px] text-slate-500">Dars videolarini öquvçilarga oqimli va xavfsiz (stream) uzatish kaliti.</p>
                             <input placeholder="Vimeo Access Token" value={settings.vimeoToken} onChange={e => setSettings({ ...settings, vimeoToken: e.target.value })} className="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 outline-none focus:border-indigo-500" />
                           </div>
                         </div>
@@ -3514,7 +3514,7 @@ function App() {
                           <h2 className="text-xl font-black text-slate-900 dark:text-white">Talabalarning Test Natijalari</h2>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          Talabalarning barcha topshirgan testlari, to'plagan ballari va tahlillari
+                          Talabalarning barça topshirgan testlari, to'plagan ballari va tahlillari
                         </p>
                       </div>
 
@@ -3523,7 +3523,7 @@ function App() {
                         <button
                           onClick={() => window.print()}
                           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold transition-all cursor-pointer shadow-xs"
-                          title="Natijalarni PDF fayl shaklida saqlash"
+                          title="Natijalarni PDF fayl shaklida saqlaş"
                         >
                           <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                           <span>PDF yuklab olish</span>
@@ -3541,10 +3541,10 @@ function App() {
                         <button
                           onClick={() => window.print()}
                           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold transition-all cursor-pointer shadow-xs"
-                          title="Printerdan chop etish"
+                          title="Printerdan çop etiş"
                         >
                           <span className="material-symbols-outlined text-[18px]">print</span>
-                          <span>Chop etish</span>
+                          <span>Çop etiş</span>
                         </button>
                       </div>
                     </div>
@@ -3581,7 +3581,7 @@ function App() {
                           <span className="material-symbols-outlined text-[22px]">analytics</span>
                         </div>
                         <div>
-                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">O'rtacha Ball</p>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Örtaça Ball</p>
                           <p className="text-xl font-black text-slate-900 dark:text-white">
                             {filteredSubmissions.length > 0 ? Math.round(filteredSubmissions.reduce((acc, s) => acc + (s.score || 0), 0) / filteredSubmissions.length) : 0}%
                           </p>
@@ -3613,7 +3613,7 @@ function App() {
                             onChange={(e) => setResultsFilterCourse(e.target.value)}
                             className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer pr-2"
                           >
-                            <option value="all" className="dark:bg-slate-900">Barcha kurslar</option>
+                            <option value="all" className="dark:bg-slate-900">Barça kurslar</option>
                             {courses.map(c => (
                               <option key={c.id} value={c.title} className="dark:bg-slate-900">{c.title}</option>
                             ))}
@@ -3645,7 +3645,7 @@ function App() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (window.confirm("Haqiqatan ham hisobot jadvalini tozalamoqchimisiz?\n\n(Bu amal faqat admin panelidagi ko'rinishni tozalaydi, talabalar panelidagi natijalarga va bazadagi ma'lumotlarga ta'sir qilmaydi)")) {
+                            if (window.confirm("Haqiqatan ham hisobot jadvalini tozalamoqchimisiz?\n\n(Bu amal faqat admin panelidagi körinishni tozalaydi, talabalar panelidagi natijalarga va bazadagi ma'lumotlarga ta'sir qilmaydi)")) {
                               const now = Date.now();
                               setAdminClearedSubmissionsTime(now);
                               localStorage.setItem('admin_cleared_submissions_timestamp', String(now));
@@ -3710,7 +3710,7 @@ function App() {
                           </div>
                           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Test natijalari topilmadi</h3>
                           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
-                            Talabalar platformada test ishlashgach, ularning barcha natijalari, sarflangan vaqti va to'plagan ballari avtomatik ravishda bu yerda aks etadi.
+                            Talabalar platformada test ishlashgach, ularning barça natijalari, sarflangan vaqti va to'plagan ballari avtomatik ravishda bu yerda aks etadi.
                           </p>
                         </div>
                       ) : (
@@ -3791,7 +3791,7 @@ function App() {
                                     <td className="p-4 font-semibold text-slate-700 dark:text-slate-300">
                                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[11px] border border-indigo-500/20">
                                         <span className="material-symbols-outlined text-[14px]">school</span>
-                                        {sub.courseTitle || sub.course || 'Barcha kurslar'}
+                                        {sub.courseTitle || sub.course || 'Barça kurslar'}
                                       </span>
                                     </td>
 
@@ -3894,7 +3894,7 @@ function App() {
                             <div>
                               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Qoralama testlar (Draft)</p>
                               <h4 className="text-2xl font-black text-amber-500 mt-1">{tests.filter(t => t.status === 'Draft').length} ta</h4>
-                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Tahrirlash jarayonida</p>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Tahrirlaş jarayonida</p>
                             </div>
                           </div>
                         </div>
@@ -3907,7 +3907,7 @@ function App() {
                               <input
                                 value={testSearch}
                                 onChange={e => setTestSearch(e.target.value)}
-                                placeholder="Test nomini qidirish..."
+                                placeholder="Test nomini qidiriş..."
                                 className="w-full pl-9 pr-4 py-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                               />
                             </div>
@@ -3916,7 +3916,7 @@ function App() {
                               onChange={e => setTestStatusFilter(e.target.value)}
                               className="w-full sm:w-auto p-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                             >
-                              <option value="All">Barcha Statuslar</option>
+                              <option value="All">Barça Statuslar</option>
                               <option value="Published">Nashr Etilgan</option>
                               <option value="Draft">Qoralama</option>
                             </select>
@@ -3925,8 +3925,8 @@ function App() {
                               onChange={e => setTestSort(e.target.value)}
                               className="w-full sm:w-auto p-2 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                             >
-                              <option value="newest">Yangi qo'shilganlar</option>
-                              <option value="oldest">Eski qo'shilganlar</option>
+                              <option value="newest">Yangi qöşilganlar</option>
+                              <option value="oldest">Eski qöşilganlar</option>
                             </select>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
@@ -4049,14 +4049,14 @@ function App() {
                                         setTestBuilderTab('general');
                                         setIsBuildingTest(true);
                                       }}
-                                      title="Tahrirlash"
+                                      title="Tahrirlaş"
                                       className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-amber-500 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
                                     >
                                       <span className="material-symbols-outlined text-[18px]">edit</span>
                                     </button>
                                     <button
                                       onClick={() => handleDeleteTest(test.id)}
-                                      title="O'chirish"
+                                      title="Öçiriş"
                                       className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
                                     >
                                       <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -4078,7 +4078,7 @@ function App() {
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 dark:border-slate-700 pb-4 gap-4">
                             <div>
                               <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Test Quruvchi (Test Builder)</h2>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platforma o'quvchilari uchun test rejimini sozlashingiz mumkin.</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platforma öquvçilari uçun test rejimini sozlashingiz mumkin.</p>
                             </div>
 
                             <div className="flex gap-2">
@@ -4086,7 +4086,7 @@ function App() {
                                 onClick={() => handleCreateTestSubmit('Draft')}
                                 className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                               >
-                                Qoralama sifatida saqlash
+                                Qoralama sifatida saqlaş
                               </button>
                               <button
                                 onClick={() => handleCreateTestSubmit('Published')}
@@ -4097,7 +4097,7 @@ function App() {
                               <button
                                 onClick={() => setIsBuildingTest(false)}
                                 className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors border border-slate-200 dark:border-slate-700"
-                                title="Yopish"
+                                title="Yopiş"
                               >
                                 <span className="material-symbols-outlined">close</span>
                               </button>
@@ -4108,7 +4108,7 @@ function App() {
                           <div className="flex border-b border-slate-200 dark:border-slate-800">
                             {[
                               { id: 'general', label: '1. Umumiy sozlamalar', icon: 'settings' },
-                              { id: 'questions', label: '2. Savollar boshqaruvchisi', icon: 'list_alt' },
+                              { id: 'questions', label: '2. Savollar boşqaruvchisi', icon: 'list_alt' },
                               { id: 'advanced', label: '3. Kengaytirilgan sozlamalar', icon: 'shield_lock' }
                             ].map(t => (
                               <button
@@ -4139,7 +4139,7 @@ function App() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Kurs yo'nalishi</label>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Kurs yönalişi</label>
                                     <select
                                       value={newTest.course}
                                       onChange={e => setNewTest({ ...newTest, course: e.target.value })}
@@ -4167,7 +4167,7 @@ function App() {
                                   <textarea
                                     value={newTest.description}
                                     onChange={e => setNewTest({ ...newTest, description: e.target.value })}
-                                    placeholder="Test bo'yicha yo'riqnoma yoki qisqacha ma'lumot..."
+                                    placeholder="Test böyiça yo'riqnoma yoki qisqacha ma'lumot..."
                                     rows={4}
                                     className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
                                   />
@@ -4201,7 +4201,7 @@ function App() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">O'tish foizi (%)</label>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Ötiş foizi (%)</label>
                                     <input
                                       type="number"
                                       value={newTest.passingPercentage}
@@ -4286,11 +4286,11 @@ function App() {
                                     <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">MS Word (.docx) Import</span>
                                   </div>
                                   <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold leading-normal">
-                                    Hujjatdagi to'g'ri javob oldiga <code className="bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded font-black">+</code> belgisini qo'ying. Savollar avtomatik shakllantiriladi.
+                                    Hujjatdagi töğri javob oldiga <code className="bg-indigo-500/10 text-indigo-500 px-1 py-0.5 rounded font-black">+</code> belgisini qöying. Savollar avtomatik shakllantiriladi.
                                   </p>
                                   <label className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg cursor-pointer active:translate-y-px transition-all text-[10px] font-black shadow-md shadow-indigo-600/10 select-none">
                                     <span className="material-symbols-outlined text-[14px]">upload_file</span>
-                                    <span>Faylni yuklash</span>
+                                    <span>Faylni yuklaş</span>
                                     <input
                                       type="file"
                                       accept=".docx"
@@ -4322,14 +4322,14 @@ function App() {
                                 <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl space-y-1.5 text-[10px] font-bold text-slate-500">
                                   <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Tanlangan</div>
                                   <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> To'ldirilgan</div>
-                                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> Bo'sh savol</div>
+                                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> Boş savol</div>
                                 </div>
                               </div>
 
                               {/* Active Question Editor Area */}
                               <div className="lg:col-span-3 space-y-5">
                                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                                  <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">quiz</span> Savol #{activeQuestionIndex + 1} ni Tahrirlash</h3>
+                                  <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2"><span className="material-symbols-outlined text-indigo-500">quiz</span> Savol #{activeQuestionIndex + 1} ni Tahrirlaş</h3>
                                   <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{newTest.questions[activeQuestionIndex].text.trim().length > 0 ? 'Tayyor' : 'Matn yo\'q'}</span>
                                 </div>
 
@@ -4354,7 +4354,7 @@ function App() {
                                       <option value="multiple">Ko'p variantli (MCQ)</option>
                                       <option value="truefalse">Rost / Yolg'on</option>
                                       <option value="short">Qisqa matn javob</option>
-                                      <option value="math">Matematik formula yechimi</option>
+                                      <option value="math">Matematik formula yeçimi</option>
                                     </select>
                                   </div>
                                   <div className="space-y-1">
@@ -4382,7 +4382,7 @@ function App() {
                                       className="w-full p-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                                     >
                                       <option value="Easy">Oson (Easy)</option>
-                                      <option value="Medium">O'rtacha (Medium)</option>
+                                      <option value="Medium">Örtaça (Medium)</option>
                                       <option value="Hard">Qiyin (Hard)</option>
                                     </select>
                                   </div>
@@ -4398,8 +4398,8 @@ function App() {
                                     <button type="button" onClick={() => handleQuestionTextToolbarClick('italic')} title="Kursiv" className="w-8 h-8 italic font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">I</button>
                                     <button type="button" onClick={() => handleQuestionTextToolbarClick('underline')} title="Ostiga chizilgan" className="w-8 h-8 underline hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-xs text-slate-700 dark:text-slate-300">U</button>
                                     <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
-                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('bullet')} title="Belgili ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_bulleted</span></button>
-                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('number')} title="Raqamli ro'yxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_numbered</span></button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('bullet')} title="Belgili röyxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_bulleted</span></button>
+                                    <button type="button" onClick={() => handleQuestionTextToolbarClick('number')} title="Raqamli röyxat" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">format_list_numbered</span></button>
                                     <button type="button" onClick={() => handleQuestionTextToolbarClick('table')} title="Jadval" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">table</span></button>
                                     <button type="button" onClick={() => handleQuestionTextToolbarClick('link')} title="Havola" className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-700 dark:text-slate-300"><span className="material-symbols-outlined text-[16px]">link</span></button>
                                     <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
@@ -4426,7 +4426,7 @@ function App() {
                                             insertAdminUzbekChar(ch);
                                           }}
                                           className="w-6 h-6 rounded bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs hover:bg-amber-500 hover:text-white transition-colors flex items-center justify-center shadow-xs cursor-pointer"
-                                          title={`"${ch}" harfini kiritish`}
+                                          title={`"${ch}" harfini kiritiş`}
                                         >
                                           {ch}
                                         </button>
@@ -4448,7 +4448,7 @@ function App() {
 
                                   {/* Live Formula Preview Box */}
                                   <div className="space-y-1.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Formula va savolning jonli ko'rinishi (Live Rendered LaTeX Preview)</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Formula va savolning jonli körinişi (Live Rendered LaTeX Preview)</span>
                                     {renderMathPreview(newTest.questions[activeQuestionIndex].text, newTest.questions[activeQuestionIndex].imageUrl)}
                                   </div>
                                 </div>
@@ -4476,11 +4476,11 @@ function App() {
                                     <div className="flex justify-between items-center">
                                       <div className="space-y-2">
                                         <div className="flex justify-between items-center">
-                                          <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va to'g'ri javobni belgilash</span>
+                                          <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va töğri javobni belgilash</span>
                                         </div>
                                         {/* Quick Variant Picker */}
                                         <div className="flex items-center gap-2 p-2.5 bg-indigo-50/70 dark:bg-indigo-950/30 rounded-xl border border-indigo-200/60 dark:border-indigo-900/40">
-                                          <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">To'g'ri javob:</span>
+                                          <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">Töğri javob:</span>
                                           <div className="flex items-center gap-1.5 flex-wrap">
                                             {newTest.questions[activeQuestionIndex].options.map((_, oIdx) => {
                                               const isSelected = newTest.questions[activeQuestionIndex].type === 'multiple'
@@ -4507,7 +4507,7 @@ function App() {
                                                       ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105 ring-2 ring-emerald-400'
                                                       : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-indigo-400'
                                                   }`}
-                                                  title={`${String.fromCharCode(65 + oIdx)}-variantni to'g'ri javob qilish`}
+                                                  title={`${String.fromCharCode(65 + oIdx)}-variantni töğri javob qilish`}
                                                 >
                                                   {String.fromCharCode(65 + oIdx)}
                                                 </button>
@@ -4528,7 +4528,7 @@ function App() {
                                         }}
                                         className="px-2.5 py-1.5 bg-indigo-500/10 text-indigo-500 font-bold rounded-lg text-[10px] hover:bg-indigo-500 hover:text-white flex items-center gap-0.5"
                                       >
-                                        <span className="material-symbols-outlined text-xs">add</span> Variant Qo'shish
+                                        <span className="material-symbols-outlined text-xs">add</span> Variant Qöşiş
                                       </button>
                                     </div>
 
@@ -4556,7 +4556,7 @@ function App() {
                                                 setNewTest({ ...newTest, questions: updated });
                                               }}
                                               className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border transition-all ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-transparent'}`}
-                                              title="To'g'ri javob deb belgilash"
+                                              title="Töğri javob deb belgilash"
                                             >
                                               <span className="material-symbols-outlined text-[14px]">check</span>
                                             </button>
@@ -4611,7 +4611,7 @@ function App() {
                                               {opt && (opt.includes('\\') || opt.includes('^') || opt.includes('_')) && (
                                                 <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 pl-1 flex items-center gap-1.5 animate-fade-in">
                                                   <span className="material-symbols-outlined text-[12px] text-indigo-500">functions</span>
-                                                  <span>Formula ko'rinishi:</span>
+                                                  <span>Formula körinişi:</span>
                                                   <span className="bg-indigo-500/5 dark:bg-slate-900 px-2 py-0.5 rounded border border-indigo-500/10 dark:border-slate-800 text-slate-700 dark:text-indigo-400">
                                                     {renderMathInline(opt)}
                                                   </span>
@@ -4627,7 +4627,7 @@ function App() {
                                                 setNewTest({ ...newTest, questions: updated });
                                               }}
                                               className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors"
-                                              title="Variantni o'chirish"
+                                              title="Variantni öçiriş"
                                             >
                                               <span className="material-symbols-outlined text-[16px]">close</span>
                                             </button>
@@ -4669,7 +4669,7 @@ function App() {
                                 {newTest.questions[activeQuestionIndex].type === 'math' && (
                                   <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Qabul qilinadigan matematik yechim(lar)</span>
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Qabul qilinadigan matematik yeçim(lar)</span>
                                       <span className="text-[10px] font-semibold text-slate-400">Probellar hisobga olinmaydi</span>
                                     </div>
                                     <input
@@ -4724,7 +4724,7 @@ function App() {
                                               Gemini AI Semantik Baholash & Mezonlar Tizimi (Marking Scheme)
                                             </h4>
                                             <p className="text-[10px] text-slate-500 font-medium">
-                                              O'quvchi javobi faqat qat'iy so'zma-so'z emas, balki ma'no va belgilangan mezonlar bo'yicha baholanadi.
+                                              Öquvçi javobi faqat qat'iy so'zma-so'z emas, balki ma'no va belgilangan mezonlar böyiça baholanadi.
                                             </p>
                                           </div>
                                         </div>
@@ -4742,7 +4742,7 @@ function App() {
                                       <div className="space-y-1">
                                         <div className="flex justify-between items-center">
                                           <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1">
-                                            <span>Namunaviy (To'liq) Javob — Model Answer</span>
+                                            <span>Namunaviy (Töliq) Javob — Model Answer</span>
                                             <span className="text-rose-500">*</span>
                                           </label>
                                           <span className="text-[9px] text-slate-400 font-semibold">AI ushbu namunaga asoslanadi</span>
@@ -4751,7 +4751,7 @@ function App() {
                                           rows={2}
                                           value={scheme.modelAnswer || ""}
                                           onChange={e => updateScheme({ modelAnswer: e.target.value })}
-                                          placeholder="Masalan: CPU xotiradan buyruqni oladi (fetch), MAR/MDR orqali CIR ga uzatadi va boshqaruv qurilmasi uni dekodlaydi (decode)..."
+                                          placeholder="Masalan: CPU xotiradan buyruqni oladi (fetch), MAR/MDR orqali CIR ga uzatadi va boşqaruv qurilmasi uni dekodlaydi (decode)..."
                                           className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-medium text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all shadow-2xs"
                                         />
                                       </div>
@@ -4771,7 +4771,7 @@ function App() {
                                             }}
                                             className="px-2.5 py-1 bg-indigo-500 text-white rounded-lg text-[10px] font-bold hover:bg-indigo-600 flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
                                           >
-                                            <span className="material-symbols-outlined text-[12px]">add</span> Mezon qo'shish
+                                            <span className="material-symbols-outlined text-[12px]">add</span> Mezon qöşiş
                                           </button>
                                         </div>
 
@@ -4819,7 +4819,7 @@ function App() {
                                                     updateScheme({ criteria: copy });
                                                   }}
                                                   className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition-colors"
-                                                  title="Mezonni o'chirish"
+                                                  title="Mezonni öçiriş"
                                                 >
                                                   <span className="material-symbols-outlined text-[16px]">delete</span>
                                                 </button>
@@ -4839,7 +4839,7 @@ function App() {
                                             type="text"
                                             value={Array.isArray(scheme.acceptedAlternatives) ? scheme.acceptedAlternatives.join(', ') : (scheme.acceptedAlternatives || '')}
                                             onChange={e => updateScheme({ acceptedAlternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                                            placeholder="Vergul bilan: xotiradan yuklash, RAM dan qabul qilish..."
+                                            placeholder="Vergul bilan: xotiradan yuklaş, RAM dan qabul qilish..."
                                             className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none"
                                           />
                                         </div>
@@ -4853,7 +4853,7 @@ function App() {
                                             type="text"
                                             value={Array.isArray(scheme.misconceptions) ? scheme.misconceptions.join(', ') : (scheme.misconceptions || '')}
                                             onChange={e => updateScheme({ misconceptions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                                            placeholder="Vergul bilan: qattiq diskdan o'qish, monitorda chiqarish..."
+                                            placeholder="Vergul bilan: qattiq diskdan öqiş, monitorda çiqariş..."
                                             className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none"
                                           />
                                         </div>
@@ -4888,7 +4888,7 @@ function App() {
                                           updated[activeQuestionIndex].explanation = e.target.value;
                                           setNewTest({ ...newTest, questions: updated });
                                         }}
-                                        placeholder="Talaba testni topshirib bo'lgach ko'rinadigan qadam-baqadam yechim izohi..."
+                                        placeholder="Talaba testni topshirib bo'lgach körinadigan qadam-baqadam yeçim izohi..."
                                         rows={3}
                                         className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
                                       />
@@ -4902,7 +4902,7 @@ function App() {
                                           updated[activeQuestionIndex].hint = e.target.value;
                                           setNewTest({ ...newTest, questions: updated });
                                         }}
-                                        placeholder="Talabaga dars jarayonida ko'rsatiladigan kichik maslahat..."
+                                        placeholder="Talabaga dars jarayonida körsatiladigan kichik maslahat..."
                                         rows={3}
                                         className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-900 dark:text-white outline-none"
                                       />
@@ -4949,7 +4949,7 @@ function App() {
                                       disabled={newTest.questions.length <= 1}
                                       className="px-4 py-2 bg-rose-500/10 text-rose-500 text-xs font-bold rounded-xl hover:bg-rose-500 hover:text-white transition-colors flex items-center gap-1 disabled:opacity-30"
                                     >
-                                      <span className="material-symbols-outlined text-[16px]">delete</span> O'chirish
+                                      <span className="material-symbols-outlined text-[16px]">delete</span> Öçiriş
                                     </button>
                                     {activeQuestionIndex === newTest.questions.length - 1 ? (
                                       <button
@@ -4973,7 +4973,7 @@ function App() {
                                         }}
                                         className="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-colors flex items-center gap-1"
                                       >
-                                        Savol Qo'shish <span className="material-symbols-outlined text-[16px]">add</span>
+                                        Savol Qöşiş <span className="material-symbols-outlined text-[16px]">add</span>
                                       </button>
                                     ) : (
                                       <button
@@ -4999,9 +4999,9 @@ function App() {
 
                                   <div className="space-y-3">
                                     {[
-                                      { stateName: 'fullscreenMode', label: "To'liq ekran rejasi (Fullscreen taking)", desc: "Student testni to'liq ekranda yechadi, chiqishga ruxsat yo'q" },
-                                      { stateName: 'preventCopyPaste', label: "Nusxa ko'chirishni taqiqlash (Prevent copy/paste)", desc: "Savollar matnini nusxalash va javoblarni tashqi manbadan kiritish bloklanadi" },
-                                      { stateName: 'preventTabSwitch', label: "Tab almashtirishni cheklash (Prevent tab switching)", desc: "Brauzerda boshqa sahifaga o'tsa test avtomatik ravishda yakunlanadi" }
+                                      { stateName: 'fullscreenMode', label: "Töliq ekran rejasi (Fullscreen taking)", desc: "Student testni töliq ekranda yechadi, çiqişga ruxsat yöq" },
+                                      { stateName: 'preventCopyPaste', label: "Nusxa köçirişni taqiqlaş (Prevent copy/paste)", desc: "Savollar matnini nusxalash va javoblarni tashqi manbadan kiritiş bloklanadi" },
+                                      { stateName: 'preventTabSwitch', label: "Tab almaştirişni cheklash (Prevent tab switching)", desc: "Brauzerda boşqa sahifaga o'tsa test avtomatik ravishda yakunlanadi" }
                                     ].map(item => (
                                       <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
                                         <input
@@ -5024,10 +5024,10 @@ function App() {
 
                                   <div className="space-y-3">
                                     {[
-                                      { stateName: 'randomizeQuestions', label: "Savollarni tasodifiy tartiblash (Shuffle questions)", desc: "Har bir student uchun savollar har xil ketma-ketlikda chiqadi" },
-                                      { stateName: 'randomizeAnswers', label: "Javoblarni tasodifiy tartiblash (Shuffle answers)", desc: "MCQ variantlari har bir o'quvchida aralashtiriladi" },
-                                      { stateName: 'enableCalculator', label: "Kalkulyatorni yoqish (Calculator sheet)", desc: "Student pleyerida interaktiv hisob-kitob kalkulyatori ko'rinadi" },
-                                      { stateName: 'enableFormulaSheet', label: "Matematik formulalar varog'ini taqdim etish", desc: "Test jarayonida tayyor SAT formulalar varag'ini ochish imkoniyati" }
+                                      { stateName: 'randomizeQuestions', label: "Savollarni tasodifiy tartiblash (Shuffle questions)", desc: "Har bir student uçun savollar har xil ketma-ketlikda chiqadi" },
+                                      { stateName: 'randomizeAnswers', label: "Javoblarni tasodifiy tartiblash (Shuffle answers)", desc: "MCQ variantlari har bir öquvçida aralaştiriladi" },
+                                      { stateName: 'enableCalculator', label: "Kalkulyatorni yoqish (Calculator sheet)", desc: "Student pleyerida interaktiv hisob-kitob kalkulyatori körinadi" },
+                                      { stateName: 'enableFormulaSheet', label: "Matematik formulalar varoğini taqdim etish", desc: "Test jarayonida tayyor SAT formulalar varag'ini ochish imkoniyati" }
                                     ].map(item => (
                                       <label key={item.stateName} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/50 cursor-pointer">
                                         <input
@@ -5062,14 +5062,14 @@ function App() {
                                 </div>
 
                                 <div className="space-y-1">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Natijalarni darhol ko'rsatish (Instant result)</label>
+                                  <label className="text-xs font-bold text-slate-500 uppercase">Natijalarni darhol körsatiş (Instant result)</label>
                                   <select
                                     value={newTest.instantResult ? "true" : "false"}
                                     onChange={e => setNewTest({ ...newTest, instantResult: e.target.value === 'true' })}
                                     className="w-full p-3 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 outline-none"
                                   >
-                                    <option value="true">Darhol natija va yechim izohlarini ko'rsatish</option>
-                                    <option value="false">Faqat test muddati yakunlangach ko'rsatish</option>
+                                    <option value="true">Darhol natija va yeçim izohlarini körsatiş</option>
+                                    <option value="false">Faqat test muddati yakunlangaç körsatiş</option>
                                   </select>
                                 </div>
                               </div>
@@ -5079,7 +5079,7 @@ function App() {
                                   onClick={() => handleCreateTestSubmit('Draft')}
                                   className="px-5 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                 >
-                                  Qoralama saqlash
+                                  Qoralama saqlaş
                                 </button>
                                 <button
                                   onClick={() => handleCreateTestSubmit('Published')}
@@ -5100,8 +5100,8 @@ function App() {
                 <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <h2 className="text-2xl font-black text-slate-900 dark:text-white">Landing Sahifa Boshqaruvi</h2>
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Asosiy sahifadagi ma'lumotlar va sertifikatlarni o'zgartirish.</p>
+                      <h2 className="text-2xl font-black text-slate-900 dark:text-white">Landing Sahifa Boşqaruvi</h2>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Asosiy sahifadagi ma'lumotlar va sertifikatlarni özgartiriş.</p>
                     </div>
                   </div>
 
@@ -5132,7 +5132,7 @@ function App() {
                           <label className="text-xs font-bold text-slate-500 mb-1 block">Telegram Link</label>
                           <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none" value={landingSettings.telegramLink} onChange={(e) => setLandingSettings({ ...landingSettings, telegramLink: e.target.value })} />
                         </div>
-                        <button onClick={handleUpdateLandingSettings} className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all">Saqlash</button>
+                        <button onClick={handleUpdateLandingSettings} className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all">Saqlaş</button>
                       </div>
                     </div>
 
@@ -5148,13 +5148,13 @@ function App() {
                         <div className="flex flex-wrap gap-2 items-center w-full">
                           <label className="flex items-center justify-center gap-2 cursor-pointer bg-white dark:bg-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-600 p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 transition-all flex-1 min-w-[150px]">
                             <span className="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-300">upload_file</span>
-                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Sertifikat yuklash</span>
+                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Sertifikat yuklaş</span>
                             <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                               if (e.target.files[0]) {
                                 try {
                                   const url = await handleLandingImageUpload(e.target.files[0]);
                                   setNewLandingResult({ ...newLandingResult, imageUrl: url });
-                                } catch (err) { alert("Rasm yuklashda xatolik!"); }
+                                } catch (err) { alert("Rasm yuklaşda xatolik!"); }
                               }
                             }} />
                           </label>
@@ -5168,9 +5168,9 @@ function App() {
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="text-secondary">Yashil</option>
                             <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="text-tertiary">Qizgish</option>
                           </select>
-                          <button onClick={handleAddLandingResult} className="bg-indigo-500 text-white w-full sm:w-auto px-6 py-2.5 rounded-lg hover:bg-indigo-600 text-sm font-bold shrink-0 shadow-lg shadow-indigo-500/30 transition-all">Qo'shish</button>
+                          <button onClick={handleAddLandingResult} className="bg-indigo-500 text-white w-full sm:w-auto px-6 py-2.5 rounded-lg hover:bg-indigo-600 text-sm font-bold shrink-0 shadow-lg shadow-indigo-500/30 transition-all">Qöşiş</button>
                         </div>
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1">💡 <b>Tavsiya (Maksimal 10 tagacha):</b> Eng yaxshi natija uchun rasm vertikal (bo'yiga uzun) bo'lishi kerak (Masalan: 400x500 px yoki 600x800 px).</p>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1">💡 <b>Tavsiya (Maksimal 10 tagacha):</b> Eng yaxshi natija uçun rasm vertikal (bo'yiga uzun) bo'lishi kerak (Masalan: 400x500 px yoki 600x800 px).</p>
                       </div>
 
                       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -5199,7 +5199,7 @@ function App() {
                           className="bg-emerald-500 text-white w-full py-2.5 rounded-lg hover:bg-emerald-600 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition-all"
                         >
                           <span className="material-symbols-outlined text-[20px]">save</span>
-                          Ma'lumotlarni saqlash va Integratsiya qilish
+                          Ma'lumotlarni saqlaş va Integratsiya qilish
                         </button>
                       </div>
                     </div>
@@ -5219,7 +5219,7 @@ function App() {
                             <select className="bg-white dark:bg-slate-700/50 outline-none text-sm border border-slate-200 dark:border-slate-600 p-3 rounded-lg flex-1 text-slate-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer" value={newLandingPricing.type} onChange={e => setNewLandingPricing({ ...newLandingPricing, type: e.target.value })}>
                               <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="primary">Asosiy (Primary)</option>
                               <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="secondary">Ikkilamchi (Secondary)</option>
-                              <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="tertiary">Qo'shimcha (Tertiary)</option>
+                              <option className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white" value="tertiary">Qöşimcha (Tertiary)</option>
                             </select>
                             <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer bg-white dark:bg-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-600 p-3 rounded-lg border border-slate-200 dark:border-slate-600 transition-all">
                               <span className="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-300">image</span>
@@ -5229,13 +5229,13 @@ function App() {
                                   try {
                                     const url = await handleLandingImageUpload(e.target.files[0]);
                                     setNewLandingPricing({ ...newLandingPricing, imageUrl: url });
-                                  } catch (err) { alert("Rasm yuklashda xatolik!"); }
+                                  } catch (err) { alert("Rasm yuklaşda xatolik!"); }
                                 }
                               }} />
                             </label>
                           </div>
-                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1 mb-2">💡 <b>Tavsiya:</b> Kurs muqovasi uchun yotiq (landshaft) rasm yuklang (Masalan: 800x450 px).</p>
-                          <button onClick={handleAddLandingPricing} className="bg-indigo-500 text-white w-full py-2 rounded-lg hover:bg-indigo-600 text-sm font-bold">Tarif Qo'shish</button>
+                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1 mb-2">💡 <b>Tavsiya:</b> Kurs muqovasi uçun yotiq (landshaft) rasm yuklang (Masalan: 800x450 px).</p>
+                          <button onClick={handleAddLandingPricing} className="bg-indigo-500 text-white w-full py-2 rounded-lg hover:bg-indigo-600 text-sm font-bold">Tarif Qöşiş</button>
                         </div>
                       </div>
 
@@ -5249,7 +5249,7 @@ function App() {
                               </div>
                               {p.imageUrl && <img src={p.imageUrl} className="w-16 h-12 object-cover rounded-lg" alt="" />}
                               <div>
-                                <p className="font-bold text-slate-900 dark:text-white">{p.title} <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-500 ml-2">{p.price} so'm</span></p>
+                                <p className="font-bold text-slate-900 dark:text-white">{p.title} <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-500 ml-2">{p.price} söm</span></p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-lg truncate">{p.description}</p>
                               </div>
                             </div>
@@ -5271,7 +5271,7 @@ function App() {
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
               <div className="modern-card w-full max-w-md p-8 space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Talaba Qo'shish</h3>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Talaba Qöşiş</h3>
                   <button onClick={() => setShowAddStudentModal(false)} className="w-8 h-8 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-900 dark:text-white"><span className="material-symbols-outlined">close</span></button>
                 </div>
                 <form onSubmit={handleAddStudentSubmit} className="space-y-4">
@@ -5284,7 +5284,7 @@ function App() {
                     <input type="email" required value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} placeholder="Email" className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-indigo-500 outline-none text-slate-900 dark:text-white" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Yo'nalish (Kurs)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Yönaliş (Kurs)</label>
                     <select
                       required
                       value={newStudent.course}
@@ -5308,7 +5308,7 @@ function App() {
                         : 'bg-indigo-500/50 cursor-not-allowed'
                       }`}
                   >
-                    Saqlash
+                    Saqlaş
                   </button>
                 </form>
               </div>
@@ -5329,7 +5329,7 @@ function App() {
                     <input disabled value={assignCourseData.email} className="w-full p-4 bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Yo'nalish (Yangi Kurs)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Yönaliş (Yangi Kurs)</label>
                     <select
                       required
                       value={assignCourseData.course}
@@ -5370,7 +5370,7 @@ function App() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-black text-white">Xat yuborildi (Simulyatsiya)</h3>
-                  <p className="text-xs text-slate-400 font-medium">Yangi o'quvchi ro'yxatdan o'tdi va unga kirish ma'lumotlari elektron pochtasiga jo'natildi.</p>
+                  <p className="text-xs text-slate-400 font-medium">Yangi öquvçi röyxatdan o'tdi va unga kirish ma'lumotlari elektron pochtasiga jo'natildi.</p>
                 </div>
                 <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 text-left space-y-3">
                   <div>
@@ -5413,7 +5413,7 @@ function App() {
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
               <div className="modern-card w-full max-w-md p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                 <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Kategoriya Qo'shish</h3>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Yangi Kategoriya Qöşiş</h3>
                   <button onClick={() => setShowAddCategoryModal(false)} className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                     <span className="material-symbols-outlined text-[18px]">close</span>
                   </button>
@@ -5445,7 +5445,7 @@ function App() {
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className="w-full py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white font-black rounded-xl shadow-lg shadow-indigo-500/30 transition-all cursor-pointer">Saqlash</button>
+                  <button type="submit" className="w-full py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white font-black rounded-xl shadow-lg shadow-indigo-500/30 transition-all cursor-pointer">Saqlaş</button>
                 </form>
               </div>
             </div>
@@ -5456,12 +5456,12 @@ function App() {
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
               <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 <div className="bg-rose-500 p-6 flex justify-between items-center">
-                  <h3 className="text-xl font-black text-white flex items-center gap-2"><span className="material-symbols-outlined text-[24px]">warning</span> Diqqat! O'chirish</h3>
+                  <h3 className="text-xl font-black text-white flex items-center gap-2"><span className="material-symbols-outlined text-[24px]">warning</span> Diqqat! Öçiriş</h3>
                   <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"><span className="material-symbols-outlined text-[18px]">close</span></button>
                 </div>
                 <div className="p-6 space-y-4 text-slate-900 dark:text-white">
-                  <p className="text-sm">Mazkur kursni kurs nomini yozib o'chirishni xohlaysizmi? <br />Haqiqatdan ham <strong>{(deleteCourseTarget.title || '').trim()}</strong> kursini o'chirishni xohlaysizmi?</p>
-                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uchun quyidagi yozuvni kiriting: <br />"{(deleteCourseTarget.title || '').trim()}"</p>
+                  <p className="text-sm">Mazkur kursni kurs nomini yozib öçirişni xohlaysizmi? <br />Haqiqatdan ham <strong>{(deleteCourseTarget.title || '').trim()}</strong> kursini öçirişni xohlaysizmi?</p>
+                  <p className="text-sm font-bold text-rose-500">Tasdiqlash uçun quyidagi yozuvni kiriting: <br />"{(deleteCourseTarget.title || '').trim()}"</p>
                   <input
                     type="text"
                     value={deleteCourseInput}
@@ -5470,7 +5470,7 @@ function App() {
                     className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none text-slate-900 dark:text-white"
                   />
                   <div className="flex justify-end gap-3 pt-4">
-                    <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="px-5 py-2.5 rounded-xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Yo'q</button>
+                    <button onClick={() => { setDeleteCourseTarget(null); setDeleteCourseInput(''); }} className="px-5 py-2.5 rounded-xl font-bold text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Yöq</button>
                     {(() => {
                       const targetClean = (deleteCourseTarget.title || '').trim().toLowerCase();
                       const inputClean = deleteCourseInput.trim().toLowerCase();
@@ -5526,7 +5526,7 @@ function App() {
                   insertAdminUzbekChar(ch);
                 }}
                 className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white font-bold text-xs text-slate-800 dark:text-slate-200 transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
-                title={`"${ch}" harfini kiritish`}
+                title={`"${ch}" harfini kiritiş`}
               >
                 {ch}
               </button>
