@@ -514,12 +514,17 @@ function App() {
     }
   }, []);
 
-  // Real-time admin notifications polling
+  // Real-time admin notifications polling & push toasts
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) return;
+    // Request browser notification permission once if supported
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch (e) {}
+    }
 
     const checkNotifs = async () => {
+      const token = localStorage.getItem('admin_token');
+      if (!token) return;
+
       try {
         const notifRes = await fetchWithAuth('/api/notifications');
         if (notifRes.ok) {
@@ -529,6 +534,8 @@ function App() {
             const newUnread = notifs.filter(n => !n.isRead && !prevIds.has(n.id));
             if (newUnread.length > 0 && prev.length > 0) {
               setAdminPushToast(newUnread[0]);
+
+              // Audio chime
               try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -542,7 +549,17 @@ function App() {
                 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
                 osc.start();
                 osc.stop(ctx.currentTime + 0.35);
-              } catch(e) {}
+              } catch (e) {}
+
+              // Native browser Push notification
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification(newUnread[0].title, {
+                    body: newUnread[0].message,
+                    icon: '/sigma-logo.png'
+                  });
+                } catch (e) {}
+              }
             }
             return notifs;
           });
@@ -552,7 +569,19 @@ function App() {
 
     checkNotifs();
     const interval = setInterval(checkNotifs, 3000);
-    return () => clearInterval(interval);
+
+    // Cross-tab synchronization via storage event
+    const handleStorageEvent = (e) => {
+      if (e.key === 'lms_notification_sync') {
+        checkNotifs();
+      }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   // Listen to cross-tab submissions updates
@@ -727,6 +756,10 @@ function App() {
 
       const savedItem = data || testData;
       setTests(prev => [savedItem, ...prev.filter(t => t.id !== (newTest.id || savedItem.id))]);
+      try {
+        localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_updated', at: Date.now() }));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {}
       alert(finalStatus === 'Published' ? "Test muvaffaqiyatli chop etildi!" : "Test qoralama sifatida saqlandi!");
       setIsBuildingTest(false);
       syncData();
@@ -745,6 +778,10 @@ function App() {
         const data = await response.json();
         throw new Error(data.error || 'O\'chirishda xatolik.');
       }
+      try {
+        localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_deleted', at: Date.now() }));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {}
       alert("Test platformadan o'chirildi!");
       syncData();
     } catch (err) {

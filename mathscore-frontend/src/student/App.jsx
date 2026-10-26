@@ -710,10 +710,15 @@ export default function App() {
 
   // Real-time student notifications polling & push toasts
   useEffect(() => {
-    const token = localStorage.getItem('student_token');
-    if (!token) return;
+    // Request browser notification permission once if supported
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch (e) {}
+    }
 
     const checkStudentNotifs = async () => {
+      const token = localStorage.getItem('student_token');
+      if (!token) return;
+
       try {
         const notifRes = await fetchWithAuth('/api/notifications');
         if (notifRes.ok) {
@@ -723,6 +728,8 @@ export default function App() {
             const newUnread = notifs.filter(n => !n.isRead && !prevIds.has(n.id));
             if (newUnread.length > 0 && prev.length > 0) {
               setStudentPushToast(newUnread[0]);
+
+              // Audio notification chime
               try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -736,7 +743,17 @@ export default function App() {
                 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
                 osc.start();
                 osc.stop(ctx.currentTime + 0.35);
-              } catch(e) {}
+              } catch (e) {}
+
+              // Native browser Push notification
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification(newUnread[0].title, {
+                    body: newUnread[0].message,
+                    icon: '/sigma-logo.png'
+                  });
+                } catch (e) {}
+              }
             }
             return notifs;
           });
@@ -746,7 +763,19 @@ export default function App() {
 
     checkStudentNotifs();
     const interval = setInterval(checkStudentNotifs, 3000);
-    return () => clearInterval(interval);
+
+    // Cross-tab synchronization via storage event
+    const handleStorageEvent = (e) => {
+      if (e.key === 'lms_notification_sync') {
+        checkStudentNotifs();
+      }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   // Test State Variables
@@ -772,6 +801,22 @@ export default function App() {
       return course.lessons.every(l => l.completed);
     }
     return false;
+  };
+
+  const formatCertificateDate = (dateVal) => {
+    if (!dateVal) {
+      const d = new Date();
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return String(dateVal);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   // Security / Cheat Shield state
@@ -1403,6 +1448,7 @@ export default function App() {
         };
         const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
         localStorage.setItem('mathscore_submissions', JSON.stringify(updated));
+        localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_submitted', at: Date.now() }));
         window.dispatchEvent(new Event('storage'));
       } catch (e) {
         console.error('Local submission cache error:', e);
@@ -1539,6 +1585,7 @@ export default function App() {
         };
         const updated = [newRecord, ...localList.filter(s => String(s.id) !== String(newRecord.id))];
         localStorage.setItem('mathscore_submissions', JSON.stringify(updated));
+        localStorage.setItem('lms_notification_sync', JSON.stringify({ type: 'test_submitted', at: Date.now() }));
         window.dispatchEvent(new Event('storage'));
       } catch (e) {}
 
@@ -1628,6 +1675,8 @@ export default function App() {
 
   const sidebarNavItems = [
     { name: 'Dashboard', icon: 'dashboard', page: 'dashboard' },
+    { name: 'Kurslarim', icon: 'menu_book', page: 'courses' },
+    { name: 'Sertifikatlarim', icon: 'workspace_premium', page: 'certificates' },
     { name: 'Topshiriqlar', icon: 'assignment', page: 'tasks' },
     { name: 'Testlar Markazi', icon: 'quiz', page: 'test-center' },
     { name: 'Imtihon Natijalari', icon: 'insights', page: 'test-results' },
@@ -2100,16 +2149,10 @@ export default function App() {
                   Kurslarim
                 </button>
                 <button
-                  onClick={() => setCurrentPage('tasks')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'tasks' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
+                  onClick={() => setCurrentPage('certificates')}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'certificates' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
                 >
-                  Topshiriqlar
-                </button>
-                <button
-                  onClick={() => setCurrentPage('test-center')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'test-center' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
-                >
-                  Imtihonlar
+                  Sertifikatlarim
                 </button>
               </nav>
             </div>
@@ -2279,7 +2322,7 @@ export default function App() {
 
             {/* Primary content area */}
             <main className="flex-1 h-full bg-background overflow-y-auto px-4 sm:px-6 py-6 relative scroll-smooth">
-              <div className={`${currentPage === 'test-interface' && showDesmos ? 'max-w-[1650px]' : currentPage === 'test-interface' ? 'max-w-[1250px]' : 'max-w-[1000px]'} mx-auto transition-all duration-300`}>
+              <div className={`${currentPage === 'test-interface' && showDesmos ? 'max-w-[1650px]' : (currentPage === 'test-interface' || currentPage === 'certificates') ? 'max-w-[1250px]' : 'max-w-[1000px]'} mx-auto transition-all duration-300`}>
 
                 {/* -------------------- DASHBOARD VIEW -------------------- */}
                 {currentPage === 'dashboard' && (
@@ -2618,6 +2661,180 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* -------------------- SERTIFIKATLARIM VIEW -------------------- */}
+                {currentPage === 'certificates' && (
+                  <div className="space-y-6 animate-fade-in">
+                    {/* Page Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
+                          <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
+                        </div>
+                        <div>
+                          <h1 className="font-outfit text-2xl font-black text-on-surface">Sertifikatlarim</h1>
+                          <p className="text-xs text-outline font-medium mt-0.5">
+                            Muvaffaqiyatli tamomlangan kurslaringiz va rasmiy tasdiqlangan sertifikatlaringiz
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="px-3.5 py-1.5 rounded-xl bg-surface-container border border-outline-variant text-xs font-bold text-on-surface flex items-center gap-1.5 shadow-xs">
+                          <span className="material-symbols-outlined text-[16px] text-amber-600 fill">military_tech</span>
+                          <span>Jami sertifikatlar: {courses.filter(isCourseCompleted).length} ta</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Certificates Grid */}
+                    {(() => {
+                      const completedCourses = courses
+                        .filter(isCourseCompleted)
+                        .sort((a, b) => {
+                          const dateA = new Date(a.completedAt || a.updatedAt || a.createdAt || 0).getTime();
+                          const dateB = new Date(b.completedAt || b.updatedAt || b.createdAt || 0).getTime();
+                          return dateB - dateA;
+                        });
+
+                      if (completedCourses.length === 0) {
+                        return (
+                          <div className="p-12 text-center rounded-3xl bg-surface border border-outline-variant flex flex-col items-center justify-center max-w-lg mx-auto mt-8 shadow-xs">
+                            <div className="w-20 h-20 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
+                              <span className="material-symbols-outlined text-[42px]">workspace_premium</span>
+                            </div>
+                            <h3 className="font-outfit font-black text-lg text-on-surface">Hozircha sertifikatlar mavjud emas</h3>
+                            <p className="text-xs text-outline mt-2 leading-relaxed max-w-sm">
+                              Kurslarni 100% muvaffaqiyat bilan tamomlab, o'z rasmiy Sigma Education sertifikatingizni qo'lga kiriting!
+                            </p>
+                            <button
+                              onClick={() => setCurrentPage('courses')}
+                              className="mt-6 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs transition-all cursor-pointer shadow-md shadow-primary/25 flex items-center gap-2"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                              <span>Kurslarga o'tish</span>
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {completedCourses.map((c) => {
+                            const compDate = formatCertificateDate(c.completedAt || c.updatedAt || c.createdAt);
+                            return (
+                              <div
+                                key={c.id}
+                                className="group rounded-2xl bg-surface border border-outline-variant hover:border-amber-500/50 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden"
+                              >
+                                {/* Horizontal / Landscape Mini Certificate Preview */}
+                                <div
+                                  onClick={() => {
+                                    setCompletedCourseForCert(c);
+                                    setShowCourseCertificate(true);
+                                  }}
+                                  className="p-3 bg-gradient-to-b from-amber-500/5 via-surface-container-low to-surface-container cursor-pointer relative"
+                                  title="Kattalashtirib ko'rish"
+                                >
+                                  <div className="aspect-[1.414/1] w-full rounded-xl bg-[#FFFDF9] text-zinc-900 border-4 border-double border-amber-600/35 p-3 flex flex-col justify-between items-center text-center shadow-xs group-hover:scale-[1.01] transition-transform relative overflow-hidden select-none">
+                                    {/* Watermark */}
+                                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center font-bold text-6xl font-serif text-amber-900">
+                                      Σ
+                                    </div>
+
+                                    {/* Top mini header */}
+                                    <div className="w-full flex items-center justify-between text-[8px] font-bold text-zinc-500 z-10">
+                                      <div className="flex items-center gap-1">
+                                        <img src="/sigma-logo.png" alt="Sigma" className="h-3.5 w-auto object-contain" />
+                                        <span className="font-outfit font-black text-slate-800 uppercase text-[7px]">Sigma Education</span>
+                                      </div>
+                                      <span className="font-outfit text-amber-700 font-black text-[7px] uppercase">MathScore LMS</span>
+                                    </div>
+
+                                    {/* Middle preview info */}
+                                    <div className="z-10 py-1 space-y-0.5">
+                                      <div className="text-[8px] font-bold text-amber-800 uppercase tracking-widest font-outfit">
+                                        SERTIFIKAT
+                                      </div>
+                                      <div className="text-[11px] font-black text-zinc-900 font-outfit uppercase truncate max-w-[180px]">
+                                        {profile.firstName} {profile.lastName}
+                                      </div>
+                                      <div className="text-[7.5px] text-zinc-600 line-clamp-1 italic max-w-[200px]">
+                                        "{c.title}"
+                                      </div>
+                                    </div>
+
+                                    {/* Bottom preview info */}
+                                    <div className="w-full flex items-center justify-between text-[7px] font-bold text-zinc-600 z-10 pt-1 border-t border-amber-900/10">
+                                      <span>Toxirova Malika</span>
+                                      <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                                        <span className="material-symbols-outlined text-[11px] fill">verified</span>
+                                      </div>
+                                      <span className="font-mono">{compDate}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Card Content & Details */}
+                                <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-surface">
+                                  <div>
+                                    {/* Course Title */}
+                                    <h3 className="font-outfit font-bold text-sm text-on-surface line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+                                      {c.title}
+                                    </h3>
+
+                                    {/* Completion Date */}
+                                    <div className="flex items-center justify-between text-xs text-outline mt-2 pt-2 border-t border-outline-variant">
+                                      <div className="flex items-center gap-1.5 font-medium">
+                                        <span className="material-symbols-outlined text-[16px] text-amber-600">event_available</span>
+                                        <span className="text-[11px]">Tugatgan sana:</span>
+                                        <span className="font-bold text-on-surface font-mono text-[11px]">{compDate}</span>
+                                      </div>
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black flex items-center gap-0.5">
+                                        <span className="material-symbols-outlined text-[12px] fill">check_circle</span>
+                                        100%
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Action buttons: PDF Landscape Download / View & Direct Landscape Print */}
+                                  <div className="grid grid-cols-2 gap-2 pt-1">
+                                    <button
+                                      onClick={() => {
+                                        setCompletedCourseForCert(c);
+                                        setShowCourseCertificate(true);
+                                      }}
+                                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs transition-colors cursor-pointer"
+                                      title="Sertifikatni ko'rish va PDF yuklab olish"
+                                    >
+                                      <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                      <span>PDF yuklash</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setCompletedCourseForCert(c);
+                                        setShowCourseCertificate(true);
+                                        setTimeout(() => {
+                                          window.print();
+                                        }, 350);
+                                      }}
+                                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs transition-all cursor-pointer shadow-sm shadow-amber-600/20"
+                                      title="Gorizontal (Albom) rejimida chop etish"
+                                    >
+                                      <span className="material-symbols-outlined text-[16px]">print</span>
+                                      <span>Chop etish</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -3715,8 +3932,8 @@ export default function App() {
 
       {/* -------------------- PREMIUM ACADEMIC TEST CERTIFICATE MODAL -------------------- */}
       {showCertificate && quizResult && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
-          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-3xl p-6 sm:p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-4 sm:space-y-5 relative overflow-hidden bg-cover bg-center">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
+          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-2xl sm:rounded-3xl p-6 sm:p-10 max-w-4xl lg:max-w-5xl w-full aspect-[1.414/1] min-h-[480px] sm:min-h-[520px] border-[10px] border-double border-amber-600/40 shadow-2xl flex flex-col justify-between items-center text-center relative overflow-hidden bg-cover bg-center">
 
             {/* Elegant Background Watermark Pattern */}
             <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[180px] font-serif text-amber-900">
@@ -3746,57 +3963,60 @@ export default function App() {
             </div>
 
             {/* Certificate Header */}
-            <div className="space-y-1.5 z-10 w-full text-center">
+            <div className="space-y-1 z-10 w-full text-center mt-2">
               <div className="text-amber-800 font-bold uppercase tracking-[0.3em] text-[10px] sm:text-[11px] font-outfit">
-                MathScore Online LMS &bull; Sigma Education
+                Sigma Education &bull; MathScore LMS
               </div>
-              <h2 className="font-serif text-3xl sm:text-4xl font-black tracking-widest text-zinc-900 uppercase">
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black tracking-[0.25em] text-zinc-900 uppercase">
                 SERTIFIKAT
               </h2>
               <p className="font-sans text-[10px] sm:text-[11px] tracking-[0.25em] font-bold uppercase text-amber-700">
                 Certificate of Academic Achievement
               </p>
-              <div className="w-28 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
+              <div className="w-32 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
             </div>
 
             {/* Certificate Main Text */}
-            <div className="space-y-3.5 z-10 max-w-md">
-              <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">Ushbu hujjat mamnuniyat bilan topshiriladi:</p>
+            <div className="my-auto py-2 sm:py-3 space-y-2.5 sm:space-y-3 z-10 max-w-2xl w-full text-center">
+              <p className="font-serif italic text-zinc-600 text-xs sm:text-sm">
+                Ushbu rasmiy akademik hujjat muvaffaqiyat bilan topshiriladi:
+              </p>
 
-              <h3 className="font-outfit text-xl sm:text-2xl font-black text-amber-900 border-b-2 border-amber-300 pb-1 px-6 inline-block tracking-wide uppercase">
+              <h3 className="font-outfit text-2xl sm:text-3xl md:text-4xl font-black text-amber-950 border-b-2 border-amber-400 pb-1 px-8 inline-block tracking-wider uppercase">
                 {profile.firstName} {profile.lastName}
               </h3>
 
-              <p className="text-xs text-zinc-600 leading-relaxed font-serif font-medium">
-                talabaning <strong>{quizResult.testTitle}</strong> bo'limidagi barcha murakkab algebraic va geometrik hisob-kitoblar hamda test sinovlaridan muvaffaqiyatli o'tganligini va <strong>{quizResult.score}%</strong> yuqori ko'rsatkich qayd etganligini tasdiqlaydi.
+              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed font-serif font-medium px-4">
+                talabaning <strong>"{quizResult.testTitle}"</strong> bo'limidagi barcha murakkab algebraic va geometrik hisob-kitoblar hamda test sinovlaridan muvaffaqiyatli o'tganligini va <strong>{quizResult.score}%</strong> yuqori ko'rsatkich qayd etganligini tasdiqlaydi.
               </p>
             </div>
 
             {/* Signatures & Seal */}
-            <div className="w-full grid grid-cols-3 items-end pt-4 sm:pt-5 z-10 text-[10px] font-bold">
+            <div className="w-full grid grid-cols-3 items-end pt-3 sm:pt-4 z-10 border-t border-amber-900/15">
 
               {/* Left Sign: Toxirova Malika */}
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-zinc-800 text-xs sm:text-sm block h-6 font-semibold">Toxirova Malika</span>
-                <div className="w-24 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
+                <span className="font-serif italic text-zinc-900 text-sm sm:text-base font-bold block h-6">Toxirova Malika</span>
+                <div className="w-28 sm:w-36 border-t border-zinc-400 mt-1"></div>
+                <span className="text-zinc-600 uppercase text-[9px] sm:text-[10px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
               </div>
 
               {/* Gold Medal Seal */}
               <div className="flex justify-center">
-                <div className="relative w-15 h-15 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-md border-4 border-amber-300 animate-spin-slow">
-                  <div className="absolute inset-2 border border-dashed border-white/40 rounded-full"></div>
-                  <span className="material-symbols-outlined text-[26px] text-white fill">verified</span>
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300">
+                  <div className="absolute inset-2 border border-dashed border-white/60 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[28px] sm:text-[34px] text-white fill">verified</span>
+                  </div>
                 </div>
               </div>
 
               {/* Right Date */}
               <div className="flex flex-col items-center">
-                <span className="text-zinc-800 block h-6 font-medium leading-loose text-xs">
-                  {new Date(quizResult.submittedAt || Date.now()).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <span className="text-zinc-900 block h-6 font-mono font-bold text-xs sm:text-sm leading-loose">
+                  {formatCertificateDate(quizResult.submittedAt || quizResult.date || quizResult.timestamp)}
                 </span>
-                <div className="w-24 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Berilgan Sana</span>
+                <div className="w-28 sm:w-36 border-t border-zinc-400 mt-1"></div>
+                <span className="text-zinc-600 uppercase text-[9px] sm:text-[10px] tracking-wider mt-1 block font-bold">Berilgan Sana (DD-MM-YYYY)</span>
               </div>
             </div>
 
@@ -3804,15 +4024,15 @@ export default function App() {
             <div className="pt-3 flex gap-3 z-10 text-xs font-semibold no-print">
               <button
                 onClick={() => { window.print(); }}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors shadow-md shadow-amber-600/20"
               >
-                <span className="material-symbols-outlined text-[15px]">print</span>
+                <span className="material-symbols-outlined text-[16px]">print</span>
                 Chop etish / PDF saqlash
               </button>
 
               <button
                 onClick={() => setShowCertificate(false)}
-                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl cursor-pointer transition-colors"
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-2.5 rounded-xl cursor-pointer transition-colors"
               >
                 Yopish
               </button>
@@ -3823,8 +4043,8 @@ export default function App() {
 
       {/* -------------------- VIDEO COURSE COMPLETION CERTIFICATE MODAL -------------------- */}
       {showCourseCertificate && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
-          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-3xl p-6 sm:p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-4 sm:space-y-5 relative overflow-hidden bg-cover bg-center">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
+          <div className="printable-certificate bg-[#FFFDF9] text-zinc-900 rounded-2xl sm:rounded-3xl p-6 sm:p-10 max-w-4xl lg:max-w-5xl w-full aspect-[1.414/1] min-h-[480px] sm:min-h-[520px] border-[10px] border-double border-amber-600/40 shadow-2xl flex flex-col justify-between items-center text-center relative overflow-hidden bg-cover bg-center">
 
             {/* Elegant Background Watermark Pattern: Greek Sigma */}
             <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[200px] font-serif text-amber-900">
@@ -3854,26 +4074,26 @@ export default function App() {
             </div>
 
             {/* Certificate Header */}
-            <div className="space-y-1.5 z-10 w-full text-center">
+            <div className="space-y-1 z-10 w-full text-center mt-2">
               <div className="text-amber-800 font-bold uppercase tracking-[0.3em] text-[10px] sm:text-[11px] font-outfit">
-                MathScore Online LMS &bull; Sigma Education
+                Sigma Education &bull; MathScore LMS
               </div>
-              <h2 className="font-serif text-3xl sm:text-4xl font-black tracking-widest text-zinc-900 uppercase">
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black tracking-[0.25em] text-zinc-900 uppercase">
                 SERTIFIKAT
               </h2>
               <p className="font-sans text-[10px] sm:text-[11px] tracking-[0.25em] font-bold uppercase text-amber-700">
                 Certificate of Course Completion
               </p>
-              <div className="w-28 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
+              <div className="w-32 h-[2px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-1.5"></div>
             </div>
 
             {/* Certificate Main Text */}
-            <div className="space-y-3.5 z-10 max-w-lg">
-              <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">
-                Ushbu rasmiy hujjat mamnuniyat bilan topshiriladi:
+            <div className="my-auto py-2 sm:py-3 space-y-2.5 sm:space-y-3 z-10 max-w-2xl w-full text-center">
+              <p className="font-serif italic text-zinc-600 text-xs sm:text-sm">
+                Ushbu rasmiy bitiruv hujjati muvaffaqiyat bilan topshiriladi:
               </p>
 
-              <h3 className="font-outfit text-2xl sm:text-3xl font-black text-amber-900 border-b-2 border-amber-300 pb-1 px-6 inline-block tracking-wide uppercase">
+              <h3 className="font-outfit text-2xl sm:text-3xl md:text-4xl font-black text-amber-950 border-b-2 border-amber-400 pb-1 px-8 inline-block tracking-wider uppercase">
                 {profile.firstName} {profile.lastName}
               </h3>
 
@@ -3883,30 +4103,31 @@ export default function App() {
             </div>
 
             {/* Signatures & Seal */}
-            <div className="w-full grid grid-cols-3 items-end pt-4 sm:pt-5 z-10 text-[10px] font-bold">
+            <div className="w-full grid grid-cols-3 items-end pt-3 sm:pt-4 z-10 border-t border-amber-900/15">
 
               {/* Left Sign: Toxirova Malika */}
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-zinc-800 text-xs sm:text-sm block h-6 font-semibold">Toxirova Malika</span>
-                <div className="w-24 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
+                <span className="font-serif italic text-zinc-900 text-sm sm:text-base font-bold block h-6">Toxirova Malika</span>
+                <div className="w-28 sm:w-36 border-t border-zinc-400 mt-1"></div>
+                <span className="text-zinc-600 uppercase text-[9px] sm:text-[10px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
               </div>
 
               {/* Gold Medal Seal */}
               <div className="flex justify-center">
-                <div className="relative w-15 h-15 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300 animate-spin-slow">
-                  <div className="absolute inset-2 border border-dashed border-white/50 rounded-full"></div>
-                  <span className="material-symbols-outlined text-[28px] text-white fill">verified</span>
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300">
+                  <div className="absolute inset-2 border border-dashed border-white/60 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[28px] sm:text-[34px] text-white fill">verified</span>
+                  </div>
                 </div>
               </div>
 
               {/* Right Date */}
               <div className="flex flex-col items-center">
-                <span className="text-zinc-800 block h-6 font-medium leading-loose text-xs">
-                  {new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <span className="text-zinc-900 block h-6 font-mono font-bold text-xs sm:text-sm leading-loose">
+                  {formatCertificateDate(completedCourseForCert?.completedAt || completedCourseForCert?.updatedAt || completedCourseForCert?.createdAt)}
                 </span>
-                <div className="w-24 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Berilgan Sana</span>
+                <div className="w-28 sm:w-36 border-t border-zinc-400 mt-1"></div>
+                <span className="text-zinc-600 uppercase text-[9px] sm:text-[10px] tracking-wider mt-1 block font-bold">Berilgan Sana (DD-MM-YYYY)</span>
               </div>
             </div>
 
@@ -3914,7 +4135,7 @@ export default function App() {
             <div className="pt-3 flex gap-3 z-10 text-xs font-semibold no-print">
               <button
                 onClick={() => { window.print(); }}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-amber-600/20 hover:scale-105"
+                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-amber-600/20"
               >
                 <span className="material-symbols-outlined text-[16px]">print</span>
                 Chop etish / PDF saqlash

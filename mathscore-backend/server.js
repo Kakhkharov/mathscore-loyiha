@@ -995,6 +995,16 @@ app.put('/api/submissions/:id/grade', authenticateToken, requireRole('admin'), a
     details: JSON.stringify(details)
   });
 
+  if (sub.userId) {
+    try {
+      await sendNotificationToUser(
+        sub.userId,
+        "Test natijangiz yangilandi 🎯",
+        `"${sub.testTitle || 'Test'}" bo'yicha yozma javobingiz o'qituvchi tomonidan baholandi. Yangi natijangiz: ${newScore}% (${earned}/${totalPos} ball).`
+      );
+    } catch (e) {}
+  }
+
   res.json({ message: 'Baho muvaffaqiyatli yangilandi!', submission: updatedSub });
 });
 
