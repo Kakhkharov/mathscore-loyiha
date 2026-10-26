@@ -675,9 +675,9 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 dark:border-slate-800 flex flex-col justify-between group"
             >
               {/* Top Banner (Yashil to'lqinli qism - 1-rasm) */}
-              <div className="relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400 pt-5 px-5 pb-9 overflow-hidden">
+              <div className="relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400 pt-4 px-5 pb-8 overflow-hidden">
                 {/* 3D Calculator & Worksheet Illustration effect in background */}
-                <div className="absolute right-2 bottom-1 opacity-80 pointer-events-none select-none">
+                <div className="absolute right-2 bottom-1 opacity-70 pointer-events-none select-none">
                   <svg width="115" height="75" viewBox="0 0 115 75" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="18" y="10" width="50" height="60" rx="8" fill="#E2F1E8" opacity="0.9" />
                     <rect x="25" y="18" width="22" height="4" rx="2" fill="#A8D5BA" />
@@ -703,31 +703,34 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                 {/* Silliq to'lqinsimon o'tish (Wave Curve) */}
                 <div className="absolute -bottom-1 left-0 right-0 h-6 bg-white dark:bg-slate-900 rounded-t-[28px]" />
 
-                {/* Top Row: [📖 Kurs nomi] + Timer + Delete Button */}
-                <div className="relative z-10 flex items-center justify-between gap-2">
+                {/* Top Row: [📖 Kurs / Fan nomi (2 qatorgacha sig'adigan)] + Aylana Delete Button */}
+                <div className="relative z-10 flex items-start justify-between gap-3">
                   {/* Left: Green badge with book icon */}
-                  <div className="bg-white/20 backdrop-blur-md text-white font-bold text-xs px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-xs border border-white/20 truncate max-w-[170px]">
-                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                    <span className="truncate">{task.courseTitle || 'Mathematics'}</span>
+                  <div className="bg-white/20 backdrop-blur-md text-white font-bold text-xs px-3.5 py-1.5 rounded-2xl flex items-center gap-2 shadow-xs border border-white/25 max-w-[calc(100%-46px)]">
+                    <span className="material-symbols-outlined text-[16px] shrink-0">menu_book</span>
+                    <span className="line-clamp-2 leading-tight break-words">{task.courseTitle || 'Mathematics'}</span>
                   </div>
 
-                  {/* Right: Timer & Delete button */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex items-center gap-1.5 text-white font-semibold text-xs drop-shadow-xs">
-                      <span className="material-symbols-outlined text-[17px]">schedule</span>
-                      <span className="font-mono">{countdown.text}</span>
-                    </div>
+                  {/* Delete Icon (Aniq mukammal aylana shape - 2-rasm talabi) */}
+                  <button
+                    type="button"
+                    onClick={() => setTaskToDelete(task)}
+                    className="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full shrink-0 bg-white flex items-center justify-center shadow-md hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all cursor-pointer group/del"
+                    title="Topshiriqni o'chirish"
+                  >
+                    <span className="material-symbols-outlined text-rose-500 text-[19px] group-hover/del:rotate-12 transition-transform">
+                      delete
+                    </span>
+                  </button>
+                </div>
 
-                    {/* Delete Icon (Yumaloq oq fon ichida qizil axlat qutisi) */}
-                    <button
-                      onClick={() => setTaskToDelete(task)}
-                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer group/del"
-                      title="Topshiriqni o'chirish"
-                    >
-                      <span className="material-symbols-outlined text-rose-500 text-[19px] group-hover/del:rotate-12 transition-transform">
-                        delete
-                      </span>
-                    </button>
+                {/* Kreativ va o'qishga oson Deadline Countdown badge (2-rasm talabi) */}
+                <div className="relative z-10 mt-2.5 flex items-center">
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 bg-black/30 backdrop-blur-md rounded-full text-white text-[11px] font-mono font-bold border border-white/20 shadow-xs whitespace-nowrap ${countdown.isExpired ? 'bg-rose-900/40 text-rose-200 border-rose-300/30' : ''}`}>
+                    <span className={`material-symbols-outlined text-[14px] ${countdown.isExpired ? 'text-rose-400' : 'text-amber-300'}`}>
+                      {countdown.isExpired ? 'timer_off' : 'timer'}
+                    </span>
+                    <span className="tracking-wide">{countdown.text}</span>
                   </div>
                 </div>
               </div>
@@ -735,7 +738,7 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
               {/* Card Body (Oq qism - 1-rasm) */}
               <div className="px-5 pb-5 pt-1 space-y-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-black text-lg text-slate-800 dark:text-white tracking-tight">
+                  <h3 className="font-black text-lg text-slate-800 dark:text-white tracking-tight line-clamp-2 leading-snug break-words" title={task.title}>
                     {task.title}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
@@ -743,62 +746,62 @@ export default function TasksDashboard({ adminProfile, courses = [] }) {
                   </p>
                 </div>
 
-                {/* 3 ta statistika qutichasi (1-rasm) */}
-                <div className="grid grid-cols-3 gap-2.5 pt-1">
-                  {/* 1. Total Assignments */}
-                  <div className="bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl p-2.5 flex items-center gap-2 border border-purple-100/60 dark:border-purple-900/40">
-                    <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[18px]">description</span>
+                {/* 3 ta statistika qutichasi (3-rasm: Total, Submit, Links to'liq sig'adigan qilingan) */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+                  {/* 1. Total */}
+                  <div className="bg-purple-50/70 dark:bg-purple-950/30 rounded-2xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 border border-purple-100/60 dark:border-purple-900/40">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[16px] sm:text-[18px]">description</span>
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-black text-sm text-slate-800 dark:text-white leading-tight">
                         {task.tasksCount || 1}
                       </div>
-                      <div className="text-[9px] text-slate-400 font-semibold truncate leading-tight mt-0.5">
-                        Total Assignments
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold whitespace-nowrap leading-tight mt-0.5">
+                        Total
                       </div>
                     </div>
                   </div>
 
-                  {/* 2. Submitted */}
-                  <div className="bg-emerald-50/70 dark:bg-emerald-950/30 rounded-2xl p-2.5 flex items-center gap-2 border border-emerald-100/60 dark:border-emerald-900/40">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[18px]">groups</span>
+                  {/* 2. Submit */}
+                  <div className="bg-emerald-50/70 dark:bg-emerald-950/30 rounded-2xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 border border-emerald-100/60 dark:border-emerald-900/40">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[16px] sm:text-[18px]">groups</span>
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-black text-sm text-slate-800 dark:text-white leading-tight">
                         {submittedCount || task.uploadedStudentsCount || 0}
                       </div>
-                      <div className="text-[9px] text-slate-400 font-semibold truncate leading-tight mt-0.5">
-                        Submitted
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold whitespace-nowrap leading-tight mt-0.5">
+                        Submit
                       </div>
                     </div>
                   </div>
 
                   {/* 3. Links */}
-                  <div className="bg-blue-50/70 dark:bg-blue-950/30 rounded-2xl p-2.5 flex items-center gap-2 border border-blue-100/60 dark:border-blue-900/40">
-                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[18px]">link</span>
+                  <div className="bg-blue-50/70 dark:bg-blue-950/30 rounded-2xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 border border-blue-100/60 dark:border-blue-900/40">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[16px] sm:text-[18px]">link</span>
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-black text-sm text-slate-800 dark:text-white leading-tight">
                         {task.linksCount || (task.linkUrl ? 1 : 0)}
                       </div>
-                      <div className="text-[9px] text-slate-400 font-semibold truncate leading-tight mt-0.5">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold whitespace-nowrap leading-tight mt-0.5">
                         Links
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Bottom Row: View / Topshiriqlar tahlili tugmasi & ... settings (3-talab) */}
+                {/* Bottom Row: View tugmasi & ... settings (1-rasm talabi) */}
                 <div className="pt-2 flex items-center justify-between gap-3">
                   <button
                     onClick={() => setViewingTask(task)}
                     className="flex-1 py-2.5 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[17px]">visibility</span>
-                    <span>Topshiriqlar tahlili ({submittedCount} ta yuklandi)</span>
+                    <span>View</span>
                   </button>
 
                   {/* 3-talab: 3-rasmdagi 3 ta nuqtali setting orqali cardni edit qilish */}

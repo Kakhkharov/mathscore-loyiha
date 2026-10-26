@@ -744,7 +744,7 @@ export default function CourseAssignments({
                   {/* Chap / Markaziy qism: Sarlavha, Tavsif, Materiallar */}
                   <div className="flex-1 space-y-3.5 min-w-0">
                     <div>
-                      <h3 className="font-black text-xl sm:text-2xl text-on-surface tracking-tight">
+                      <h3 className="font-black text-xl sm:text-2xl text-on-surface tracking-tight break-words">
                         {task.title}
                       </h3>
                       <p className="text-xs sm:text-sm text-outline mt-1.5 leading-relaxed max-w-3xl">
