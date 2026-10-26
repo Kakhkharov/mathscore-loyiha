@@ -86,6 +86,19 @@ function App() {
   const [currentPage, setCurrentPage] = useState('login');
   const [testsMenuOpen, setTestsMenuOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [showUzbekToolbar, setShowUzbekToolbar] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('show_admin_uzbek_toolbar');
+      return saved !== 'false';
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('show_admin_uzbek_toolbar', showUzbekToolbar ? 'true' : 'false');
+    }
+  }, [showUzbekToolbar]);
   const [adminProfile, setAdminProfile] = useState({ name: 'Malika', role: 'Super Admin', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop' });
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
@@ -2641,8 +2654,22 @@ function App() {
                 <span className="material-symbols-outlined text-[20px]">help</span>
               </button>
 
-              <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all">
+              <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all cursor-pointer" title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}>
                 <span className="material-symbols-outlined text-[20px]">{darkMode ? 'light_mode' : 'dark_mode'}</span>
+              </button>
+
+              {/* Uzbek Alphabet Toolbar Toggle button */}
+              <button
+                type="button"
+                onClick={() => setShowUzbekToolbar(!showUzbekToolbar)}
+                title={showUzbekToolbar ? "Alifbo panelini yashiriş" : "Alifbo panelini ko'rsatiş"}
+                className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                  showUzbekToolbar
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/25 ring-2 ring-indigo-500/30'
+                    : 'bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">keyboard</span>
               </button>
 
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
@@ -5482,29 +5509,39 @@ function App() {
             </div>
           )}
 
-          {/* Uzbek New Alphabet Quick Character Bar */}
-          <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-full px-3 py-1.5 shadow-xl flex items-center gap-1.5 select-none animate-fade-in no-print">
-            <div className="flex items-center gap-1 pr-1.5 border-r border-slate-200 dark:border-slate-700 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[15px]">keyboard</span>
-              <span className="hidden sm:inline">Alifbo</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
-                <button
-                  key={ch}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    insertAdminUzbekChar(ch);
-                  }}
-                  className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white font-bold text-xs text-slate-800 dark:text-slate-200 transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
-                  title={`"${ch}" harfini yozish`}
-                >
-                  {ch}
-                </button>
-              ))}
-            </div>
+      {/* Uzbek New Alphabet Quick Character Bar (Floating Bottom Center Toolbar) */}
+      {showUzbekToolbar && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-full px-3.5 py-1.5 shadow-2xl flex items-center gap-1.5 select-none animate-fade-in no-print ring-1 ring-indigo-500/20">
+          <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200 dark:border-slate-700 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+            <span className="material-symbols-outlined text-[15px]">keyboard</span>
+            <span className="hidden sm:inline">Alifbo</span>
           </div>
+          <div className="flex items-center gap-1">
+            {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
+              <button
+                key={ch}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertAdminUzbekChar(ch);
+                }}
+                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white font-bold text-xs text-slate-800 dark:text-slate-200 transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                title={`"${ch}" harfini kiritish`}
+              >
+                {ch}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowUzbekToolbar(false)}
+            title="Panelni yashirish (Klaviatura tugmasi orqali qayta yoqishingiz mumkin)"
+            className="w-5 h-5 ml-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <span className="material-symbols-outlined text-[13px]">close</span>
+          </button>
+        </div>
+      )}
 
         </div>
       )}

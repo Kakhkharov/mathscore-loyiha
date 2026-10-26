@@ -820,6 +820,21 @@ export default function App() {
   const [showCourseCertificate, setShowCourseCertificate] = useState(false);
   const [completedCourseForCert, setCompletedCourseForCert] = useState(null);
 
+  // Uzbek Alphabet Quick Toolbar visibility toggle
+  const [showUzbekToolbar, setShowUzbekToolbar] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('show_uzbek_toolbar');
+      return saved !== 'false';
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('show_uzbek_toolbar', showUzbekToolbar ? 'true' : 'false');
+    }
+  }, [showUzbekToolbar]);
+
   const isCourseCompleted = (course) => {
     if (!course) return false;
     if (course.progress >= 100) return true;
@@ -1221,6 +1236,24 @@ export default function App() {
           </div>
 
           <div className="space-y-2">
+            {/* Quick Uzbek reform letters inline bar */}
+            <div className="flex items-center gap-1.5 flex-wrap p-1.5 bg-surface-container rounded-xl border border-outline-variant/60">
+              <span className="text-[10px] font-bold text-outline px-1">Tezkor harflar:</span>
+              {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
+                <button
+                  key={ch}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertUzbekChar(ch);
+                  }}
+                  className="w-7 h-7 rounded-lg bg-surface border border-outline-variant hover:bg-primary hover:text-on-primary font-bold text-xs text-on-surface transition-all flex items-center justify-center cursor-pointer active:scale-95 shadow-2xs"
+                  title={`"${ch}" harfini kiritish`}
+                >
+                  {ch}
+                </button>
+              ))}
+            </div>
             <textarea
               rows={5}
               value={textVal}
@@ -2388,9 +2421,26 @@ export default function App() {
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
+                title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}
               >
                 <span className="material-symbols-outlined text-[20px] block">
                   {darkMode ? 'light_mode' : 'dark_mode'}
+                </span>
+              </button>
+
+              {/* Uzbek Alphabet Toolbar Toggle */}
+              <button
+                type="button"
+                onClick={() => setShowUzbekToolbar(!showUzbekToolbar)}
+                title={showUzbekToolbar ? "Alifbo panelini yashiriş" : "Alifbo panelini ko'rsatiş"}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                  showUzbekToolbar
+                    ? 'text-primary bg-primary/10 ring-1 ring-primary/30'
+                    : 'text-outline hover:text-on-surface hover:bg-surface-container'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px] block">
+                  keyboard
                 </span>
               </button>
 
@@ -2885,7 +2935,7 @@ export default function App() {
                             return (
                               <div
                                 key={c.id}
-                                className="group rounded-2xl bg-surface border border-outline-variant hover:border-amber-500/50 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden"
+                                className="group relative rounded-2xl overflow-hidden border border-amber-500/30 hover:border-amber-400 shadow-md hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 aspect-[1.414/1] bg-[#FFFDF9] flex flex-col justify-between"
                               >
                                 {/* Horizontal / Landscape Mini Certificate Preview */}
                                 <div
@@ -2893,89 +2943,95 @@ export default function App() {
                                     setCompletedCourseForCert(c);
                                     setShowCourseCertificate(true);
                                   }}
-                                  className="p-3 bg-gradient-to-b from-amber-500/5 via-surface-container-low to-surface-container cursor-pointer relative"
+                                  className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between items-center text-center select-none cursor-pointer border-4 border-double border-amber-600/35 rounded-2xl"
                                   title="Kattalashtirib ko'rish"
                                 >
-                                  <div className="aspect-[1.414/1] w-full rounded-xl bg-[#FFFDF9] text-zinc-900 border-4 border-double border-amber-600/35 p-3 flex flex-col justify-between items-center text-center shadow-xs group-hover:scale-[1.01] transition-transform relative overflow-hidden select-none">
-                                    {/* Watermark */}
-                                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center font-bold text-6xl font-serif text-amber-900">
-                                      Σ
-                                    </div>
+                                  {/* Watermark */}
+                                  <div className="absolute inset-0 opacity-[0.05] pointer-events-none flex items-center justify-center font-bold text-7xl font-serif text-amber-900">
+                                    Σ
+                                  </div>
 
-                                    {/* Top mini header */}
-                                    <div className="w-full flex items-center justify-between text-[8px] font-bold text-zinc-500 z-10">
-                                      <div className="flex items-center gap-1">
-                                        <img src="/sigma-logo.png" alt="Sigma" className="h-3.5 w-auto object-contain" />
-                                        <span className="font-outfit font-black text-slate-800 uppercase text-[7px]">Sigma Education</span>
-                                      </div>
-                                      <span className="font-outfit text-amber-700 font-black text-[7px] uppercase">MathScore LMS</span>
+                                  {/* Top mini header */}
+                                  <div className="w-full flex items-center justify-between text-[8px] font-bold text-zinc-500 z-10">
+                                    <div className="flex items-center gap-1.5">
+                                      <img src="/sigma-logo.png" alt="Sigma" className="h-4 w-auto object-contain" />
+                                      <span className="font-outfit font-black text-slate-800 uppercase text-[8px] tracking-wider">Sigma Education</span>
                                     </div>
+                                    <span className="font-outfit text-amber-700 font-black text-[8px] uppercase tracking-wider">MathScore LMS</span>
+                                  </div>
 
-                                    {/* Middle preview info */}
-                                    <div className="z-10 py-1 space-y-0.5">
-                                      <div className="text-[8px] font-bold text-amber-800 uppercase tracking-widest font-outfit">
-                                        SERTIFIKAT
-                                      </div>
-                                      <div className="text-[11px] font-black text-zinc-900 font-outfit uppercase truncate max-w-[180px]">
-                                        {profile.firstName} {profile.lastName}
-                                      </div>
-                                      <div className="text-[7.5px] text-zinc-600 line-clamp-1 italic max-w-[200px]">
-                                        "{c.title}"
-                                      </div>
+                                  {/* Middle preview info */}
+                                  <div className="z-10 py-1 space-y-0.5 my-auto pb-16">
+                                    <div className="text-[10px] font-black text-amber-800 uppercase tracking-widest font-outfit">
+                                      SERTIFIKAT
                                     </div>
-
-                                    {/* Bottom preview info */}
-                                    <div className="w-full flex items-center justify-between text-[7px] font-bold text-zinc-600 z-10 pt-1 border-t border-amber-900/10">
-                                      <span>Toxirova Malika</span>
-                                      <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
-                                        <span className="material-symbols-outlined text-[11px] fill">verified</span>
-                                      </div>
-                                      <span className="font-mono">{compDate}</span>
+                                    <div className="text-[13px] font-black text-zinc-900 font-outfit uppercase truncate max-w-[220px]">
+                                      {profile.firstName} {profile.lastName}
+                                    </div>
+                                    <div className="text-[8.5px] text-zinc-600 line-clamp-1 italic max-w-[240px]">
+                                      "{c.title}"
+                                    </div>
+                                    <div className="flex items-center justify-center gap-1 text-[8px] text-amber-900/80 font-medium">
+                                      <span>Bosh o'qituvchi:</span>
+                                      <span className="font-bold">Toxirova Malika</span>
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* Card Content & Details */}
-                                <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-surface">
-                                  <div>
-                                    {/* Course Title */}
-                                    <h3 className="font-outfit font-bold text-sm text-on-surface line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
-                                      {c.title}
-                                    </h3>
+                                {/* Top-right floating 100% badge */}
+                                <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
+                                  <span className="px-2 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md text-emerald-400 border border-emerald-500/40 text-[9.5px] font-black flex items-center gap-1 shadow-md">
+                                    <span className="material-symbols-outlined text-[12px] fill">check_circle</span>
+                                    100%
+                                  </span>
+                                </div>
 
-                                    {/* Completion Date */}
-                                    <div className="flex items-center justify-between text-xs text-outline mt-2 pt-2 border-t border-outline-variant">
-                                      <div className="flex items-center gap-1.5 font-medium">
-                                        <span className="material-symbols-outlined text-[16px] text-amber-600">event_available</span>
-                                        <span className="text-[11px]">Tugatgan sana:</span>
-                                        <span className="font-bold text-on-surface font-mono text-[11px]">{compDate}</span>
+                                {/* Opposite Effect Overlay: Dark Glassmorphic floating footer right ON TOP of the certificate */}
+                                <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-slate-950/95 via-slate-900/90 to-slate-900/80 backdrop-blur-md border-t border-amber-500/30 p-3 pt-2 text-white">
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className="font-outfit font-black text-xs text-white truncate drop-shadow-sm group-hover:text-amber-300 transition-colors" title={c.title}>
+                                        {c.title}
+                                      </h4>
+                                      <div className="flex items-center gap-1.5 text-[10px] text-slate-300 mt-0.5">
+                                        <span className="material-symbols-outlined text-[12px] text-amber-400">calendar_today</span>
+                                        <span>Tugatgan sana:</span>
+                                        <span className="font-mono font-bold text-amber-200">{compDate}</span>
                                       </div>
-                                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black flex items-center gap-0.5">
-                                        <span className="material-symbols-outlined text-[12px] fill">check_circle</span>
-                                        100%
-                                      </span>
                                     </div>
+
+                                    {/* Quick view button */}
+                                    <button
+                                      onClick={() => {
+                                        setCompletedCourseForCert(c);
+                                        setShowCourseCertificate(true);
+                                      }}
+                                      className="shrink-0 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                                      title="Kattalashtirib ko'rish"
+                                    >
+                                      <span className="material-symbols-outlined text-[15px]">visibility</span>
+                                    </button>
                                   </div>
 
-                                  {/* Action buttons: PDF Download & Direct Print */}
-                                  <div className="grid grid-cols-2 gap-2 pt-1">
+                                  {/* Buttons: PDF yuklash & Chop etish */}
+                                  <div className="grid grid-cols-2 gap-2">
                                     <button
                                       disabled={isGeneratingPDF}
                                       onClick={() => handleCardDownloadPDF(c)}
-                                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs transition-colors cursor-pointer active:scale-95 disabled:opacity-50"
+                                      className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-white/10 hover:bg-amber-500 hover:text-slate-950 text-amber-300 border border-amber-500/40 font-bold text-[11px] transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                                       title="Sertifikatni to'g'ridan-to'g'ri PDF fayl qilib yuklab olish"
                                     >
-                                      <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                      <span className="material-symbols-outlined text-[14px]">picture_as_pdf</span>
                                       <span>PDF yuklaş</span>
                                     </button>
 
                                     <button
                                       disabled={isGeneratingPDF}
                                       onClick={() => handleCardPrint(c)}
-                                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs transition-all cursor-pointer shadow-sm shadow-amber-600/20 active:scale-95 disabled:opacity-50"
+                                      className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-[11px] transition-all cursor-pointer shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50"
                                       title="Gorizontal (Albom) rejimida to'liq sifatli chop etish"
                                     >
-                                      <span className="material-symbols-outlined text-[16px]">print</span>
+                                      <span className="material-symbols-outlined text-[14px]">print</span>
                                       <span>Çop etiş</span>
                                     </button>
                                   </div>
@@ -3321,6 +3377,37 @@ export default function App() {
                             {showDesmos && (
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
                             )}
+                          </button>
+
+                          {/* Uzbek Alphabet Toolbar Toggle in Test / Fullscreen mode */}
+                          <button
+                            type="button"
+                            onClick={() => setShowUzbekToolbar(!showUzbekToolbar)}
+                            className={`px-2.5 py-1.5 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-all border ${
+                              showUzbekToolbar
+                                ? 'bg-primary text-on-primary border-primary shadow-xs'
+                                : 'bg-surface-container text-outline hover:text-on-surface border-outline-variant hover:bg-surface-container-high'
+                            }`}
+                            title={showUzbekToolbar ? "Alifbo panelini yashiriş" : "Alifbo panelini ko'rsatiş"}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">keyboard</span>
+                            <span className="hidden sm:inline">Alifbo</span>
+                          </button>
+
+                          {/* Full Screen Mode Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!document.fullscreenElement) {
+                                document.documentElement.requestFullscreen().catch(() => {});
+                              } else {
+                                document.exitFullscreen().catch(() => {});
+                              }
+                            }}
+                            className="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant flex items-center justify-center text-outline hover:text-on-surface transition-all cursor-pointer"
+                            title="To'liq ekran (Full screen) rejimini almashtirish"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">fullscreen</span>
                           </button>
 
                           <button
@@ -4336,29 +4423,39 @@ export default function App() {
         </div>
       )}
 
-      {/* Uzbek New Alphabet Quick Character Bar */}
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border border-outline-variant/80 rounded-full px-3 py-1.5 shadow-xl flex items-center gap-1.5 select-none animate-fade-in no-print">
-        <div className="flex items-center gap-1 pr-1.5 border-r border-outline-variant/60 text-[10px] font-black text-primary uppercase tracking-wider">
-          <span className="material-symbols-outlined text-[15px]">keyboard</span>
-          <span className="hidden sm:inline">Alifbo</span>
+      {/* Uzbek New Alphabet Quick Character Bar (Floating Bottom Center Toolbar) */}
+      {showUzbekToolbar && (
+        <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[9999] bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border border-outline-variant/80 rounded-full px-3 py-1.5 shadow-2xl flex items-center gap-1.5 select-none animate-fade-in no-print ring-1 ring-primary/20">
+          <div className="flex items-center gap-1 pr-1.5 border-r border-outline-variant/60 text-[10px] font-black text-primary uppercase tracking-wider">
+            <span className="material-symbols-outlined text-[15px]">keyboard</span>
+            <span className="hidden sm:inline">Alifbo</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
+              <button
+                key={ch}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertUzbekChar(ch);
+                }}
+                className="w-7 h-7 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary font-bold text-xs text-on-surface transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                title={`"${ch}" harfini yozish`}
+              >
+                {ch}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowUzbekToolbar(false)}
+            title="Panelni yashirish (Klaviatura tugmasi orqali qayta yoqishingiz mumkin)"
+            className="w-5 h-5 ml-0.5 rounded-full text-outline hover:text-on-surface hover:bg-surface-container flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <span className="material-symbols-outlined text-[13px]">close</span>
+          </button>
         </div>
-        <div className="flex items-center gap-1">
-          {['Ğ', 'ğ', 'Ö', 'ö', 'Ş', 'ş', 'Ç', 'ç'].map(ch => (
-            <button
-              key={ch}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                insertUzbekChar(ch);
-              }}
-              className="w-7 h-7 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary font-bold text-xs text-on-surface transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
-              title={`"${ch}" harfini yozish`}
-            >
-              {ch}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Student Push Notification Toast */}
       {studentPushToast && (
