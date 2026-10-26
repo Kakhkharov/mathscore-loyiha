@@ -862,29 +862,315 @@ export default function App() {
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Reliable Direct Print: Captures certificate canvas and prints in an isolated iframe
-  // Completely eliminates white/blank page issues on EPSON, HP, Canon, etc.
-  const printCertificateDirect = async (elementId = 'course-certificate-element') => {
-    let el = document.getElementById(elementId);
-    if (!el) {
-      await new Promise(r => setTimeout(r, 250));
-      el = document.getElementById(elementId);
+  // Helper: Extract structured certificate data payload
+  const getCertificatePayload = (param = 'course-certificate-element', customObj = null) => {
+    const isAcademic = param === 'academic-certificate-element' || customObj?.type === 'academic';
+    const studentFullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Muborak Xonkeldiyeva';
+
+    if (isAcademic) {
+      const qTitle = customObj?.testTitle || quizResult?.testTitle || activeQuizTest?.title || 'Matematika Imtihoni';
+      const qScore = customObj?.score || quizResult?.score || 100;
+      const qDate = formatCertificateDate(customObj?.submittedAt || quizResult?.submittedAt || Date.now());
+      return {
+        type: 'academic',
+        studentName: studentFullName,
+        title: qTitle,
+        score: qScore,
+        date: qDate,
+        teacherName: 'Toxirova Malika',
+        teacherRole: "BOSH O'QITUVCHI"
+      };
+    } else {
+      const targetCourse = customObj || completedCourseForCert || activeCourse || courses.find(isCourseCompleted) || { title: 'Pure Mathematics 1' };
+      const cTitle = targetCourse?.title || 'Pure Mathematics 1';
+      const cDate = formatCertificateDate(targetCourse?.completedAt || targetCourse?.updatedAt || targetCourse?.createdAt || Date.now());
+      return {
+        type: 'course',
+        studentName: studentFullName,
+        title: cTitle,
+        score: 100,
+        date: cDate,
+        teacherName: 'Toxirova Malika',
+        teacherRole: "BOSH O'QITUVCHI"
+      };
     }
-    if (!el) {
-      window.print();
-      return;
+  };
+
+  // Ultra-Crisp Canvas 2D Certificate Generator (2246 x 1588 px, 192+ DPI)
+  // Completely immune to CSS oklch / color-mix bugs, font shifts, or oversized images
+  const generateCertificateCanvas = async (certData) => {
+    const width = 2246;
+    const height = 1588;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // 1. Warm Ivory Background
+    ctx.fillStyle = '#FFFDF9';
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Double Gold Borders
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(50, 50, width - 100, height - 100);
+
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(70, 70, width - 140, height - 140);
+
+    // 3. Corner Gold Ornaments
+    ctx.strokeStyle = 'rgba(217, 119, 6, 0.65)';
+    ctx.lineWidth = 4;
+    const cSize = 70;
+    // Top-Left
+    ctx.beginPath();
+    ctx.moveTo(80, 80 + cSize); ctx.lineTo(80, 80); ctx.lineTo(80 + cSize, 80);
+    ctx.stroke();
+    // Top-Right
+    ctx.beginPath();
+    ctx.moveTo(width - 80 - cSize, 80); ctx.lineTo(width - 80, 80); ctx.lineTo(width - 80, 80 + cSize);
+    ctx.stroke();
+    // Bottom-Left
+    ctx.beginPath();
+    ctx.moveTo(80, height - 80 - cSize); ctx.lineTo(80, height - 80); ctx.lineTo(80 + cSize, height - 80);
+    ctx.stroke();
+    // Bottom-Right
+    ctx.beginPath();
+    ctx.moveTo(width - 80 - cSize, height - 80); ctx.lineTo(width - 80, height - 80); ctx.lineTo(width - 80, height - 80 - cSize);
+    ctx.stroke();
+
+    // 4. Center Watermark
+    ctx.save();
+    ctx.font = 'bold 440px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = 'rgba(180, 83, 9, 0.038)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(certData.type === 'academic' ? '∫' : 'Σ', width / 2, height / 2 + 10);
+    ctx.restore();
+
+    // 5. Sigma Logo & Top Brand Bar
+    const logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    await new Promise((resolve) => {
+      logoImg.onload = () => resolve();
+      logoImg.onerror = () => resolve();
+      logoImg.src = '/sigma-logo.png';
+      if (logoImg.complete) resolve();
+    });
+
+    let logoRight = 110;
+    if (logoImg.naturalWidth && logoImg.naturalHeight) {
+      const logoH = 80;
+      const logoW = (logoImg.naturalWidth / logoImg.naturalHeight) * logoH;
+      ctx.drawImage(logoImg, 110, 105, logoW, logoH);
+      logoRight = 110 + logoW + 20;
     }
 
+    // Top Brand Left Text
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 24px system-ui, -apple-system, sans-serif';
+    ctx.fillText('SIGMA EDUCATION', logoRight, 142);
+
+    ctx.fillStyle = '#b45309';
+    ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+    ctx.fillText("O'QUV MARKAZI", logoRight, 170);
+
+    // Top Brand Right Text
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 24px system-ui, -apple-system, sans-serif';
+    ctx.fillText('MATHSCORE LMS', width - 110, 142);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+    ctx.fillText("ONLINE TA'LIM", width - 110, 170);
+
+    // 6. Certificate Title & Header
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#92400e';
+    ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+    try { ctx.letterSpacing = '5px'; } catch (e) {}
+    ctx.fillText('SIGMA EDUCATION   •   MATHSCORE LMS', width / 2, 285);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    ctx.fillStyle = '#18181b';
+    ctx.font = '900 86px "Times New Roman", Georgia, serif';
+    try { ctx.letterSpacing = '14px'; } catch (e) {}
+    ctx.fillText('SERTIFIKAT', width / 2, 395);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    ctx.fillStyle = '#b45309';
+    ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+    try { ctx.letterSpacing = '4px'; } catch (e) {}
+    const subTitle = certData.type === 'academic'
+      ? 'CERTIFICATE OF ACADEMIC ACHIEVEMENT'
+      : 'CERTIFICATE OF COURSE COMPLETION';
+    ctx.fillText(subTitle, width / 2, 445);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    // Gold Divider Line
+    const grad = ctx.createLinearGradient(width / 2 - 180, 475, width / 2 + 180, 475);
+    grad.addColorStop(0, 'rgba(217, 119, 6, 0)');
+    grad.addColorStop(0.5, 'rgba(217, 119, 6, 1)');
+    grad.addColorStop(1, 'rgba(217, 119, 6, 0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(width / 2 - 180, 475);
+    ctx.lineTo(width / 2 + 180, 475);
+    ctx.stroke();
+
+    // 7. Certificate Main Body
+    ctx.fillStyle = '#52525b';
+    ctx.font = 'italic 26px Georgia, serif';
+    const introMsg = certData.type === 'academic'
+      ? 'Ushbu rasmiy akademik hujjat muvaffaqiyat bilan topshiriladi:'
+      : 'Ushbu rasmiy bitiruv hujjati muvaffaqiyat bilan topshiriladi:';
+    ctx.fillText(introMsg, width / 2, 590);
+
+    // Student Full Name
+    const sName = (certData.studentName || 'Talaba').toUpperCase();
+    ctx.fillStyle = '#451a03';
+    ctx.font = '900 64px system-ui, -apple-system, sans-serif';
+    try { ctx.letterSpacing = '2px'; } catch (e) {}
+    ctx.fillText(sName, width / 2, 700);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    const nameWidth = ctx.measureText(sName).width;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(width / 2 - nameWidth / 2 - 30, 725);
+    ctx.lineTo(width / 2 + nameWidth / 2 + 30, 725);
+    ctx.stroke();
+
+    // Course / Test Description with word wrapping
+    ctx.fillStyle = '#3f3f46';
+    ctx.font = '26px Georgia, serif';
+    const courseOrTestName = certData.title || (certData.type === 'academic' ? 'Matematika' : 'Video Kurs');
+    const descText = certData.type === 'academic'
+      ? `talabaning "${courseOrTestName}" bo'limidagi barcha murakkab test sinovlaridan muvaffaqiyatli o'tganligini va ${certData.score || 100}% yuqori ko'rsatkich qayd etganligini tasdiqlaydi.`
+      : `talabaning "${courseOrTestName}" kursi bo'yicha barcha nazariy modullar, video darslar hamda amaliy topshiriqlarni 100% muvaffaqiyat bilan to'liq tamomlaganligini tasdiqlaydi.`;
+
+    const words = descText.split(' ');
+    let currentLine = '';
+    const lines = [];
+    const maxTextWidth = 1450;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = currentLine + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxTextWidth && n > 0) {
+        lines.push(currentLine.trim());
+        currentLine = words[n] + ' ';
+      } else {
+        currentLine = testLine;
+      }
+    }
+    lines.push(currentLine.trim());
+
+    const startY = 825;
+    lines.forEach((line, index) => {
+      ctx.fillText(line, width / 2, startY + (index * 42));
+    });
+
+    // 8. Signatures & Verified Gold Medal Seal
+    ctx.strokeStyle = 'rgba(146, 64, 14, 0.2)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(150, 1220);
+    ctx.lineTo(width - 150, 1220);
+    ctx.stroke();
+
+    // Left: Toxirova Malika
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#18181b';
+    ctx.font = 'italic bold 32px Georgia, serif';
+    ctx.fillText(certData.teacherName || 'Toxirova Malika', 420, 1315);
+
+    ctx.strokeStyle = '#71717a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(270, 1335);
+    ctx.lineTo(570, 1335);
+    ctx.stroke();
+
+    ctx.fillStyle = '#52525b';
+    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+    try { ctx.letterSpacing = '1.5px'; } catch (e) {}
+    ctx.fillText(certData.teacherRole || "BOSH O'QITUVCHI", 420, 1370);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    // Center: Verified Gold Medal Seal
+    const sealX = width / 2;
+    const sealY = 1335;
+    const sealR = 76;
+
+    const sealGrad = ctx.createRadialGradient(sealX - 15, sealY - 15, 5, sealX, sealY, sealR);
+    sealGrad.addColorStop(0, '#fef08a');
+    sealGrad.addColorStop(0.3, '#f59e0b');
+    sealGrad.addColorStop(0.8, '#d97706');
+    sealGrad.addColorStop(1, '#92400e');
+
+    ctx.fillStyle = sealGrad;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, sealR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, sealR - 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✓', sealX, sealY + 2);
+
+    // Right: Completion Date
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#18181b';
+    ctx.font = 'bold 28px "Courier New", monospace';
+    ctx.fillText(certData.date || '27-10-2026', width - 420, 1315);
+
+    ctx.strokeStyle = '#71717a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(width - 570, 1335);
+    ctx.lineTo(width - 270, 1335);
+    ctx.stroke();
+
+    ctx.fillStyle = '#52525b';
+    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+    try { ctx.letterSpacing = '1.5px'; } catch (e) {}
+    ctx.fillText("BERILGAN SANA (DD-MM-YYYY)", width - 420, 1370);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+    return canvas;
+  };
+
+  // Direct Print: Generates crisp A4 Landscape certificate and prints via isolated iframe
+  const printCertificateDirect = async (param = 'course-certificate-element') => {
     try {
       setIsGeneratingPDF(true);
-      const canvas = await html2canvas(el, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFDF9',
-        logging: false
-      });
-      const dataUrl = canvas.toDataURL('image/png');
+      const certData = (typeof param === 'object' && param !== null) ? param : getCertificatePayload(param);
+      const canvas = await generateCertificateCanvas(certData);
+      if (!canvas) throw new Error("Canvas generation failed");
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.98);
 
       const printIframe = document.createElement('iframe');
       printIframe.style.position = 'fixed';
@@ -907,8 +1193,8 @@ export default function App() {
               html, body {
                 margin: 0;
                 padding: 0;
-                width: 100%;
-                height: 100%;
+                width: 100vw;
+                height: 100vh;
                 background: #fff;
                 display: flex;
                 align-items: center;
@@ -942,26 +1228,13 @@ export default function App() {
   };
 
   // Real PDF Download: Generates an authentic A4 Landscape PDF file and triggers direct download
-  const downloadCertificatePDF = async (elementId = 'course-certificate-element', customFilename = 'Sertifikat.pdf') => {
-    let el = document.getElementById(elementId);
-    if (!el) {
-      await new Promise(r => setTimeout(r, 250));
-      el = document.getElementById(elementId);
-    }
-    if (!el) {
-      alert("Sertifikat elementi topilmadi.");
-      return;
-    }
-
+  const downloadCertificatePDF = async (param = 'course-certificate-element', customFilename = 'Sertifikat.pdf') => {
     try {
       setIsGeneratingPDF(true);
-      const canvas = await html2canvas(el, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFDF9',
-        logging: false
-      });
+      const certData = (typeof param === 'object' && param !== null) ? param : getCertificatePayload(param);
+      const canvas = await generateCertificateCanvas(certData);
+      if (!canvas) throw new Error("Canvas generation failed");
+
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       const pdf = new jsPDF({
         orientation: 'landscape',
@@ -980,16 +1253,16 @@ export default function App() {
 
   const handleCardDownloadPDF = async (course) => {
     setCompletedCourseForCert(course);
-    setShowCourseCertificate(true);
     const studentName = `${profile.firstName || 'Talaba'}_${profile.lastName || ''}`.trim().replace(/\s+/g, '_');
     const courseTitle = (course.title || 'Kurs').replace(/[^a-zA-Z0-9\-_]/g, '_');
-    await downloadCertificatePDF('course-certificate-element', `Sertifikat-${studentName}-${courseTitle}.pdf`);
+    const payload = getCertificatePayload('course-certificate-element', course);
+    await downloadCertificatePDF(payload, `Sertifikat-${studentName}-${courseTitle}.pdf`);
   };
 
   const handleCardPrint = async (course) => {
     setCompletedCourseForCert(course);
-    setShowCourseCertificate(true);
-    await printCertificateDirect('course-certificate-element');
+    const payload = getCertificatePayload('course-certificate-element', course);
+    await printCertificateDirect(payload);
   };
 
   // Security / Cheat Shield state

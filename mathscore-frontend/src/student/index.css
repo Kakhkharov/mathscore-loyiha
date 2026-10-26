@@ -176,6 +176,14 @@ html, body, #root {
     print-color-adjust: exact !important;
   }
 
+  .printable-certificate img {
+    max-height: 48px !important;
+    width: auto !important;
+    max-width: 130px !important;
+    object-fit: contain !important;
+    display: inline-block !important;
+  }
+
   .printable-certificate {
     position: fixed !important;
     left: 0 !important;
