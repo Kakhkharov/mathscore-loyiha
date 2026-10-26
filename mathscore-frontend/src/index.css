@@ -417,15 +417,14 @@ body {
 
 /* Scroll Reveal Entrance Animations */
 .scroll-reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-active {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 .delay-100 { transition-delay: 100ms; }

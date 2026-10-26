@@ -1,5 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// Helper function to decode HTML entities and convert to reformed Uzbek Latin alphabet
+function toNewUzbek(text) {
+  if (!text || typeof text !== 'string') return text || '';
+  
+  // 1. Decode HTML entities
+  let res = text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+
+  // 2. Convert old Uzbek letters to new reformed Uzbek Latin letters: Ğ ğ, Ö ö, Ş ş, Ç ç
+  res = res.replace(/O['ʻ`’]/g, 'Ö');
+  res = res.replace(/o['ʻ`’]/g, 'ö');
+  res = res.replace(/G['ʻ`’]/g, 'Ğ');
+  res = res.replace(/g['ʻ`’]/g, 'ğ');
+  res = res.replace(/SH\b/g, 'Ş');
+  res = res.replace(/Sh/g, 'Ş');
+  res = res.replace(/sh/g, 'ş');
+  res = res.replace(/CH\b/g, 'Ç');
+  res = res.replace(/Ch/g, 'Ç');
+  res = res.replace(/ch/g, 'ç');
+
+  return res;
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState('Home');
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
@@ -24,12 +54,15 @@ function App() {
     }
   }, [activeTab]);
 
-  // Intersection Observer scroll reveal effects
+  // Ensure all scroll-reveal sections are permanently visible & animated smoothly
   useEffect(() => {
+    const targets = document.querySelectorAll('.scroll-reveal');
+    targets.forEach(target => target.classList.add('reveal-active'));
+
     const observerOptions = {
       root: null,
-      rootMargin: '0px',
-      threshold: 0.1
+      rootMargin: '100px',
+      threshold: 0.05
     };
 
     const handleIntersection = (entries, observer) => {
@@ -42,7 +75,6 @@ function App() {
     };
 
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
-    const targets = document.querySelectorAll('.scroll-reveal');
     targets.forEach(target => observer.observe(target));
 
     return () => {
@@ -51,10 +83,10 @@ function App() {
   }, []);
 
   const [settings, setSettings] = useState({
-    heroTitle: "SAT Matematikani zamonaviy metodlar yordamida, ingliz tilida tez va samarali o'rganing",
-    heroSubtitle: "Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutish imkoniyatini qo'lga kiriting.",
+    heroTitle: "SAT Matematikani zamonaviy metodlar yordamida, ingliz tilida tez va samarali örganing",
+    heroSubtitle: "Jahon standartlariga mos ta'lim. Yuqori ball oling va nufuzli xorijiy universitetlarga grant yutiş imkoniyatini qölga kiriting.",
     contactPhone: "+998 99 824 46 18",
-    contactAddress: "Toshkent shahri, Sergeli tumani",
+    contactAddress: "Toşkent şahri, Sergeli tumani",
     telegramLink: "https://t.me/math_teacher_m"
   });
   
@@ -69,18 +101,43 @@ function App() {
   ]);
   
   const [pricing, setPricing] = useState([
-    { title: 'SAT Matematika', description: 'Noldan boshlab yuqori darajagacha intensiv tayyorgarlik. Ingliz tilida masalalar yechish.', price: '600,000', type: 'primary' },
-    { title: 'A-Level Math', description: 'Kembrij dasturi asosida chuqurlashtirilgan matematika. Pure Math va Mechanics.', price: '700,000', type: 'tertiary' },
-    { title: 'Matematika Foundation', description: 'Asosiy matematik bilimlarni mustahkamlash va ingliz tilidagi terminlarga moslashish.', price: '500,000', type: 'secondary' }
+    { title: 'SAT Matematika', description: 'Noldan boşlab yuqori darajagança intensiv tayyorgarlik. Ingliz tilida masalalar yeçiş.', price: '600,000', type: 'primary' },
+    { title: 'A-Level Math', description: 'Kembrij dasturi asosida çuqurlaştirilgan matematika. Pure Math va Mechanics.', price: '700,000', type: 'tertiary' },
+    { title: 'Matematika Foundation', description: 'Asosiy matematik bilimlarni mustahkamlash va ingliz tilidagi terminlarga moslaşiş.', price: '500,000', type: 'secondary' }
   ]);
 
   const [selectedImage, setSelectedImage] = useState(null);
   const displayResults = results.slice(0, 10);
 
   useEffect(() => {
-    fetch('https://api.mathscore.uz/api/settings', { cache: 'no-store' }).then(res => res.json()).then(data => setSettings(data)).catch(console.error);
-    fetch('https://api.mathscore.uz/api/results', { cache: 'no-store' }).then(res => res.json()).then(data => setResults(data)).catch(console.error);
-    fetch('https://api.mathscore.uz/api/pricing', { cache: 'no-store' }).then(res => res.json()).then(data => setPricing(data)).catch(console.error);
+    fetch('https://api.mathscore.uz/api/settings', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setSettings(prev => ({
+            ...prev,
+            ...data,
+            heroTitle: toNewUzbek(data.heroTitle || prev.heroTitle),
+            heroSubtitle: toNewUzbek(data.heroSubtitle || prev.heroSubtitle),
+            contactAddress: toNewUzbek(data.contactAddress || prev.contactAddress)
+          }));
+        }
+      })
+      .catch(console.error);
+
+    fetch('https://api.mathscore.uz/api/results', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setResults(data);
+      })
+      .catch(console.error);
+
+    fetch('https://api.mathscore.uz/api/pricing', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setPricing(data);
+      })
+      .catch(console.error);
   }, []);
 
   return (
@@ -125,7 +182,7 @@ function App() {
             className="hidden sm:flex items-center gap-2 border-2 border-primary/30 text-primary hover:border-primary/85 hover:shadow-[0_0_15px_rgba(67,67,213,0.3)] font-bold font-label-md text-[14px] px-5 py-2.5 rounded-full hover:bg-primary/5 transition-all active:translate-y-px cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">send</span>
-            <span>Adminga yozish</span>
+            <span>Adminga yoziş</span>
           </a>
           <button 
             onClick={() => { window.location.href = "/student"; }}
@@ -143,17 +200,17 @@ function App() {
         <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 flex flex-col md:flex-row items-center gap-12 scroll-reveal">
           <div className="flex-1 space-y-6">
             <h1 className="font-outfit text-3xl md:text-5xl font-black text-on-surface leading-[1.15] tracking-tight">
-              {settings.heroTitle}
+              {toNewUzbek(settings.heroTitle)}
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-[1.6]">
-              {settings.heroSubtitle}
+              {toNewUzbek(settings.heroSubtitle)}
             </p>
             <div className="pt-4">
               <button 
                 onClick={() => { window.location.href = "/student"; }}
                 className="bg-primary text-on-primary font-label-md px-8 py-4 rounded-lg hover:opacity-90 hover:shadow-[0_0_30px_rgba(67,67,213,0.8)] hover:-translate-y-0.5 active:translate-y-px transition-all text-lg font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
               >
-                Kursga yozilish
+                Kursga yoziliş
               </button>
             </div>
           </div>
@@ -175,7 +232,7 @@ function App() {
               Natijalar
             </h2>
             <div className="w-16 h-1.5 bg-gradient-to-r from-primary to-purple-500 rounded-full mt-2 mb-4"></div>
-            <p className="text-center text-on-surface-variant font-body-md text-body-md max-w-2xl mx-auto">O'quvchilarimiz erishgan yuqori SAT va A-Level natijalari</p>
+            <p className="text-center text-on-surface-variant font-body-md text-body-md max-w-2xl mx-auto">Öquvçilarimiz erişgan yuqori SAT va A-Level natijalari</p>
           </div>
           <div className="slider">
             <div className="slide-track" style={{ '--slide-count': displayResults.length || 7 }}>
@@ -188,17 +245,17 @@ function App() {
                   >
                     {item.imageUrl ? (
                       <>
-                        <img src={item.imageUrl} className={`w-full h-full object-cover ${item.imagePosition || 'object-center'} transition-transform duration-500 hover:scale-105`} alt={item.name} />
+                        <img src={item.imageUrl} className={`w-full h-full object-cover ${item.imagePosition || 'object-center'} transition-transform duration-500 hover:scale-105`} alt={toNewUzbek(item.name)} />
                         <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur-sm p-3 text-center">
                           <p className="font-black text-lg text-white">{item.score}</p>
-                          <p className="text-xs font-medium text-white/80">{item.name}</p>
+                          <p className="text-xs font-medium text-white/80">{toNewUzbek(item.name)}</p>
                         </div>
                       </>
                     ) : (
                       <>
                         <span className={`material-symbols-outlined text-5xl ${item.color || 'text-primary'} mb-2`}>workspace_premium</span>
                         <p className="font-bold text-xl">{item.score}</p>
-                        <p className="text-sm text-on-surface-variant">{item.name}</p>
+                        <p className="text-sm text-on-surface-variant">{toNewUzbek(item.name)}</p>
                       </>
                     )}
                   </div>
@@ -220,23 +277,23 @@ function App() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="card-border bg-pastel-purple card-lift reveal-child delay-100">
-              <p className="font-body-md text-body-md font-semibold">SAT Matematikani yuqori ballga topshirish orqali nufuzli chet el universitetlariga grant yutish imkoni ham paydo bo'ladi</p>
+            <div className="card-border bg-pastel-purple card-lift">
+              <p className="font-body-md text-body-md font-semibold">SAT Matematikani yuqori ballga topşiriş orqali nufuzli çet el universitetlariga grant yutiş imkoni ham paydo böladi</p>
             </div>
-            <div className="card-border bg-pastel-green card-lift reveal-child delay-200">
-              <p className="font-body-md text-body-md font-semibold">Qisqa vaqt ichida qiyin SAT masalalarini oson yechish ko'nikmasiga ega bo'lasiz</p>
+            <div className="card-border bg-pastel-green card-lift">
+              <p className="font-body-md text-body-md font-semibold">Qisqa vaqt içida qiyin SAT masalalarini oson yeçiş könikmasiga ega bölasiz</p>
             </div>
-            <div className="card-border bg-pastel-blue card-lift reveal-child delay-300">
-              <p className="font-body-md text-body-md font-semibold">Xalqaro darajadagi ta'lim muhitiga kirib, kuchli va maqsadli tengdoshlar bilan o'qiysiz</p>
+            <div className="card-border bg-pastel-blue card-lift">
+              <p className="font-body-md text-body-md font-semibold">Xalqaro darajadagi ta'lim muhitiga kirib, kuçli va maqsadli tengdoşlar bilan öqiysiz</p>
             </div>
-            <div className="card-border bg-pastel-orange card-lift reveal-child delay-400">
-              <p className="font-body-md text-body-md font-semibold">Terminlarni to'g'ri tushunish va qo'llashni o'rganasiz. "Something in your eyes" iborasini Avazbek Olimovdan yaxshiroq ayta olasiz!</p>
+            <div className="card-border bg-pastel-orange card-lift">
+              <p className="font-body-md text-body-md font-semibold">Terminlarni töğri tuşuniş va qöllaşni örganasiz. "Something in your eyes" iborasini Avazbek Olimovdan yaxşiroq ayta olasiz!</p>
             </div>
-            <div className="card-border bg-pastel-red card-lift reveal-child delay-500">
-              <p className="font-body-md text-body-md font-semibold">Ingliz tilida matematika o'rganishning mutlaqo yangi va zamonaviy metodlarini sinab ko'rasiz</p>
+            <div className="card-border bg-pastel-red card-lift">
+              <p className="font-body-md text-body-md font-semibold">Ingliz tilida matematika örganişning mutlaqo yangi va zamonaviy metodlarini sinab körasiz</p>
             </div>
-            <div className="card-border bg-pastel-yellow card-lift reveal-child delay-600">
-              <p className="font-body-md text-body-md font-semibold">Shaxsiy karyerangizda o'sish uchun yuqori maoshli ish topishingizga zamin yaratasiz</p>
+            <div className="card-border bg-pastel-yellow card-lift">
+              <p className="font-body-md text-body-md font-semibold">Şaxsiy karyerangizda ösiş uçun yuqori maoşli iş topişingizga zamin yaratasiz</p>
             </div>
           </div>
           
@@ -245,46 +302,46 @@ function App() {
               onClick={() => { window.location.href = "/student"; }}
               className="bg-primary text-on-primary font-label-md px-8 py-3 rounded-lg hover:opacity-90 hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
             >
-              Ishtirok etish
+              Iştirok etiş
             </button>
           </div>
         </section>
 
-        {/* Kurslarimiz aynan */}
+        {/* Kurslarimiz aynan kimlar uchun? */}
         <section className="bg-surface-container-low py-20 scroll-reveal">
           <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
             <div className="flex flex-col items-center mb-12">
               <span className="text-secondary font-bold uppercase tracking-[0.15em] text-xs mb-3 bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20">Maqsadli auditoriya</span>
               <h2 className="font-outfit text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-secondary via-orange-400 to-red-500 text-center pb-2 drop-shadow-sm">
-                Kurslarimiz aynan kimlar uchun?
+                Kurslarimiz aynan kimlar uçun?
               </h2>
               <div className="w-16 h-1.5 bg-gradient-to-r from-secondary to-orange-400 rounded-full mt-2"></div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="card-border bg-pastel-orange card-lift flex flex-col justify-center reveal-child delay-100">
+              <div className="card-border bg-pastel-orange card-lift flex flex-col justify-center">
                 <h3 className="font-outfit text-xl font-black text-black mb-2">Abituriyentlar</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Davlat va chet el universitetlari, xalqaro dasturlar va litsey imtihonlariga SAT Matematikadan tayyorlanuvchilar uchun</p>
+                <p className="font-medium text-sm text-on-surface-variant">Davlat va çet el universitetlari, xalqaro dasturlar va litsey imtihonlariga SAT Matematikadan tayyorlanuvçilar uçun</p>
               </div>
-              <div className="card-border bg-pastel-green card-lift flex flex-col justify-center reveal-child delay-200">
+              <div className="card-border bg-pastel-green card-lift flex flex-col justify-center">
                 <h3 className="font-outfit text-xl font-black text-black mb-2">Havaskorlar</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Yangi til va madaniyatlarni o'rganishga qiziquvchi sayohatchilar, poliglotlar uchun</p>
+                <p className="font-medium text-sm text-on-surface-variant">Yangi til va madaniyatlarni örganişga qiziquvçi sayohatçilar, poliglotlar uçun</p>
               </div>
-              <div className="card-border bg-pastel-blue card-lift flex flex-col justify-center reveal-child delay-300">
+              <div className="card-border bg-pastel-blue card-lift flex flex-col justify-center">
                 <h3 className="font-outfit text-xl font-black text-black mb-2">Ma'lum kasb egalari</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Qo'shimcha til bilish orqali o'z karyerasida o'sishni reja qilyotgan xodimlar uchun</p>
+                <p className="font-medium text-sm text-on-surface-variant">Qöşimça til biliş orqali öz karyerasida ösişni reja qilyotgan xodimlar uçun</p>
               </div>
-              <div className="card-border bg-pastel-purple card-lift flex flex-col justify-center reveal-child delay-400">
-                <h3 className="font-outfit text-xl font-black text-black mb-2">Maktab o'quvchilari</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Ingliz tilida matematikani o'rganib, darsdan bo'sh vaqtlarini samarali o'tkazishni xohlovchi o'quvchilar uchun</p>
+              <div className="card-border bg-pastel-purple card-lift flex flex-col justify-center">
+                <h3 className="font-outfit text-xl font-black text-black mb-2">Maktab öquvçilari</h3>
+                <p className="font-medium text-sm text-on-surface-variant">Ingliz tilida matematikani örganib, darsdan boş vaqtlarini samarali ötkazişni xohlovçi öquvçilar uçun</p>
               </div>
-              <div className="card-border bg-pastel-purple card-lift flex flex-col justify-center reveal-child delay-500">
+              <div className="card-border bg-pastel-purple card-lift flex flex-col justify-center">
                 <h3 className="font-outfit text-xl font-black text-black mb-2">Talabalar</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Darslardan tashqari zamonaviy kasblarni o'rganib moliyaviy erkinlikka erishmoqchi bo'lgan yoshlar uchun</p>
+                <p className="font-medium text-sm text-on-surface-variant">Darslardan taşqari zamonaviy kasblarni örganib moliyaviy erkinlikka erişmoqçi bölgan yoşlar uçun</p>
               </div>
-              <div className="card-border bg-pastel-yellow card-lift flex flex-col justify-center reveal-child delay-600">
-                <h3 className="font-outfit text-xl font-black text-black mb-2">Chet eldagi yurtdoshlarimiz</h3>
-                <p className="font-medium text-sm text-on-surface-variant">Chet el nufuzli oliygohlarida o'qish maqsadida xalqaro SAT imtihonini muvaffaqiyatli topshirishni maqsad qilgan insonlar uchun ideal tanlov hisoblanadi</p>
+              <div className="card-border bg-pastel-yellow card-lift flex flex-col justify-center">
+                <h3 className="font-outfit text-xl font-black text-black mb-2">Çet eldagi yurtdoşlarimiz</h3>
+                <p className="font-medium text-sm text-on-surface-variant">Çet el nufuzli oliygohlarida öqiş maqsadida xalqaro SAT imtihonini muvaffaqiyatli topşirişni maqsad qilgan insonlar uçun ideal tanlov hisoblanadi</p>
               </div>
             </div>
 
@@ -293,7 +350,7 @@ function App() {
                 onClick={() => { window.location.href = "/student"; }}
                 className="bg-primary text-on-primary font-label-md px-8 py-3 rounded-lg hover:opacity-90 hover:shadow-[0_0_25px_rgba(67,67,213,0.7)] hover:-translate-y-0.5 active:translate-y-px transition-all font-bold shadow-[0_4px_0_#2e2bc2] cursor-pointer"
               >
-                Ishtirok etish
+                Iştirok etiş
               </button>
             </div>
           </div>
@@ -330,24 +387,24 @@ function App() {
               }
 
               return (
-                <div key={plan.id || index} className={`bg-white rounded-2xl border-2 border-${colorClass} overflow-hidden hover:shadow-[0_8px_0_${shadowColor}] transition-all duration-300 flex flex-col relative reveal-child delay-${(index % 3 + 1) * 100}`}>
-                  {plan.type === 'tertiary' && <div className="absolute top-4 right-4 bg-tertiary text-on-tertiary text-xs font-bold px-3 py-1 rounded-full z-10">Popular</div>}
+                <div key={plan.id || index} className={`bg-white rounded-2xl border-2 border-${colorClass} overflow-hidden hover:shadow-[0_8px_0_${shadowColor}] transition-all duration-300 flex flex-col relative`}>
+                  {plan.type === 'tertiary' && <div className="absolute top-4 right-4 bg-tertiary text-on-tertiary text-xs font-bold px-3 py-1 rounded-full z-10">Ommabop</div>}
                   <div className={`h-48 bg-${colorClass}/10 relative`}>
-                    <img alt={plan.title} className="w-full h-full object-cover mix-blend-multiply opacity-80" src={plan.imageUrl || imgSrc}/>
+                    <img alt={toNewUzbek(plan.title)} className="w-full h-full object-cover mix-blend-multiply opacity-80" src={plan.imageUrl || imgSrc}/>
                     <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent"></div>
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="font-outfit text-2xl font-black text-black mb-2">{plan.title}</h3>
-                    <p className="font-medium text-on-surface-variant mb-6 flex-1">{plan.description}</p>
+                    <h3 className="font-outfit text-2xl font-black text-black mb-2">{toNewUzbek(plan.title)}</h3>
+                    <p className="font-medium text-on-surface-variant mb-6 flex-1">{toNewUzbek(plan.description)}</p>
                     <div className="mb-6">
                       <span className={`font-display-lg text-3xl font-bold text-${colorClass}`}>{plan.price}</span>
-                      <span className="text-on-surface-variant text-sm"> so'm / oy</span>
+                      <span className="text-on-surface-variant text-sm"> söm / oy</span>
                     </div>
                     <button 
                       onClick={() => { window.location.href = "/student"; }}
                       className={`w-full ${buttonStyle} font-label-md py-3 rounded-lg hover:opacity-90 transition-all hover:-translate-y-0.5 active:translate-y-0 font-bold cursor-pointer`}
                     >
-                      Ishtirok etish
+                      Iştirok etiş
                     </button>
                   </div>
                 </div>
@@ -386,7 +443,7 @@ function App() {
                   className="inline-flex items-center justify-center gap-2 border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(67,67,213,0.5)] transition-all font-bold text-sm px-5 py-2.5 rounded-full cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <span className="material-symbols-outlined text-[18px]">send</span>
-                  Adminga yozish
+                  Adminga yoziş
                 </a>
                 <div className="flex items-center gap-3">
                   <a href="https://t.me/math_teacher_m" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-surface-container-highest/50 flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/30">
@@ -405,9 +462,9 @@ function App() {
               <ul className="space-y-3">
                 <li><a href="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> Asosiy sahifa</a></li>
                 <li><a href="#tariflar" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> Tariflar</a></li>
-                <li><a href="#natijalar" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> O'quvchilar natijalari</a></li>
-                <li><a href="/student" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> O'quvchi portali</a></li>
-                <li><a href="/admin" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> O'qituvchi (Admin) portali</a></li>
+                <li><a href="#natijalar" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span> Öquvçilar natijalari</a></li>
+                <li><a href="/student" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Öquvçi portali</a></li>
+                <li><a href="/admin" className="text-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Öqituvçi (Admin) portali</a></li>
               </ul>
             </div>
 
@@ -429,7 +486,7 @@ function App() {
                     <span className="material-symbols-outlined text-[20px] bg-primary/10 text-primary p-1.5 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">location_on</span>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider mb-0.5">Manzil</p>
-                      <p className="text-sm font-medium">{settings.contactAddress}</p>
+                      <p className="text-sm font-medium">{toNewUzbek(settings.contactAddress)}</p>
                     </div>
                   </a>
                 </li>
@@ -446,6 +503,7 @@ function App() {
           </div>
         </div>
       </footer>
+
       {/* Gallery Modal */}
       {selectedImage && (
         <div 
