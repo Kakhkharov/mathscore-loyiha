@@ -1105,7 +1105,15 @@ export default function App() {
       const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
 
       if (qType === 'single' || qType === 'mcq') {
-        if (studentAns !== undefined && studentAns !== null && trueAns !== undefined && Number(studentAns) === Number(trueAns)) {
+        let correctIdx = -1;
+        if (trueAns !== undefined && trueAns !== null) {
+          if (typeof trueAns === 'number') correctIdx = trueAns;
+          else if (!isNaN(Number(trueAns)) && String(trueAns).trim() !== '') correctIdx = Number(trueAns);
+          else if (/^[A-Za-z]$/.test(String(trueAns).trim())) {
+            correctIdx = String(trueAns).trim().toUpperCase().charCodeAt(0) - 65;
+          }
+        }
+        if (studentAns !== undefined && studentAns !== null && correctIdx !== -1 && Number(studentAns) === correctIdx) {
           isCorrect = true;
         }
       } else if (qType === 'multiple') {
@@ -1117,7 +1125,7 @@ export default function App() {
           isCorrect = true;
         }
       } else if (qType === 'truefalse') {
-        const cBool = trueAns === true || trueAns === 0 || trueAns === 'true';
+        const cBool = trueAns === true || trueAns === 0 || trueAns === 'true' || String(trueAns).toLowerCase() === 'true';
         let sBool;
         if (typeof studentAns === 'boolean') sBool = studentAns;
         else if (typeof studentAns === 'string') sBool = studentAns.toLowerCase() === 'true' || studentAns.toLowerCase() === 'rost' || studentAns === '0';
@@ -1126,7 +1134,17 @@ export default function App() {
       } else if (qType === 'short' || qType === 'math') {
         if (studentAns !== undefined && studentAns !== null) {
           const sText = String(studentAns).trim().toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
-          const modelText = String(q.hint?.split('__SHORT__:')[1]?.split(' | ')[0] || q.markingScheme?.modelAnswer || q.correct || '').trim().toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const marker = qType === 'short' ? '__SHORT__:' : '__MATH__:';
+          const modelText = String(
+            (q.hint && q.hint.includes(marker) ? q.hint.split(marker)[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__SHORT__:') ? q.hint.split('__SHORT__:')[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__MATH__:') ? q.hint.split('__MATH__:')[1].split(' | ')[0] : '') ||
+            q.markingScheme?.modelAnswer ||
+            q._decodedCorrect ||
+            q.correctAnswer ||
+            q.correct ||
+            ''
+          ).trim().toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
           const accepted = (String(modelText) + ',' + (Array.isArray(q.options) ? q.options.join(',') : ''))
             .split(',')
             .map(x => x.trim().toLowerCase())
@@ -1167,116 +1185,173 @@ export default function App() {
         throw new Error(data.error || 'Natijani saqlashda xatolik.');
       }
 
-      const finalScore = (data.result && typeof data.result.score === 'number')
-        ? data.result.score
-        : clientPercentage;
-      const finalCorrectCount = (data.result && typeof data.result.correctCount === 'number')
-        ? data.result.correctCount
-        : clientCorrectCount;
+      // Generate accurate question-by-question reviews reconciled with server data
+      const rawReviews = (data.result && Array.isArray(data.result.reviews) && data.result.reviews.length === (activeQuizTest.questions || []).length)
+        ? data.result.reviews
+        : null;
 
-      // Generate accurate local reviews if backend did not include detailed review breakdown
-      let effectiveReviews = data.result?.reviews || null;
-      if (!effectiveReviews || !Array.isArray(effectiveReviews) || effectiveReviews.length === 0) {
-        effectiveReviews = (activeQuizTest.questions || []).map((q, idx) => {
-          const studentAns = quizAnswers[idx];
-          const qType = (q.type || 'single').toLowerCase();
-          const qScore = Number(q.score) || 1;
-          let isCorrect = false;
-          let awardedMarks = 0;
-          let aiGrading = null;
-          const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+      const effectiveReviews = (activeQuizTest.questions || []).map((q, idx) => {
+        const studentAns = quizAnswers[idx];
+        const qType = (q.type || 'single').toLowerCase();
+        const qScore = Math.max(1, Number(q.score) || 1);
+        let isCorrect = false;
+        let awardedMarks = 0;
+        let aiGrading = null;
+        const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+        const serverRev = rawReviews ? rawReviews[idx] : null;
 
-          if (qType === 'short' || qType === 'math') {
-            const sText = String(studentAns || '').trim();
-            const modelAns = String(q.hint?.split('__SHORT__:')[1]?.split(' | ')[0] || q.markingScheme?.modelAnswer || q.correct || '').trim();
-            const normS = sText.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
-            const normM = modelAns.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+        if (qType === 'short' || qType === 'math') {
+          const sText = String(studentAns || '').trim();
+          const marker = qType === 'short' ? '__SHORT__:' : '__MATH__:';
+          const modelAns = String(
+            (q.hint && q.hint.includes(marker) ? q.hint.split(marker)[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__SHORT__:') ? q.hint.split('__SHORT__:')[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__MATH__:') ? q.hint.split('__MATH__:')[1].split(' | ')[0] : '') ||
+            q.markingScheme?.modelAnswer ||
+            q._decodedCorrect ||
+            q.correctAnswer ||
+            q.correct ||
+            ''
+          ).trim();
 
-            let matched = false;
-            if (normS && normM && (normS === normM || normS.includes(normM) || normM.includes(normS))) {
-              matched = true;
-            }
-            if (!matched && normM) {
-              const acronym = normM.split(' ').map(w => w[0]).join('');
-              if (acronym.length >= 2 && (normS === acronym || normS.includes(acronym))) matched = true;
-              const sAcronym = normS.split(' ').map(w => w[0]).join('');
-              if (sAcronym.length >= 2 && (normM === sAcronym || normM.includes(sAcronym))) matched = true;
-            }
+          const normS = sText.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const normM = modelAns.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
 
-            if (matched && normS) {
-              isCorrect = true;
-              awardedMarks = qScore;
-              aiGrading = {
-                grading_status: 'graded',
-                awarded_marks: qScore,
-                maximum_marks: qScore,
-                student_feedback: "A'lo darajada! Javob namunaviy javob va mezonlarga to'liq mos keladi.",
-                criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: qScore, reason: "Mezon to'liq bajarildi." }]
-              };
-            } else if (!normS) {
-              isCorrect = false;
-              awardedMarks = 0;
-              aiGrading = {
-                grading_status: 'graded',
-                awarded_marks: 0,
-                maximum_marks: qScore,
-                student_feedback: "Javob kiritilmadi.",
-                criterion_results: []
-              };
-            } else {
-              isCorrect = false;
-              awardedMarks = 0;
-              aiGrading = {
-                grading_status: 'graded',
-                awarded_marks: 0,
-                maximum_marks: qScore,
-                student_feedback: "Javob model javobga mos kelmadi.",
-                criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: 0, reason: "Asosiy tushunchalar yetarli emas." }]
-              };
-            }
-          } else if (qType === 'single' || qType === 'mcq') {
-            if (trueAns !== undefined && studentAns !== undefined && Number(studentAns) === Number(trueAns)) {
-              isCorrect = true;
-              awardedMarks = qScore;
-            }
-          } else if (qType === 'multiple') {
-            const cArr = Array.isArray(trueAns) ? trueAns.map(Number) : [Number(trueAns) || 0];
-            const sArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
-            if (cArr.length > 0 && cArr.length === sArr.length && cArr.every(v => sArr.includes(v))) {
-              isCorrect = true;
-              awardedMarks = qScore;
-            }
-          } else if (qType === 'truefalse') {
-            if (studentAns !== undefined && (Boolean(studentAns) === Boolean(trueAns) || studentAns === trueAns)) {
-              isCorrect = true;
-              awardedMarks = qScore;
-            }
+          let matched = false;
+          if (normS && normM && (normS === normM || normS.includes(normM) || normM.includes(normS))) {
+            matched = true;
+          }
+          if (!matched && normM) {
+            const acronym = normM.split(' ').map(w => w[0]).join('');
+            if (acronym.length >= 2 && (normS === acronym || normS.includes(acronym))) matched = true;
+            const sAcronym = normS.split(' ').map(w => w[0]).join('');
+            if (sAcronym.length >= 2 && (normM === sAcronym || normM.includes(sAcronym))) matched = true;
           }
 
-          return {
-            questionId: q.id || idx + 1,
-            index: idx,
-            type: qType,
-            text: q.question || q.text,
-            options: q.options || [],
-            studentAnswer: studentAns,
-            correctAnswer: trueAns,
-            isCorrect,
-            awardedMarks,
-            maxScore: qScore,
-            aiGrading
-          };
-        });
-      }
+          if (serverRev && (serverRev.isCorrect || Number(serverRev.awardedMarks) > 0)) {
+            isCorrect = true;
+            awardedMarks = Number(serverRev.awardedMarks) || qScore;
+            aiGrading = serverRev.aiGrading || null;
+          } else if (matched && normS) {
+            isCorrect = true;
+            awardedMarks = qScore;
+            aiGrading = {
+              grading_status: 'graded',
+              awarded_marks: qScore,
+              maximum_marks: qScore,
+              student_feedback: "A'lo darajada! Javob namunaviy javob va mezonlarga to'liq mos keladi.",
+              criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: qScore, reason: "Mezon to'liq bajarildi." }]
+            };
+          } else if (!normS) {
+            isCorrect = false;
+            awardedMarks = 0;
+            aiGrading = {
+              grading_status: 'graded',
+              awarded_marks: 0,
+              maximum_marks: qScore,
+              student_feedback: "Javob kiritilmadi.",
+              criterion_results: []
+            };
+          } else {
+            isCorrect = false;
+            awardedMarks = 0;
+            aiGrading = serverRev?.aiGrading || {
+              grading_status: 'graded',
+              awarded_marks: 0,
+              maximum_marks: qScore,
+              student_feedback: "Javob model javobga mos kelmadi.",
+              criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: 0, reason: "Asosiy tushunchalar yetarli emas." }]
+            };
+          }
+        } else if (qType === 'single' || qType === 'mcq') {
+          let correctIdx = -1;
+          if (trueAns !== undefined && trueAns !== null) {
+            if (typeof trueAns === 'number') correctIdx = trueAns;
+            else if (!isNaN(Number(trueAns)) && String(trueAns).trim() !== '') correctIdx = Number(trueAns);
+            else if (/^[A-Za-z]$/.test(String(trueAns).trim())) {
+              correctIdx = String(trueAns).trim().toUpperCase().charCodeAt(0) - 65;
+            }
+          }
+          if (studentAns !== undefined && studentAns !== null && (Number(studentAns) === correctIdx || (serverRev && serverRev.isCorrect))) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        } else if (qType === 'multiple') {
+          const cArr = Array.isArray(trueAns) ? trueAns.map(Number) : [Number(trueAns) || 0];
+          const sArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
+          if (
+            (cArr.length > 0 && cArr.length === sArr.length && cArr.every(v => sArr.includes(v))) ||
+            (serverRev && serverRev.isCorrect)
+          ) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        } else if (qType === 'truefalse') {
+          const cBool = trueAns === true || trueAns === 0 || trueAns === 'true' || String(trueAns).toLowerCase() === 'true';
+          let sBool;
+          if (typeof studentAns === 'boolean') sBool = studentAns;
+          else if (typeof studentAns === 'string') sBool = studentAns.toLowerCase() === 'true' || studentAns.toLowerCase() === 'rost' || studentAns === '0';
+          else if (typeof studentAns === 'number') sBool = studentAns === 0;
+          if ((sBool !== undefined && sBool === cBool) || (serverRev && serverRev.isCorrect)) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        }
+
+        return {
+          questionId: q.id || idx + 1,
+          index: idx,
+          type: qType,
+          text: q.question || q.text,
+          options: q.options || [],
+          studentAnswer: studentAns,
+          correctAnswer: trueAns,
+          isCorrect,
+          awardedMarks,
+          maxScore: qScore,
+          aiGrading
+        };
+      });
+
+      // Calculate totals from question-by-question reviews (definitive ground truth)
+      const evaluatedCorrectCount = effectiveReviews.filter(r => r.isCorrect).length;
+      const evaluatedEarnedMarks = effectiveReviews.reduce((sum, r) => sum + (Number(r.awardedMarks) || 0), 0);
+      const evaluatedMaxMarks = effectiveReviews.reduce((sum, r) => sum + (Number(r.maxScore) || 1), 0);
+      const evaluatedPercentage = evaluatedMaxMarks > 0 ? Math.round((evaluatedEarnedMarks / evaluatedMaxMarks) * 100) : 0;
+
+      const finalCorrectCount = Math.max(
+        evaluatedCorrectCount,
+        clientCorrectCount,
+        (data.result && typeof data.result.correctCount === 'number') ? data.result.correctCount : 0
+      );
+      const finalEarnedScore = Math.max(
+        evaluatedEarnedMarks,
+        clientEarnedScore,
+        Number(data.result?.earnedScore) || 0
+      );
+      const finalTotalScore = Math.max(
+        evaluatedMaxMarks,
+        totalScorePossible,
+        Number(data.result?.totalPossibleScore) || (activeQuizTest.questions?.length || 1)
+      );
+      const finalScore = finalTotalScore > 0
+        ? Math.round((finalEarnedScore / finalTotalScore) * 100)
+        : Math.max(
+            evaluatedPercentage,
+            clientPercentage,
+            (data.result && typeof data.result.score === 'number') ? data.result.score : 0
+          );
+      const finalIncorrectCount = Math.max(0, (activeQuizTest.questions?.length || effectiveReviews.length) - finalCorrectCount);
+      const finalPassed = finalScore >= (activeQuizTest.passingScore || activeQuizTest.passingPercentage || 70);
 
       setQuizResult({
         testId: activeQuizTest.id,
         testTitle: activeQuizTest.title,
         score: finalScore,
-        earnedScore: data.result?.earnedScore,
-        totalPossibleScore: data.result?.totalPossibleScore,
+        earnedScore: finalEarnedScore,
+        totalPossibleScore: finalTotalScore,
         correctCount: finalCorrectCount,
-        incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
+        incorrectCount: finalIncorrectCount,
         unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
         timeSpent: timeSpentStr,
         answers: quizAnswers,
@@ -1299,11 +1374,11 @@ export default function App() {
           testTitle: activeQuizTest.title,
           courseTitle: activeQuizTest.course || activeQuizTest.category || (activeCourse?.title || 'Barcha kurslar'),
           score: finalScore,
-          earnedScore: finalCorrectCount,
-          totalPossibleScore: activeQuizTest.questions.length,
+          earnedScore: finalEarnedScore,
+          totalPossibleScore: finalTotalScore,
           correctCount: finalCorrectCount,
-          incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
-          passed: finalScore >= (activeQuizTest.passingScore || 70),
+          incorrectCount: finalIncorrectCount,
+          passed: finalPassed,
           timeSpent: timeSpentStr,
           tabSwitches: tabSwitchesCount,
           createdAt: new Date().toISOString()
@@ -1320,17 +1395,103 @@ export default function App() {
     } catch (err) {
       console.warn('Submission network fallback:', err.message);
       // Fallback: client-side evaluation
-      const finalScore = clientPercentage;
-      const finalCorrectCount = clientCorrectCount;
+      const fallbackReviews = (activeQuizTest.questions || []).map((q, idx) => {
+        const studentAns = quizAnswers[idx];
+        const qType = (q.type || 'single').toLowerCase();
+        const qScore = Math.max(1, Number(q.score) || 1);
+        let isCorrect = false;
+        let awardedMarks = 0;
+        const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+
+        if (qType === 'short' || qType === 'math') {
+          const sText = String(studentAns || '').trim();
+          const marker = qType === 'short' ? '__SHORT__:' : '__MATH__:';
+          const modelAns = String(
+            (q.hint && q.hint.includes(marker) ? q.hint.split(marker)[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__SHORT__:') ? q.hint.split('__SHORT__:')[1].split(' | ')[0] : '') ||
+            (q.hint && q.hint.includes('__MATH__:') ? q.hint.split('__MATH__:')[1].split(' | ')[0] : '') ||
+            q.markingScheme?.modelAnswer ||
+            q._decodedCorrect ||
+            q.correctAnswer ||
+            q.correct ||
+            ''
+          ).trim();
+
+          const normS = sText.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const normM = modelAns.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+
+          if (normS && normM && (normS === normM || normS.includes(normM) || normM.includes(normS))) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        } else if (qType === 'single' || qType === 'mcq') {
+          let correctIdx = -1;
+          if (trueAns !== undefined && trueAns !== null) {
+            if (typeof trueAns === 'number') correctIdx = trueAns;
+            else if (!isNaN(Number(trueAns)) && String(trueAns).trim() !== '') correctIdx = Number(trueAns);
+            else if (/^[A-Za-z]$/.test(String(trueAns).trim())) {
+              correctIdx = String(trueAns).trim().toUpperCase().charCodeAt(0) - 65;
+            }
+          }
+          if (studentAns !== undefined && studentAns !== null && correctIdx !== -1 && Number(studentAns) === correctIdx) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        } else if (qType === 'multiple') {
+          const cArr = Array.isArray(trueAns) ? trueAns.map(Number) : [Number(trueAns) || 0];
+          const sArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
+          if (cArr.length > 0 && cArr.length === sArr.length && cArr.every(v => sArr.includes(v))) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        } else if (qType === 'truefalse') {
+          const cBool = trueAns === true || trueAns === 0 || trueAns === 'true' || String(trueAns).toLowerCase() === 'true';
+          let sBool;
+          if (typeof studentAns === 'boolean') sBool = studentAns;
+          else if (typeof studentAns === 'string') sBool = studentAns.toLowerCase() === 'true' || studentAns.toLowerCase() === 'rost' || studentAns === '0';
+          else if (typeof studentAns === 'number') sBool = studentAns === 0;
+          if (sBool !== undefined && sBool === cBool) {
+            isCorrect = true;
+            awardedMarks = qScore;
+          }
+        }
+
+        return {
+          questionId: q.id || idx + 1,
+          index: idx,
+          type: qType,
+          text: q.question || q.text,
+          options: q.options || [],
+          studentAnswer: studentAns,
+          correctAnswer: trueAns,
+          isCorrect,
+          awardedMarks,
+          maxScore: qScore
+        };
+      });
+
+      const evaluatedCorrectCount = fallbackReviews.filter(r => r.isCorrect).length;
+      const evaluatedEarnedMarks = fallbackReviews.reduce((sum, r) => sum + (Number(r.awardedMarks) || 0), 0);
+      const evaluatedMaxMarks = fallbackReviews.reduce((sum, r) => sum + (Number(r.maxScore) || 1), 0);
+      const finalCorrectCount = Math.max(evaluatedCorrectCount, clientCorrectCount);
+      const finalEarnedScore = Math.max(evaluatedEarnedMarks, clientEarnedScore);
+      const finalTotalScore = Math.max(evaluatedMaxMarks, totalScorePossible);
+      const finalScore = finalTotalScore > 0 ? Math.round((finalEarnedScore / finalTotalScore) * 100) : clientPercentage;
+      const finalIncorrectCount = Math.max(0, activeQuizTest.questions.length - finalCorrectCount);
+      const finalPassed = finalScore >= (activeQuizTest.passingScore || 70);
+
       setQuizResult({
         testId: activeQuizTest.id,
         testTitle: activeQuizTest.title,
         score: finalScore,
+        earnedScore: finalEarnedScore,
+        totalPossibleScore: finalTotalScore,
         correctCount: finalCorrectCount,
-        incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
+        incorrectCount: finalIncorrectCount,
         unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
         timeSpent: timeSpentStr,
         answers: quizAnswers,
+        reviews: fallbackReviews,
         cheatAlerts: tabSwitchesCount
       });
 
@@ -1348,11 +1509,11 @@ export default function App() {
           testTitle: activeQuizTest.title,
           courseTitle: activeQuizTest.course || activeQuizTest.category || (activeCourse?.title || 'Barcha kurslar'),
           score: finalScore,
-          earnedScore: finalCorrectCount,
-          totalPossibleScore: activeQuizTest.questions.length,
+          earnedScore: finalEarnedScore,
+          totalPossibleScore: finalTotalScore,
           correctCount: finalCorrectCount,
-          incorrectCount: activeQuizTest.questions.length - finalCorrectCount,
-          passed: finalScore >= (activeQuizTest.passingScore || 70),
+          incorrectCount: finalIncorrectCount,
+          passed: finalPassed,
           timeSpent: timeSpentStr,
           tabSwitches: tabSwitchesCount,
           createdAt: new Date().toISOString()
@@ -1495,7 +1656,13 @@ export default function App() {
     }
 
     // Proportional competency so mastery bars accurately reflect performance
-    const overallPct = typeof quizResult.score === 'number' ? quizResult.score : 0;
+    const revList = Array.isArray(quizResult.reviews) ? quizResult.reviews : [];
+    let overallPct = typeof quizResult.score === 'number' ? quizResult.score : 0;
+    if (revList.length > 0) {
+      const eEarned = revList.reduce((s, r) => s + (Number(r.awardedMarks) || 0), 0);
+      const eTotal = revList.reduce((s, r) => s + (Number(r.maxScore) || 1), 0);
+      if (eTotal > 0) overallPct = Math.max(overallPct, Math.round((eEarned / eTotal) * 100));
+    }
     if (overallPct > 0) {
       return Math.max(0, Math.min(100, overallPct));
     }
@@ -2942,7 +3109,21 @@ export default function App() {
                   </div>
                 )}
 
-                {currentPage === 'test-results' && quizResult && (
+                {currentPage === 'test-results' && quizResult && (() => {
+                  const reviewList = Array.isArray(quizResult.reviews) ? quizResult.reviews : [];
+                  const revCorrectCount = reviewList.length > 0 ? reviewList.filter(r => r.isCorrect).length : null;
+                  const revEarned = reviewList.length > 0 ? reviewList.reduce((acc, r) => acc + (Number(r.awardedMarks) || 0), 0) : null;
+                  const revTotal = reviewList.length > 0 ? reviewList.reduce((acc, r) => acc + (Number(r.maxScore) || 1), 0) : null;
+                  const revScore = (revEarned !== null && revTotal && revTotal > 0) ? Math.round((revEarned / revTotal) * 100) : null;
+
+                  const displayCorrectCount = revCorrectCount !== null ? Math.max(revCorrectCount, Number(quizResult.correctCount) || 0) : (Number(quizResult.correctCount) || 0);
+                  const totalQCount = activeQuizTest?.questions?.length || reviewList.length || 1;
+                  const displayIncorrectCount = Math.max(0, totalQCount - displayCorrectCount);
+                  const displayScore = revScore !== null ? Math.max(revScore, Number(quizResult.score) || 0) : (Number(quizResult.score) || 0);
+                  const passingGrade = Number(activeQuizTest?.passingScore) || Number(activeQuizTest?.passingPercentage) || 70;
+                  const isPassed = displayScore >= passingGrade;
+
+                  return (
                   <div className="space-y-6 animate-fade-in">
                     <header className="text-center space-y-1">
                       <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 mb-2 shadow-xs">
@@ -2961,28 +3142,28 @@ export default function App() {
                           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                             <path className="text-surface-container" stroke="currentColor" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path
-                              className={quizResult.score >= activeQuizTest.passingScore ? "text-tertiary" : "text-error"}
+                              className={isPassed ? "text-tertiary" : "text-error"}
                               stroke="currentColor"
                               strokeWidth="3"
-                              strokeDasharray={`${quizResult.score}, 100`}
+                              strokeDasharray={`${displayScore}, 100`}
                               fill="none"
                               strokeLinecap="round"
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             />
                           </svg>
                           <div className="absolute flex flex-col items-center">
-                            <span className="font-outfit text-2xl font-bold text-on-surface">{quizResult.score}%</span>
+                            <span className="font-outfit text-2xl font-bold text-on-surface">{displayScore}%</span>
                             <span className="text-[8px] text-outline font-bold uppercase tracking-wider">Umumiy ball</span>
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[9px] font-bold ${quizResult.score >= activeQuizTest.passingScore
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-[9px] font-bold ${isPassed
                               ? 'bg-tertiary-container border-tertiary/20 text-tertiary'
                               : 'bg-error-container border-error/20 text-error'
                             }`}>
-                            <span className="material-symbols-outlined text-[12px]">{quizResult.score >= activeQuizTest.passingScore ? 'verified' : 'cancel'}</span>
-                            {quizResult.score >= activeQuizTest.passingScore ? 'MUVAFFAQIYATLI O\'TDI' : 'YIQILDI'}
+                            <span className="material-symbols-outlined text-[12px]">{isPassed ? 'verified' : 'cancel'}</span>
+                            {isPassed ? 'MUVAFFAQIYATLI O\'TDI' : 'YIQILDI'}
                           </span>
                         </div>
                       </div>
@@ -2998,13 +3179,13 @@ export default function App() {
                         <div className="bg-surface rounded-xl p-4 border border-outline-variant space-y-1.5 shadow-xs">
                           <span className="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
                           <p className="text-[9px] font-bold text-outline uppercase tracking-wider">To'g'ri Javoblar</p>
-                          <p className="font-outfit text-base font-bold text-tertiary">{quizResult.correctCount} ta</p>
+                          <p className="font-outfit text-base font-bold text-tertiary">{displayCorrectCount} ta</p>
                         </div>
 
                         <div className="bg-surface rounded-xl p-4 border border-outline-variant space-y-1.5 shadow-xs">
                           <span className="material-symbols-outlined text-error text-[20px]">cancel</span>
                           <p className="text-[9px] font-bold text-outline uppercase tracking-wider">Xato Javoblar</p>
-                          <p className="font-outfit text-base font-bold text-error">{quizResult.incorrectCount} ta</p>
+                          <p className="font-outfit text-base font-bold text-error">{displayIncorrectCount} ta</p>
                         </div>
 
                         <div className="bg-surface rounded-xl p-4 border border-outline-variant space-y-1.5 shadow-xs">
@@ -3052,7 +3233,7 @@ export default function App() {
                         Kursga qaytish
                       </button>
 
-                      {quizResult.score >= activeQuizTest.passingScore && (
+                      {isPassed && (
                         <button
                           onClick={() => setShowCertificate(true)}
                           className="bg-secondary text-on-secondary font-bold text-xs py-2.5 px-6 rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-xs flex items-center gap-1 border border-secondary/20"
@@ -3277,7 +3458,8 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-                )}
+                );
+              })()}
 
 
 

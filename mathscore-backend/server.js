@@ -741,15 +741,21 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
         feedback = "To'g'ri variantlar to'liq yoki to'g'ri tanlanmadi.";
       }
     } else if (qType === 'truefalse') {
-      const correctBool = String(q.correctAnswer) === 'true' || q.correctAnswer === true || q.correctAnswer === 1 || q.correctAnswer === 0;
+      let correctBool;
+      if (q.hint && q.hint.includes('__TF__:')) {
+        correctBool = q.hint.includes('__TF__:true');
+      } else {
+        correctBool = q.correctAnswer === 0 || q.correctAnswer === true || String(q.correctAnswer).toLowerCase() === 'true' || String(q.correctAnswer).toLowerCase() === 'rost';
+      }
+
       let studentBool;
       if (typeof studentAns === 'boolean') {
         studentBool = studentAns;
       } else if (typeof studentAns === 'string') {
         const s = studentAns.toLowerCase().trim();
-        studentBool = s === 'true' || s === 'rost' || s === '1';
+        studentBool = s === 'true' || s === 'rost' || s === '0';
       } else if (typeof studentAns === 'number') {
-        studentBool = studentAns === 1 || studentAns === 0;
+        studentBool = studentAns === 0;
       }
       if (studentBool !== undefined && studentBool === correctBool) {
         isCorrect = true;
@@ -792,10 +798,31 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
           feedback = aiGrading.student_feedback || (isCorrect ? "To'liq to'g'ri javob!" : `${awardedMarks}/${qScore} ball`);
         } catch (aiErr) {
           console.error(`[Grading] Gemini grading error on question ${idx + 1}:`, aiErr);
-          // Fallback: Check simple string match if available
-          const cleanStudent = rawText.toLowerCase();
-          const simpleExpected = String(q.correctAnswer || '').split(/[,|]/).map(a => a.trim().toLowerCase()).filter(Boolean);
-          if (simpleExpected.includes(cleanStudent)) {
+          // Fallback: Check simple model answer match from hint or markingScheme
+          let modelAns = '';
+          if (q.hint && q.hint.includes('__SHORT__:')) {
+            modelAns = q.hint.split('__SHORT__:')[1].split(' | ')[0];
+          } else if (q.hint && q.hint.includes('__MATH__:')) {
+            modelAns = q.hint.split('__MATH__:')[1].split(' | ')[0];
+          } else if (q.markingScheme?.modelAnswer) {
+            modelAns = q.markingScheme.modelAnswer;
+          } else if (typeof q.correctAnswer === 'string') {
+            modelAns = q.correctAnswer;
+          }
+
+          const cleanStudent = rawText.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const cleanModel = modelAns.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+
+          let match = false;
+          if (cleanStudent && cleanModel && (cleanStudent === cleanModel || cleanStudent.includes(cleanModel) || cleanModel.includes(cleanStudent))) {
+            match = true;
+          }
+          if (!match && cleanModel) {
+            const acronym = cleanModel.split(' ').map(w => w[0]).join('');
+            if (acronym.length >= 2 && (cleanStudent === acronym || cleanStudent.includes(acronym))) match = true;
+          }
+
+          if (match) {
             awardedMarks = qScore;
             isCorrect = true;
             feedback = "To'g'ri javob!";
