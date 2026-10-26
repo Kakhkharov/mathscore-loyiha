@@ -2038,10 +2038,10 @@ export default function App() {
 
       {/* -------------------- MAIN LMS SHELL -------------------- */}
       {currentPage !== 'login' && currentPage !== 'forgot-password' && currentPage !== 'reset-password' && (
-        <div className="flex flex-col min-h-screen">
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-background">
 
           {/* Premium Header */}
-          <header className="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-14 bg-surface border-b border-outline-variant shadow-xs">
+          <header className="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-14 bg-surface border-b border-outline-variant shadow-xs shrink-0">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -2061,28 +2061,28 @@ export default function App() {
               </div>
 
               {/* Horizontal Navbar */}
-              <nav className="hidden md:flex gap-5 items-center ml-8 text-xs font-semibold">
+              <nav className="hidden md:flex gap-1.5 items-center ml-6 text-xs font-semibold">
                 <button
                   onClick={() => setCurrentPage('dashboard')}
-                  className={`py-1 transition-colors ${currentPage === 'dashboard' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'dashboard' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
                 >
                   Dashboard
                 </button>
                 <button
                   onClick={() => setCurrentPage('courses')}
-                  className={`py-1 transition-colors ${currentPage === 'courses' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'courses' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
                 >
                   Kurslarim
                 </button>
                 <button
                   onClick={() => setCurrentPage('tasks')}
-                  className={`py-1 transition-colors ${currentPage === 'tasks' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'tasks' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
                 >
                   Topshiriqlar
                 </button>
                 <button
                   onClick={() => setCurrentPage('test-center')}
-                  className={`py-1 transition-colors ${currentPage === 'test-center' ? 'text-primary' : 'text-outline hover:text-on-surface'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'test-center' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
                 >
                   Imtihonlar
                 </button>
@@ -2186,18 +2186,18 @@ export default function App() {
             </div>
           </header>
 
-          <div className="flex flex-1 pt-14 relative">
+          <div className="flex flex-1 pt-14 h-[calc(100vh-3.5rem)] overflow-hidden relative">
 
-            {/* Sidebar Left Navigation */}
+            {/* Sidebar Left Navigation (Frozen) */}
             <aside className={`
-              fixed lg:sticky top-14 left-0 h-[calc(100vh-56px)] w-60 bg-surface border-r border-outline-variant z-35 transition-transform duration-200
+              fixed lg:static top-14 left-0 h-full w-56 shrink-0 bg-surface border-r border-outline-variant z-35 transition-transform duration-200 overflow-y-auto select-none
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
-              <div className="p-4 flex flex-col h-full justify-between">
-                <div className="space-y-4">
+              <div className="p-3 flex flex-col h-full justify-between">
+                <div className="space-y-2.5">
                   {/* Student mini card */}
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-surface-container-low border border-outline-variant">
-                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                  <div className="flex items-center gap-2.5 p-2 rounded-xl bg-surface-container-low border border-outline-variant">
+                    <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
                       <img alt="Avatar" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
                     </div>
                     <div className="min-w-0">
@@ -2212,8 +2212,8 @@ export default function App() {
                       <button
                         key={item.name}
                         onClick={() => { setCurrentPage(item.page); setIsSidebarOpen(false); }}
-                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
-                            ? 'bg-primary/10 text-primary'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
+                            ? 'bg-primary/10 text-primary font-bold'
                             : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
                           }`}
                       >
@@ -2226,16 +2226,16 @@ export default function App() {
                   </nav>
                 </div>
 
-                <div className="pt-4 border-t border-outline-variant space-y-3">
+                <div className="pt-3 border-t border-outline-variant space-y-2">
                   <button
                     onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); setIsSidebarOpen(false); } }}
-                    className="w-full bg-primary text-on-primary font-semibold text-xs py-2.5 rounded-lg hover:bg-primary/95 transition-colors cursor-pointer"
+                    className="w-full bg-primary text-on-primary font-semibold text-xs py-2 px-3 rounded-lg hover:bg-primary/95 transition-colors cursor-pointer"
                   >
                     Darslarni boshlash
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 w-full text-error/85 hover:bg-error-container/10 transition-colors rounded-lg font-semibold text-xs cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-1.5 w-full text-error/85 hover:bg-error-container/10 transition-colors rounded-lg font-semibold text-xs cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[18px]">logout</span>
                     <span>Chiqish</span>
@@ -2253,7 +2253,7 @@ export default function App() {
             )}
 
             {/* Primary content area */}
-            <main className="flex-1 bg-background overflow-y-auto px-6 py-6 relative">
+            <main className="flex-1 h-full bg-background overflow-y-auto px-4 sm:px-6 py-6 relative scroll-smooth">
               <div className={`${currentPage === 'test-interface' && showDesmos ? 'max-w-[1650px]' : currentPage === 'test-interface' ? 'max-w-[1250px]' : 'max-w-[1000px]'} mx-auto transition-all duration-300`}>
 
                 {/* -------------------- DASHBOARD VIEW -------------------- */}
@@ -2768,7 +2768,7 @@ export default function App() {
 
                     {/* Left Sidebar 30-Question Navigator */}
                     <div className={showDesmos ? "lg:col-span-3 xl:col-span-3 2xl:col-span-2" : "lg:col-span-3"}>
-                      <div className="bg-surface rounded-xl p-4 border border-outline-variant flex flex-col gap-4 shadow-xs sticky top-20">
+                      <div className="bg-surface rounded-xl p-4 border border-outline-variant flex flex-col gap-4 shadow-xs sticky top-4">
                         <div className="flex justify-between items-center pb-2 border-b border-outline-variant">
                           <h3 className="font-outfit text-xs font-bold text-on-surface">Savollar paneli</h3>
                           <span className="text-[10px] font-bold text-primary">
@@ -2972,7 +2972,7 @@ export default function App() {
                           </div>
 
                           {/* Right Column: Desmos Interactive Graphing Workspace */}
-                          <div className="xl:col-span-6 bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-md flex flex-col sticky top-20">
+                          <div className="xl:col-span-6 bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-md flex flex-col sticky top-4">
                             {/* Desmos Window Header */}
                             <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container border-b border-outline-variant select-none">
                               <div className="flex items-center gap-2">

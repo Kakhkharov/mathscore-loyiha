@@ -2470,10 +2470,10 @@ function App() {
 
       {/* -------------------- MAIN DASHBOARD SHELL -------------------- */}
       {currentPage !== 'login' && (
-        <div className="flex flex-col min-h-screen bg-transparent relative z-10">
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-950/50 relative z-10">
 
           {/* Header */}
-          <header className="modern-card fixed top-4 left-4 right-4 h-16 flex items-center justify-between px-6 z-40 rounded-2xl">
+          <header className="modern-card fixed top-3 left-4 right-4 h-16 flex items-center justify-between px-6 z-40 rounded-2xl shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <span className="material-symbols-outlined text-[20px]">calculate</span>
@@ -2581,10 +2581,10 @@ function App() {
             </div>
           </header>
 
-          <div className="flex flex-1 pt-24 px-4 pb-4 gap-6">
+          <div className="flex flex-1 pt-[88px] px-4 pb-3 gap-5 h-screen overflow-hidden">
 
-            {/* Modern Sidebar */}
-            <aside className="w-56 shrink-0 rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] h-[calc(100vh-7rem)] sticky top-24 flex flex-col p-3.5 gap-1.5 z-30 overflow-y-auto hidden lg:flex">
+            {/* Modern Sidebar (Frozen) */}
+            <aside className="w-56 shrink-0 rounded-[24px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] h-full flex flex-col p-2.5 gap-1 z-30 overflow-y-auto hidden lg:flex select-none">
               {[
                 { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
                 { id: 'home', icon: 'home', label: 'Bosh sahifa' },
@@ -2608,7 +2608,7 @@ function App() {
                 if (item.hasSubmenu) {
                   const isParentActive = currentPage === 'tests' || currentPage === 'test-results' || currentPage === 'tasks';
                   return (
-                    <div key={item.id} className="flex flex-col gap-1">
+                    <div key={item.id} className="flex flex-col gap-0.5">
                       <button
                         onClick={() => {
                           setTestsMenuOpen(!testsMenuOpen);
@@ -2618,24 +2618,24 @@ function App() {
                             syncData();
                           }
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
                           isParentActive
-                            ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-2xl'
+                            ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-xl'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl font-semibold border border-transparent'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className="material-symbols-outlined text-[19px]">{item.icon}</span>
                           <span>{item.label}</span>
                         </div>
-                        <span className="material-symbols-outlined text-[18px]">
+                        <span className="material-symbols-outlined text-[16px]">
                           {testsMenuOpen ? 'expand_less' : 'expand_more'}
                         </span>
                       </button>
 
                       {/* Submenu: Testlar & Topshiriqlar */}
                       {testsMenuOpen && (
-                        <div className="ml-4 pl-3 py-1 flex flex-col gap-1.5 border-l border-indigo-100 dark:border-indigo-900/60 animate-fade-in">
+                        <div className="ml-3 pl-2.5 py-0.5 flex flex-col gap-0.5 border-l border-indigo-100 dark:border-indigo-900/60 animate-fade-in">
                           {item.subItems.map(sub => (
                             <button
                               key={sub.id}
@@ -2644,13 +2644,13 @@ function App() {
                                 setSearchQuery('');
                                 syncData();
                               }}
-                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
                                 currentPage === sub.id
-                                  ? 'bg-[#EEF0FF] dark:bg-indigo-950/70 text-[#5B5FEF] dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl'
-                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl'
+                                  ? 'bg-[#EEF0FF] dark:bg-indigo-950/70 text-[#5B5FEF] dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
                               }`}
                             >
-                              <span className="material-symbols-outlined text-[17px]">{sub.icon}</span>
+                              <span className="material-symbols-outlined text-[15px]">{sub.icon}</span>
                               <span>{sub.label}</span>
                             </button>
                           ))}
@@ -2664,12 +2664,12 @@ function App() {
                   <button
                     key={item.id}
                     onClick={() => { setCurrentPage(item.id); setSearchQuery(''); syncData(); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${currentPage === item.id
-                        ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-2xl font-bold'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs transition-all ${currentPage === item.id
+                        ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-xl font-bold'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl font-semibold border border-transparent'
                       }`}
                   >
-                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                    <span className="material-symbols-outlined text-[19px]">{item.icon}</span>
                     <span>{item.label}</span>
                   </button>
                 );
@@ -2677,14 +2677,14 @@ function App() {
 
               <button
                 onClick={() => setCurrentPage('login')}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-auto rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer select-none"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-auto rounded-xl font-bold text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer select-none"
               >
-                <span className="material-symbols-outlined text-[20px]">logout</span> Chiqish
+                <span className="material-symbols-outlined text-[18px]">logout</span> Chiqish
               </button>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 min-h-[calc(100vh-7rem)]">
+            <main className="flex-1 h-full overflow-y-auto pr-1 pb-6 scroll-smooth">
               <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* VIEW 1: DASHBOARD */}
