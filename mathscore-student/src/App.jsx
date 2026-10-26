@@ -1645,6 +1645,12 @@ export default function App() {
         console.error('Local submission cache error:', e);
       }
 
+      try {
+        if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+
       setCurrentPage('test-results');
       syncData();
     } catch (err) {
@@ -1780,6 +1786,12 @@ export default function App() {
         window.dispatchEvent(new Event('storage'));
       } catch (e) {}
 
+      try {
+        if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+
       setCurrentPage('test-results');
     }
   };
@@ -1792,6 +1804,12 @@ export default function App() {
     setTabSwitchesCount(0);
     setActiveQuestion(0);
     setCurrentPage('test-interface');
+
+    try {
+      if (typeof document !== 'undefined' && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (e) {}
   };
 
   const handleStartTestFlow = (test) => {
@@ -2305,223 +2323,227 @@ export default function App() {
       {currentPage !== 'login' && currentPage !== 'forgot-password' && currentPage !== 'reset-password' && (
         <div className="h-screen w-screen overflow-hidden flex flex-col bg-background">
 
-          {/* Premium Header */}
-          <header className="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-14 bg-surface border-b border-outline-variant shadow-xs shrink-0">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="lg:hidden text-on-surface p-1.5 rounded-lg hover:bg-surface-container"
-              >
-                <span className="material-symbols-outlined text-[20px]">{isSidebarOpen ? 'close' : 'menu'}</span>
-              </button>
+          {/* Premium Header (Toki test yakuniga yetmagunicha test rejimida yashiriladi) */}
+          {currentPage !== 'test-interface' && (
+            <header className="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-14 bg-surface border-b border-outline-variant shadow-xs shrink-0">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="lg:hidden text-on-surface p-1.5 rounded-lg hover:bg-surface-container"
+                >
+                  <span className="material-symbols-outlined text-[20px]">{isSidebarOpen ? 'close' : 'menu'}</span>
+                </button>
 
-              <div
-                onClick={() => setCurrentPage('dashboard')}
-                className="flex items-center gap-2 select-none cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  <span className="material-symbols-outlined text-[18px] block">calculate</span>
+                <div
+                  onClick={() => setCurrentPage('dashboard')}
+                  className="flex items-center gap-2 select-none cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    <span className="material-symbols-outlined text-[18px] block">calculate</span>
+                  </div>
+                  <span className="font-outfit text-base font-bold tracking-tight text-on-surface">MathScore</span>
                 </div>
-                <span className="font-outfit text-base font-bold tracking-tight text-on-surface">MathScore</span>
+
+                {/* Horizontal Navbar */}
+                <nav className="hidden md:flex gap-1.5 items-center ml-6 text-xs font-semibold">
+                  <button
+                    onClick={() => setCurrentPage('dashboard')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'dashboard' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage('courses')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'courses' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
+                  >
+                    Kurslarim
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage('certificates')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'certificates' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
+                  >
+                    Sertifikatlarim
+                  </button>
+                </nav>
               </div>
 
-              {/* Horizontal Navbar */}
-              <nav className="hidden md:flex gap-1.5 items-center ml-6 text-xs font-semibold">
-                <button
-                  onClick={() => setCurrentPage('dashboard')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'dashboard' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setCurrentPage('courses')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'courses' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
-                >
-                  Kurslarim
-                </button>
-                <button
-                  onClick={() => setCurrentPage('certificates')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${currentPage === 'certificates' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface hover:bg-surface-container-low'}`}
-                >
-                  Sertifikatlarim
-                </button>
-              </nav>
-            </div>
+              <div className="flex items-center gap-3">
+                {/* Notifications */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                    className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer relative"
+                    title="Bildirishnomalar"
+                  >
+                    <span className="material-symbols-outlined text-[20px] block">notifications</span>
+                    {notifications.filter(n => !n.isRead).length > 0 && (
+                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] text-[10px] font-black leading-none rounded-full bg-red-500 text-white shadow-sm ring-2 ring-surface animate-pulse flex items-center justify-center">
+                        {notifications.filter(n => !n.isRead).length}
+                      </span>
+                    )}
+                  </button>
 
-            <div className="flex items-center gap-3">
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                  className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer relative"
-                  title="Bildirishnomalar"
-                >
-                  <span className="material-symbols-outlined text-[20px] block">notifications</span>
-                  {notifications.filter(n => !n.isRead).length > 0 && (
-                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] text-[10px] font-black leading-none rounded-full bg-red-500 text-white shadow-sm ring-2 ring-surface animate-pulse flex items-center justify-center">
-                      {notifications.filter(n => !n.isRead).length}
-                    </span>
-                  )}
-                </button>
-
-                {showNotifDropdown && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-outline-variant/60 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[420px]">
-                    <div className="p-3 border-b border-outline-variant/60 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs font-bold text-on-surface">Bildirishnomalar</h4>
+                  {showNotifDropdown && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-outline-variant/60 rounded-xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[420px]">
+                      <div className="p-3 border-b border-outline-variant/60 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-on-surface">Bildirishnomalar</h4>
+                          {notifications.filter(n => !n.isRead).length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-bold rounded">
+                              {notifications.filter(n => !n.isRead).length} yangi
+                            </span>
+                          )}
+                        </div>
                         {notifications.filter(n => !n.isRead).length > 0 && (
-                          <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-bold rounded">
-                            {notifications.filter(n => !n.isRead).length} yangi
-                          </span>
+                          <button
+                            onClick={async () => {
+                              await fetchWithAuth('/api/notifications/read-all', { method: 'POST' });
+                              setNotifications(prev => prev.map(item => ({ ...item, isRead: true })));
+                            }}
+                            className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                          >
+                            Barchasi o'qildi
+                          </button>
                         )}
                       </div>
-                      {notifications.filter(n => !n.isRead).length > 0 && (
-                        <button
-                          onClick={async () => {
-                            await fetchWithAuth('/api/notifications/read-all', { method: 'POST' });
-                            setNotifications(prev => prev.map(item => ({ ...item, isRead: true })));
-                          }}
-                          className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
-                        >
-                          Barchasi o'qildi
-                        </button>
-                      )}
-                    </div>
-                    <div className="overflow-y-auto flex-1">
-                      {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-outline font-medium">Hozircha yangi bildirishnomalar yo'q</div>
-                      ) : (
-                        notifications.map(n => (
-                          <div
-                            key={n.id}
-                            onClick={async () => {
-                              if (!n.isRead) {
-                                await fetchWithAuth(`/api/notifications/${n.id}/read`, { method: 'POST' });
-                                setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: true } : item));
-                              }
-                            }}
-                            className={`p-3 border-b border-outline-variant/60 last:border-0 cursor-pointer hover:bg-surface-container transition-colors ${!n.isRead ? 'bg-primary/5' : 'opacity-80'}`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <h5 className={`text-xs font-bold ${!n.isRead ? 'text-primary' : 'text-outline'}`}>{n.title}</h5>
-                              <span className="text-[9px] text-outline/80 font-medium whitespace-nowrap ml-2">
-                                {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                      <div className="overflow-y-auto flex-1">
+                        {notifications.length === 0 ? (
+                          <div className="p-6 text-center text-xs text-outline font-medium">Hozircha yangi bildirishnomalar yo'q</div>
+                        ) : (
+                          notifications.map(n => (
+                            <div
+                              key={n.id}
+                              onClick={async () => {
+                                if (!n.isRead) {
+                                  await fetchWithAuth(`/api/notifications/${n.id}/read`, { method: 'POST' });
+                                  setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: true } : item));
+                                }
+                              }}
+                              className={`p-3 border-b border-outline-variant/60 last:border-0 cursor-pointer hover:bg-surface-container transition-colors ${!n.isRead ? 'bg-primary/5' : 'opacity-80'}`}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <h5 className={`text-xs font-bold ${!n.isRead ? 'text-primary' : 'text-outline'}`}>{n.title}</h5>
+                                <span className="text-[9px] text-outline/80 font-medium whitespace-nowrap ml-2">
+                                  {new Date(n.createdAt).toLocaleDateString('uz-UZ')} {new Date(n.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-on-surface/90 leading-relaxed">{n.message}</p>
                             </div>
-                            <p className="text-[11px] text-on-surface/90 leading-relaxed">{n.message}</p>
-                          </div>
-                        ))
-                      )}
+                          ))
+                        )}
+                      </div>
                     </div>
+                  )}
+                </div>
+
+                {/* Dark mode switcher */}
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
+                  title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}
+                >
+                  <span className="material-symbols-outlined text-[20px] block">
+                    {darkMode ? 'light_mode' : 'dark_mode'}
+                  </span>
+                </button>
+
+                {/* Uzbek Alphabet Toolbar Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowUzbekToolbar(!showUzbekToolbar)}
+                  title={showUzbekToolbar ? "Alifbo panelini yashiriş" : "Alifbo panelini ko'rsatiş"}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                    showUzbekToolbar
+                      ? 'text-primary bg-primary/10 ring-1 ring-primary/30'
+                      : 'text-outline hover:text-on-surface hover:bg-surface-container'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[20px] block">
+                    keyboard
+                  </span>
+                </button>
+
+                {/* User profile dropdown trigger */}
+                <div
+                  onClick={() => {
+                    setCurrentPage('profile');
+                    if (!profile.phone || profile.phone.length < 17) setShowProfileAlert(true);
+                  }}
+                  className="flex items-center gap-2.5 cursor-pointer pl-3 border-l border-outline-variant/60"
+                >
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+                    <img alt="Student Profile" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
                   </div>
-                )}
-              </div>
-
-              {/* Dark mode switcher */}
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
-                title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}
-              >
-                <span className="material-symbols-outlined text-[20px] block">
-                  {darkMode ? 'light_mode' : 'dark_mode'}
-                </span>
-              </button>
-
-              {/* Uzbek Alphabet Toolbar Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowUzbekToolbar(!showUzbekToolbar)}
-                title={showUzbekToolbar ? "Alifbo panelini yashiriş" : "Alifbo panelini ko'rsatiş"}
-                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
-                  showUzbekToolbar
-                    ? 'text-primary bg-primary/10 ring-1 ring-primary/30'
-                    : 'text-outline hover:text-on-surface hover:bg-surface-container'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px] block">
-                  keyboard
-                </span>
-              </button>
-
-              {/* User profile dropdown trigger */}
-              <div
-                onClick={() => {
-                  setCurrentPage('profile');
-                  if (!profile.phone || profile.phone.length < 17) setShowProfileAlert(true);
-                }}
-                className="flex items-center gap-2.5 cursor-pointer pl-3 border-l border-outline-variant/60"
-              >
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
-                  <img alt="Student Profile" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
-                </div>
-                <div className="hidden lg:block text-left">
-                  <div className="text-xs font-bold text-on-surface leading-none">{profile.firstName} {profile.lastName}</div>
+                  <div className="hidden lg:block text-left">
+                    <div className="text-xs font-bold text-on-surface leading-none">{profile.firstName} {profile.lastName}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
+          )}
 
-          <div className="flex flex-1 pt-14 h-[calc(100vh-3.5rem)] overflow-hidden relative">
+          <div className={`flex flex-1 ${currentPage === 'test-interface' ? 'pt-0 h-screen' : 'pt-14 h-[calc(100vh-3.5rem)]'} overflow-hidden relative`}>
 
-            {/* Sidebar Left Navigation (Frozen) */}
-            <aside className={`
-              fixed lg:static top-14 left-0 h-full w-56 shrink-0 bg-surface border-r border-outline-variant z-35 transition-transform duration-200 overflow-y-auto select-none
-              ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            `}>
-              <div className="p-3 flex flex-col h-full justify-between">
-                <div className="space-y-2.5">
-                  {/* Student mini card */}
-                  <div className="flex items-center gap-2.5 p-2 rounded-xl bg-surface-container-low border border-outline-variant">
-                    <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
-                      <img alt="Avatar" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
+            {/* Sidebar Left Navigation (Frozen - toki test yakuniga yetmagunicha test rejimida yashiriladi) */}
+            {currentPage !== 'test-interface' && (
+              <aside className={`
+                fixed lg:static top-14 left-0 h-full w-56 shrink-0 bg-surface border-r border-outline-variant z-35 transition-transform duration-200 overflow-y-auto select-none
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+              `}>
+                <div className="p-3 flex flex-col h-full justify-between">
+                  <div className="space-y-2.5">
+                    {/* Student mini card */}
+                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-surface-container-low border border-outline-variant">
+                      <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
+                        <img alt="Avatar" className="w-full h-full object-cover" src={getVideoSrc(profile.avatar)} />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-on-surface truncate">{profile.firstName} {profile.lastName}</h4>
+                        <p className="text-[10px] text-outline font-medium">Premium öquvçi</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-on-surface truncate">{profile.firstName} {profile.lastName}</h4>
-                      <p className="text-[10px] text-outline font-medium">Premium öquvçi</p>
-                    </div>
+
+                    {/* Nav Item list */}
+                    <nav className="flex flex-col gap-1">
+                      {sidebarNavItems.map((item) => (
+                        <button
+                          key={item.name}
+                          onClick={() => { setCurrentPage(item.page); setIsSidebarOpen(false); }}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
+                              ? 'bg-primary/10 text-primary font-bold'
+                              : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
+                            }`}
+                        >
+                          <span className={`material-symbols-outlined text-[18px] ${currentPage === item.page ? 'fill' : ''}`}>
+                            {item.icon}
+                          </span>
+                          <span>{item.name}</span>
+                        </button>
+                      ))}
+                    </nav>
                   </div>
 
-                  {/* Nav Item list */}
-                  <nav className="flex flex-col gap-1">
-                    {sidebarNavItems.map((item) => (
-                      <button
-                        key={item.name}
-                        onClick={() => { setCurrentPage(item.page); setIsSidebarOpen(false); }}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-semibold text-xs transition-colors cursor-pointer ${currentPage === item.page || (item.page === 'test-results' && currentPage === 'test-results')
-                            ? 'bg-primary/10 text-primary font-bold'
-                            : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
-                          }`}
-                      >
-                        <span className={`material-symbols-outlined text-[18px] ${currentPage === item.page ? 'fill' : ''}`}>
-                          {item.icon}
-                        </span>
-                        <span>{item.name}</span>
-                      </button>
-                    ))}
-                  </nav>
+                  <div className="pt-3 border-t border-outline-variant space-y-2">
+                    <button
+                      onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); setIsSidebarOpen(false); } }}
+                      className="w-full bg-primary text-on-primary font-semibold text-xs py-2 px-3 rounded-lg hover:bg-primary/95 transition-colors cursor-pointer"
+                    >
+                      Darslarni boşlaş
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-3 py-1.5 w-full text-error/85 hover:bg-error-container/10 transition-colors rounded-lg font-semibold text-xs cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">logout</span>
+                      <span>Çiqiş</span>
+                    </button>
+                  </div>
                 </div>
-
-                <div className="pt-3 border-t border-outline-variant space-y-2">
-                  <button
-                    onClick={() => { if (courses.length > 0) { setActiveCourse(courses[0]); setCurrentPage('courses'); setIsSidebarOpen(false); } }}
-                    className="w-full bg-primary text-on-primary font-semibold text-xs py-2 px-3 rounded-lg hover:bg-primary/95 transition-colors cursor-pointer"
-                  >
-                    Darslarni boşlaş
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-1.5 w-full text-error/85 hover:bg-error-container/10 transition-colors rounded-lg font-semibold text-xs cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">logout</span>
-                    <span>Çiqiş</span>
-                  </button>
-                </div>
-              </div>
-            </aside>
+              </aside>
+            )}
 
             {/* Mobile Sidebar backdrop */}
-            {isSidebarOpen && (
+            {currentPage !== 'test-interface' && isSidebarOpen && (
               <div
                 onClick={() => setIsSidebarOpen(false)}
                 className="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-xs z-30 lg:hidden"
@@ -2529,8 +2551,8 @@ export default function App() {
             )}
 
             {/* Primary content area */}
-            <main className="flex-1 h-full bg-background overflow-y-auto px-4 sm:px-6 py-6 relative scroll-smooth">
-              <div className={`${currentPage === 'test-interface' && showDesmos ? 'max-w-[1650px]' : (currentPage === 'test-interface' || currentPage === 'certificates') ? 'max-w-[1250px]' : 'max-w-[1000px]'} mx-auto transition-all duration-300`}>
+            <main className={`flex-1 h-full bg-background overflow-y-auto ${currentPage === 'test-interface' ? 'p-3 sm:p-5 lg:p-6' : 'px-4 sm:px-6 py-6'} relative scroll-smooth`}>
+              <div className={`${currentPage === 'test-interface' ? (showDesmos ? 'max-w-[1750px]' : 'max-w-[1450px]') : (currentPage === 'certificates' ? 'max-w-[1250px]' : 'max-w-[1000px]')} mx-auto transition-all duration-300`}>
 
                 {/* -------------------- DASHBOARD VIEW -------------------- */}
                 {currentPage === 'dashboard' && (
@@ -3392,6 +3414,18 @@ export default function App() {
                           >
                             <span className="material-symbols-outlined text-[16px]">keyboard</span>
                             <span className="hidden sm:inline">Alifbo</span>
+                          </button>
+
+                          {/* Dark Mode switcher in test mode */}
+                          <button
+                            type="button"
+                            onClick={() => setDarkMode(!darkMode)}
+                            className="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant flex items-center justify-center text-outline hover:text-on-surface transition-all cursor-pointer"
+                            title={darkMode ? "Yorug' rejim" : "Qorong'i rejim"}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {darkMode ? 'light_mode' : 'dark_mode'}
+                            </span>
                           </button>
 
                           {/* Full Screen Mode Toggle */}
