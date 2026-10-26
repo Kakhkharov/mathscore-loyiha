@@ -103,7 +103,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newCourse, setNewCourse] = useState({
-    title: '', category: 'SAT Prep', price: '', instructor: 'Malika Opa', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: ''
+    title: '', category: 'SAT Prep', price: '', instructor: 'Toxirova Malika', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: ''
   });
   const [tempLesson, setTempLesson] = useState({ title: '', duration: '', videoUrl: '', videoFile: '' });
 
@@ -1769,7 +1769,7 @@ function App() {
       alert(isEditing ? "Kurs yangilandi!" : "Yangi kurs qo'shildi!");
       setIsEditing(false);
       setEditingId(null);
-      setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Malika Opa', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' });
+      setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Toxirova Malika', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' });
       setCurrentPage('courses');
       syncData();
     } catch (err) {
@@ -1784,7 +1784,7 @@ function App() {
       title: course.title || '',
       category: course.category || 'SAT Prep',
       price: course.price || '',
-      instructor: course.instructor || 'Malika Opa',
+      instructor: course.instructor || 'Toxirova Malika',
       image: course.image || '',
       lessonsCount: course.lessonsCount || '',
       curriculum: course.curriculum || course.lessons || [],
@@ -2846,7 +2846,7 @@ function App() {
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white">Kurslar Ro'yxati</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Platformadagi barcha faol ta'lim yo'nalishlari.</p>
                       </div>
-                      <button onClick={() => { setIsEditing(false); setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Malika Opa', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' }); setCurrentPage('course-management'); }} className="bg-indigo-500 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 hover:opacity-90 transition-all">
+                      <button onClick={() => { setIsEditing(false); setNewCourse({ title: '', category: 'SAT Prep', price: '', instructor: 'Toxirova Malika', image: '', lessonsCount: '', curriculum: [], promoVideoUrl: '', promoVideoFile: '' }); setCurrentPage('course-management'); }} className="bg-indigo-500 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 hover:opacity-90 transition-all">
                         <span className="material-symbols-outlined">add</span> Yangi Kurs
                       </button>
                     </div>
@@ -3208,7 +3208,7 @@ function App() {
                   <div className="space-y-6 animate-fade-in">
                     <div className="modern-card p-8 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-500/20 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
                       <div className="space-y-2 text-center md:text-left">
-                        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Xush kelibsiz, Malika Opa! 👋</h2>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Xush kelibsiz, Toxirova Malika! 👋</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Platformaning umumiy boshqaruvi va o'quvchilar ko'rsatkichlari nazorati sizning qo'lingizda.</p>
                       </div>
                       <div className="flex gap-3">

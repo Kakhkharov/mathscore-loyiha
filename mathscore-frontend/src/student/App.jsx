@@ -446,20 +446,23 @@ export default function App() {
           // Use enrolled courses from the backend (multi-course support)
           const processedCourses = meData.enrolledCourses.map(course => {
             const baseCourse = coursesData.find(c => c && c.id === course?.id) || {};
+            const procLessons = (course.lessons || []).reduce((acc, lesson, idx) => {
+              const isCompleted = (meData.completedLessons && meData.completedLessons.includes(lesson.id)) || lesson.completed || false;
+              const prevCompleted = idx === 0 ? true : acc[idx - 1].completed;
+              acc.push({
+                ...lesson,
+                completed: isCompleted,
+                locked: lesson.locked !== undefined ? lesson.locked : !prevCompleted
+              });
+              return acc;
+            }, []);
+            const compCount = procLessons.filter(l => l.completed).length;
+            const compProgress = procLessons.length > 0 ? Math.round((compCount / procLessons.length) * 100) : (baseCourse.progress || 0);
             return {
-              progress: baseCourse.progress || 0,
+              progress: compProgress,
               tag: baseCourse.tag || 'Easy',
               ...course,
-              lessons: (course.lessons || []).reduce((acc, lesson, idx) => {
-                const isCompleted = (meData.completedLessons && meData.completedLessons.includes(lesson.id)) || lesson.completed || false;
-                const prevCompleted = idx === 0 ? true : acc[idx - 1].completed;
-                acc.push({
-                  ...lesson,
-                  completed: isCompleted,
-                  locked: lesson.locked !== undefined ? lesson.locked : !prevCompleted
-                });
-                return acc;
-              }, [])
+              lessons: procLessons
             };
           });
 
@@ -485,20 +488,23 @@ export default function App() {
             const coursesDataVal = await coursesRes.json();
             const processedCourses = coursesDataVal.map(course => {
               const baseCourse = coursesData.find(c => c.id === course.id) || {};
+              const procLessons = (course.lessons || []).reduce((acc, lesson, idx) => {
+                const isCompleted = (meData.completedLessons && meData.completedLessons.includes(lesson.id)) || lesson.completed || false;
+                const prevCompleted = idx === 0 ? true : acc[idx - 1].completed;
+                acc.push({
+                  ...lesson,
+                  completed: isCompleted,
+                  locked: lesson.locked !== undefined ? lesson.locked : !prevCompleted
+                });
+                return acc;
+              }, []);
+              const compCount = procLessons.filter(l => l.completed).length;
+              const compProgress = procLessons.length > 0 ? Math.round((compCount / procLessons.length) * 100) : (baseCourse.progress || 0);
               return {
-                progress: baseCourse.progress || 0,
+                progress: compProgress,
                 tag: baseCourse.tag || 'Easy',
                 ...course,
-                lessons: (course.lessons || []).reduce((acc, lesson, idx) => {
-                  const isCompleted = (meData.completedLessons && meData.completedLessons.includes(lesson.id)) || lesson.completed || false;
-                  const prevCompleted = idx === 0 ? true : acc[idx - 1].completed;
-                  acc.push({
-                    ...lesson,
-                    completed: isCompleted,
-                    locked: lesson.locked !== undefined ? lesson.locked : !prevCompleted
-                  });
-                  return acc;
-                }, [])
+                lessons: procLessons
               };
             });
 
@@ -756,6 +762,17 @@ export default function App() {
   // Results panel and Certificates
   const [quizResult, setQuizResult] = useState(null);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [showCourseCertificate, setShowCourseCertificate] = useState(false);
+  const [completedCourseForCert, setCompletedCourseForCert] = useState(null);
+
+  const isCourseCompleted = (course) => {
+    if (!course) return false;
+    if (course.progress >= 100) return true;
+    if (course.lessons && course.lessons.length > 0) {
+      return course.lessons.every(l => l.completed);
+    }
+    return false;
+  };
 
   // Security / Cheat Shield state
   const [tabSwitchesCount, setTabSwitchesCount] = useState(0);
@@ -1695,7 +1712,10 @@ export default function App() {
       if (idx + 1 < updatedLessons.length) {
         updatedLessons[idx + 1] = { ...updatedLessons[idx + 1], locked: false };
       }
-      const updatedCourse = { ...activeCourse, lessons: updatedLessons };
+      const compCount = updatedLessons.filter(l => l.completed).length;
+      const compProgress = updatedLessons.length > 0 ? Math.round((compCount / updatedLessons.length) * 100) : 100;
+      const isAllDone = updatedLessons.length > 0 && updatedLessons.every(l => l.completed);
+      const updatedCourse = { ...activeCourse, lessons: updatedLessons, progress: compProgress };
 
       setActiveCourse(updatedCourse);
       setCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
@@ -1703,6 +1723,9 @@ export default function App() {
       // Agar bu oxirgi dars bo'lmasa, keyingisiga o'tamiz
       if (idx < (activeCourse?.lessons?.length || 0) - 1) {
         setActiveLesson(updatedCourse.lessons[idx + 1]);
+      } else if (isAllDone) {
+        setCompletedCourseForCert(updatedCourse);
+        setShowCourseCertificate(true);
       }
     }
   };
@@ -2346,11 +2369,25 @@ export default function App() {
                                 </div>
                               </div>
 
+                              {isCourseCompleted(course) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCompletedCourseForCert(course);
+                                    setShowCourseCertificate(true);
+                                  }}
+                                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs py-2 px-3 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
+                                  <span>Sertifikatni yuklab olish</span>
+                                </button>
+                              )}
+
                               <button
                                 onClick={() => { setActiveCourse(course); setActiveLesson((course.lessons && course.lessons.length > 0) ? course.lessons[0] : null); setCurrentPage('courses'); }}
                                 className="w-full bg-surface-container hover:bg-primary hover:text-on-primary font-semibold text-xs py-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
                               >
-                                <span>Darsni ko\'rish</span>
+                                <span>Darsni ko'rish</span>
                                 <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
                               </button>
                             </div>
@@ -2429,7 +2466,7 @@ export default function App() {
                       </div>
 
                       {/* Lesson Navigation Buttons */}
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
                         <button
                           onClick={handlePrevLesson}
                           disabled={getLessonIndex() === 0}
@@ -2442,17 +2479,32 @@ export default function App() {
                           Oldingi dars
                         </button>
 
-                        <button
-                          onClick={handleNextLesson}
-                          disabled={!canProceedToNext}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!canProceedToNext
-                              ? 'bg-surface-container text-outline cursor-not-allowed border border-outline-variant'
-                              : 'bg-primary text-on-primary hover:scale-105 shadow-md cursor-pointer'
-                            }`}
-                        >
-                          Keyingi dars
-                          <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {isCourseCompleted(activeCourse) && (
+                            <button
+                              onClick={() => {
+                                setCompletedCourseForCert(activeCourse);
+                                setShowCourseCertificate(true);
+                              }}
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20 hover:scale-105 transition-all cursor-pointer animate-pulse"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
+                              Sertifikatni yuklab olish
+                            </button>
+                          )}
+
+                          <button
+                            onClick={handleNextLesson}
+                            disabled={!canProceedToNext}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!canProceedToNext
+                                ? 'bg-surface-container text-outline cursor-not-allowed border border-outline-variant'
+                                : 'bg-primary text-on-primary hover:scale-105 shadow-md cursor-pointer'
+                              }`}
+                          >
+                            Keyingi dars
+                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Lesson Context */}
@@ -2522,6 +2574,19 @@ export default function App() {
                             <span className="text-[10px] font-bold text-primary shrink-0">{activeCourse?.progress || 0}%</span>
                           </div>
                         </div>
+
+                        {isCourseCompleted(activeCourse) && (
+                          <button
+                            onClick={() => {
+                              setCompletedCourseForCert(activeCourse);
+                              setShowCourseCertificate(true);
+                            }}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs shadow-md shadow-amber-500/25 transition-all cursor-pointer animate-pulse"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
+                            Kurs Sertifikatini olish
+                          </button>
+                        )}
 
                         <div className="flex flex-col gap-2">
                           {(activeCourse?.lessons || []).map((lesson) => (
@@ -3646,13 +3711,13 @@ export default function App() {
         </div>
       )}
 
-      {/* -------------------- PREMIUM ACADEMIC CERTIFICATE MODAL -------------------- */}
+      {/* -------------------- PREMIUM ACADEMIC TEST CERTIFICATE MODAL -------------------- */}
       {showCertificate && quizResult && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white text-zinc-900 rounded-3xl p-8 max-w-2xl w-full border-[10px] border-double border-amber-600/30 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
+          <div className="printable-area bg-[#FFFDF9] text-zinc-900 rounded-3xl p-8 sm:p-10 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
 
             {/* Elegant Background Watermark Pattern */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none flex items-center justify-center font-bold text-[180px] font-serif text-amber-900">
+            <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[180px] font-serif text-amber-900">
               ∫
             </div>
 
@@ -3662,18 +3727,26 @@ export default function App() {
             <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-amber-600/40"></div>
             <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-amber-600/40"></div>
 
+            {/* Top Left Sigma Logo & Brand */}
+            <div className="absolute top-5 left-6 flex flex-col items-center z-20">
+              <img src="/sigma-logo.png" alt="Sigma Education" className="h-10 w-auto object-contain drop-shadow-sm" />
+              <span className="font-outfit font-black text-[9px] tracking-widest text-slate-900 uppercase mt-1">Sigma Education</span>
+              <span className="text-[7.5px] font-bold text-amber-700 tracking-wider uppercase">O'quv Markazi</span>
+            </div>
+
             {/* Certificate Header */}
-            <div className="space-y-1 z-10">
-              <div className="text-amber-700 font-bold uppercase tracking-[0.25em] text-[10px] font-outfit">MathScore Online LMS</div>
-              <h2 className="font-serif text-2xl font-bold tracking-tight text-zinc-800">MUVAFFAQIYAT SERTIFIKATI</h2>
+            <div className="space-y-1 z-10 pt-1">
+              <div className="text-amber-800 font-bold uppercase tracking-[0.25em] text-[10px] font-outfit">MathScore Online LMS &bull; Sigma Education</div>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">MUVAFFAQIYAT SERTIFIKATI</h2>
+              <p className="font-sans text-[10px] tracking-[0.2em] font-semibold uppercase text-amber-700">Certificate of Academic Achievement</p>
               <div className="w-24 h-[1.5px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-2"></div>
             </div>
 
             {/* Certificate Main Text */}
             <div className="space-y-4 z-10 max-w-md">
-              <p className="font-serif italic text-zinc-500 text-xs">Ushbu hujjat mamnuniyat bilan topshiriladi:</p>
+              <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">Ushbu hujjat mamnuniyat bilan topshiriladi:</p>
 
-              <h3 className="font-outfit text-xl font-black text-amber-800 border-b border-amber-200 pb-1 px-4 inline-block tracking-wide">
+              <h3 className="font-outfit text-xl sm:text-2xl font-black text-amber-900 border-b-2 border-amber-300 pb-1 px-6 inline-block tracking-wide uppercase">
                 {profile.firstName} {profile.lastName}
               </h3>
 
@@ -3685,11 +3758,11 @@ export default function App() {
             {/* Signatures & Seal */}
             <div className="w-full grid grid-cols-3 items-end pt-6 z-10 text-[10px] font-bold">
 
-              {/* Left Sign */}
+              {/* Left Sign: Toxirova Malika */}
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-zinc-400 text-xs block h-6">Malika Opa</span>
-                <div className="w-20 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-400 uppercase text-[8px] tracking-wider mt-1 block">Bosh O'qituvchi</span>
+                <span className="font-serif italic text-zinc-800 text-xs sm:text-sm block h-6 font-semibold">Toxirova Malika</span>
+                <div className="w-24 border-t border-zinc-300 mt-1"></div>
+                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
               </div>
 
               {/* Gold Medal Seal */}
@@ -3702,25 +3775,128 @@ export default function App() {
 
               {/* Right Date */}
               <div className="flex flex-col items-center">
-                <span className="text-zinc-800 block h-6 font-medium leading-loose">18-May, 2026</span>
-                <div className="w-20 border-t border-zinc-300 mt-1"></div>
-                <span className="text-zinc-400 uppercase text-[8px] tracking-wider mt-1 block">Berilgan Sana</span>
+                <span className="text-zinc-800 block h-6 font-medium leading-loose text-xs">
+                  {new Date(quizResult.submittedAt || Date.now()).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                <div className="w-24 border-t border-zinc-300 mt-1"></div>
+                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Berilgan Sana</span>
               </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-4 flex gap-3 z-10 text-xs font-semibold">
+            <div className="pt-4 flex gap-3 z-10 text-xs font-semibold no-print">
               <button
                 onClick={() => { window.print(); }}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
               >
                 <span className="material-symbols-outlined text-[15px]">print</span>
-                Chop etish
+                Chop etish / PDF saqlash
               </button>
 
               <button
                 onClick={() => setShowCertificate(false)}
-                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2 rounded-lg cursor-pointer transition-colors"
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl cursor-pointer transition-colors"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------- VIDEO COURSE COMPLETION CERTIFICATE MODAL -------------------- */}
+      {showCourseCertificate && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in print:bg-transparent print:p-0 print:static print:inset-auto">
+          <div className="printable-area bg-[#FFFDF9] text-zinc-900 rounded-3xl p-8 sm:p-10 max-w-2xl w-full border-[10px] border-double border-amber-600/35 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden bg-cover bg-center">
+
+            {/* Elegant Background Watermark Pattern: Greek Sigma */}
+            <div className="absolute inset-0 opacity-[0.035] pointer-events-none select-none flex items-center justify-center font-bold text-[200px] font-serif text-amber-900">
+              Σ
+            </div>
+
+            {/* Corner Decorative Ornaments */}
+            <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-amber-600/40"></div>
+            <div className="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-amber-600/40"></div>
+            <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-amber-600/40"></div>
+            <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-amber-600/40"></div>
+
+            {/* Top Left Sigma Logo & Brand */}
+            <div className="absolute top-5 left-6 flex flex-col items-center z-20">
+              <img src="/sigma-logo.png" alt="Sigma Education" className="h-11 w-auto object-contain drop-shadow-sm" />
+              <span className="font-outfit font-black text-[9px] tracking-widest text-slate-900 uppercase mt-1">Sigma Education</span>
+              <span className="text-[7.5px] font-bold text-amber-700 tracking-wider uppercase">O'quv Markazi</span>
+            </div>
+
+            {/* Certificate Header */}
+            <div className="space-y-1 z-10 pt-1">
+              <div className="text-amber-800 font-bold uppercase tracking-[0.25em] text-[10px] font-outfit">
+                MathScore Online LMS &bull; Sigma Education
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+                KURS BITIRUV SERTIFIKATI
+              </h2>
+              <p className="font-sans text-[10px] tracking-[0.2em] font-semibold uppercase text-amber-700">
+                Certificate of Course Completion
+              </p>
+              <div className="w-28 h-[1.5px] bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-2"></div>
+            </div>
+
+            {/* Certificate Main Text */}
+            <div className="space-y-4 z-10 max-w-lg">
+              <p className="font-serif italic text-zinc-500 text-xs sm:text-sm">
+                Ushbu rasmiy hujjat mamnuniyat bilan topshiriladi:
+              </p>
+
+              <h3 className="font-outfit text-2xl sm:text-3xl font-black text-amber-900 border-b-2 border-amber-300 pb-1 px-6 inline-block tracking-wide uppercase">
+                {profile.firstName} {profile.lastName}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed font-serif font-medium px-4">
+                talabaning <strong>"{completedCourseForCert?.title || activeCourse?.title || 'Video Kurs'}"</strong> kursi bo'yicha barcha nazariy modullar, video darslar hamda amaliy topshiriqlarni <strong>100% muvaffaqiyat bilan</strong> to'liq tamomlaganligini tasdiqlaydi.
+              </p>
+            </div>
+
+            {/* Signatures & Seal */}
+            <div className="w-full grid grid-cols-3 items-end pt-6 z-10 text-[10px] font-bold">
+
+              {/* Left Sign: Toxirova Malika */}
+              <div className="flex flex-col items-center">
+                <span className="font-serif italic text-zinc-800 text-xs sm:text-sm block h-6 font-semibold">Toxirova Malika</span>
+                <div className="w-24 border-t border-zinc-300 mt-1"></div>
+                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Bosh O'qituvchi</span>
+              </div>
+
+              {/* Gold Medal Seal */}
+              <div className="flex justify-center">
+                <div className="relative w-16 h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-4 border-amber-300 animate-spin-slow">
+                  <div className="absolute inset-2 border border-dashed border-white/50 rounded-full"></div>
+                  <span className="material-symbols-outlined text-[28px] text-white fill">verified</span>
+                </div>
+              </div>
+
+              {/* Right Date */}
+              <div className="flex flex-col items-center">
+                <span className="text-zinc-800 block h-6 font-medium leading-loose text-xs">
+                  {new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                <div className="w-24 border-t border-zinc-300 mt-1"></div>
+                <span className="text-zinc-500 uppercase text-[8px] tracking-wider mt-1 block font-bold">Berilgan Sana</span>
+              </div>
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="pt-4 flex gap-3 z-10 text-xs font-semibold no-print">
+              <button
+                onClick={() => { window.print(); }}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-amber-600/20 hover:scale-105"
+              >
+                <span className="material-symbols-outlined text-[16px]">print</span>
+                Chop etish / PDF saqlash
+              </button>
+
+              <button
+                onClick={() => setShowCourseCertificate(false)}
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-2.5 rounded-xl cursor-pointer transition-colors"
               >
                 Yopish
               </button>
