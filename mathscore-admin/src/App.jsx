@@ -96,6 +96,7 @@ function App() {
     return [];
   });
   const [resultsFilterCourse, setResultsFilterCourse] = useState('all');
+  const [adminClearedSubmissionsTime, setAdminClearedSubmissionsTime] = useState(() => Number(localStorage.getItem('admin_cleared_submissions_timestamp') || 0));
   const [resultsFilterDate, setResultsFilterDate] = useState('');
   const [resultsSearchQuery, setResultsSearchQuery] = useState('');
 
@@ -636,7 +637,7 @@ function App() {
       const qScore = Math.max(1, Math.round(Number(q.score) || 1));
 
       if (qType === 'single' || qType === 'mcq') {
-        if (Number.isInteger(Number(q.correctAnswer))) {
+        if (Number.isInteger(Number(q.correctAnswer)) && Number(q.correctAnswer) >= 0 && Number(q.correctAnswer) < (safeOptions.length || 4)) {
           safeIntCorrectAnswer = Number(q.correctAnswer);
         } else if (typeof q.correctAnswer === 'string' && /^[A-Za-z]$/.test(q.correctAnswer.trim())) {
           safeIntCorrectAnswer = q.correctAnswer.trim().toUpperCase().charCodeAt(0) - 65;
@@ -646,6 +647,7 @@ function App() {
         } else {
           safeIntCorrectAnswer = 0;
         }
+        hintMarker = `__KEY__:${btoa(String(safeIntCorrectAnswer))}${q.hint && !q.hint.startsWith('__KEY__:') ? ' | ' + q.hint : ''}`;
       } else if (qType === 'multiple') {
         const arr = Array.isArray(q.correctAnswer) ? q.correctAnswer : [0];
         safeIntCorrectAnswer = Number(arr[0]) || 0;
@@ -723,6 +725,8 @@ function App() {
         throw new Error(data.error || 'Testni saqlashda xatolik.');
       }
 
+      const savedItem = data || testData;
+      setTests(prev => [savedItem, ...prev.filter(t => t.id !== (newTest.id || savedItem.id))]);
       alert(finalStatus === 'Published' ? "Test muvaffaqiyatli chop etildi!" : "Test qoralama sifatida saqlandi!");
       setIsBuildingTest(false);
       syncData();
@@ -2173,6 +2177,10 @@ function App() {
   };
 
   const filteredSubmissions = submissions.filter(sub => {
+    if (adminClearedSubmissionsTime > 0) {
+      const subTime = new Date(sub.submittedAt || sub.createdAt || 0).getTime();
+      if (subTime <= adminClearedSubmissionsTime) return false;
+    }
     if (resultsSearchQuery.trim()) {
       const q = resultsSearchQuery.toLowerCase().trim();
       const nameMatch = (sub.userName || '').toLowerCase().includes(q);
@@ -2576,7 +2584,7 @@ function App() {
           <div className="flex flex-1 pt-24 px-4 pb-4 gap-6">
 
             {/* Modern Sidebar */}
-            <aside className="w-56 modern-card h-[calc(100vh-7rem)] sticky top-24 flex flex-col p-3 gap-1 z-30 overflow-y-auto hidden lg:flex">
+            <aside className="w-56 shrink-0 rounded-[28px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] h-[calc(100vh-7rem)] sticky top-24 flex flex-col p-3.5 gap-1.5 z-30 overflow-y-auto hidden lg:flex">
               {[
                 { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
                 { id: 'home', icon: 'home', label: 'Bosh sahifa' },
@@ -2612,8 +2620,8 @@ function App() {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                           isParentActive
-                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
+                            ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-2xl'
+                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl font-semibold border border-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -2627,7 +2635,7 @@ function App() {
 
                       {/* Submenu: Testlar & Topshiriqlar */}
                       {testsMenuOpen && (
-                        <div className="pl-6 pr-1 py-1 flex flex-col gap-1 border-l-2 border-indigo-200 dark:border-indigo-900/40 ml-4 animate-fade-in">
+                        <div className="ml-4 pl-3 py-1 flex flex-col gap-1.5 border-l border-indigo-100 dark:border-indigo-900/60 animate-fade-in">
                           {item.subItems.map(sub => (
                             <button
                               key={sub.id}
@@ -2638,8 +2646,8 @@ function App() {
                               }}
                               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
                                 currentPage === sub.id
-                                  ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30'
-                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/40'
+                                  ? 'bg-[#EEF0FF] dark:bg-indigo-950/70 text-[#5B5FEF] dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl'
                               }`}
                             >
                               <span className="material-symbols-outlined text-[17px]">{sub.icon}</span>
@@ -2657,8 +2665,8 @@ function App() {
                     key={item.id}
                     onClick={() => { setCurrentPage(item.id); setSearchQuery(''); syncData(); }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${currentPage === item.id
-                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
+                        ? 'bg-[#5B5FEF] text-white shadow-md shadow-[#5B5FEF]/25 rounded-2xl font-bold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl font-semibold border border-transparent'
                       }`}
                   >
                     <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
@@ -2669,7 +2677,7 @@ function App() {
 
               <button
                 onClick={() => setCurrentPage('login')}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-auto rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/20"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-auto rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer select-none"
               >
                 <span className="material-symbols-outlined text-[20px]">logout</span> Chiqish
               </button>
@@ -3528,6 +3536,38 @@ function App() {
                           )}
                         </div>
 
+                        {/* Clean Report Button for Admin */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Haqiqatan ham hisobot jadvalini tozalamoqchimisiz?\n\n(Bu amal faqat admin panelidagi ko'rinishni tozalaydi, talabalar panelidagi natijalarga va bazadagi ma'lumotlarga ta'sir qilmaydi)")) {
+                              const now = Date.now();
+                              setAdminClearedSubmissionsTime(now);
+                              localStorage.setItem('admin_cleared_submissions_timestamp', String(now));
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-800/80 dark:hover:bg-rose-950/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-all cursor-pointer shadow-xs select-none"
+                          title="Admin hisobot jadvalini tozalash (talabalar natijalariga ta'sir qilmaydi)"
+                        >
+                          <span className="material-symbols-outlined text-[17px]">delete_sweep</span>
+                          <span>Hisobotni tozalash</span>
+                        </button>
+
+                        {adminClearedSubmissionsTime > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdminClearedSubmissionsTime(0);
+                              localStorage.removeItem('admin_cleared_submissions_timestamp');
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold hover:underline cursor-pointer select-none"
+                            title="Oldingi tozalangan hisobotlarni qayta tiklash"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">history</span>
+                            <span>Hisobotni tiklash</span>
+                          </button>
+                        )}
+
                         {(resultsFilterCourse !== 'all' || resultsFilterDate || resultsSearchQuery) && (
                           <button
                             onClick={() => {
@@ -3804,14 +3844,14 @@ function App() {
                         </div>
 
                         {/* List Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                           {tests
                             .filter(t => {
                               const matchSearch = t.title.toLowerCase().includes(testSearch.toLowerCase());
                               const matchStatus = testStatusFilter === 'All' || t.status === testStatusFilter;
                               return matchSearch && matchStatus;
                             })
-                            .sort((a, b) => testSort === 'newest' ? b.id - a.id : a.id - b.id)
+                            .sort((a, b) => testSort === 'newest' ? (new Date(b.createdAt || b.id || 0) - new Date(a.createdAt || a.id || 0)) : (new Date(a.createdAt || a.id || 0) - new Date(b.createdAt || b.id || 0)))
                             .map(test => (
                               <div key={test.id} className="modern-card p-6 flex flex-col justify-between space-y-4 hover:scale-[1.01] transition-all border border-slate-200 dark:border-slate-700/50">
                                 <div className="space-y-2">
@@ -4305,7 +4345,51 @@ function App() {
                                 {(newTest.questions[activeQuestionIndex].type === 'single' || newTest.questions[activeQuestionIndex].type === 'multiple') && (
                                   <div className="space-y-3">
                                     <div className="flex justify-between items-center">
-                                      <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va to'g'ri javobni belgilash</span>
+                                      <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-[10px] font-bold text-slate-500 uppercase">Javob variantlari va to'g'ri javobni belgilash</span>
+                                        </div>
+                                        {/* Quick Variant Picker */}
+                                        <div className="flex items-center gap-2 p-2.5 bg-indigo-50/70 dark:bg-indigo-950/30 rounded-xl border border-indigo-200/60 dark:border-indigo-900/40">
+                                          <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">To'g'ri javob:</span>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            {newTest.questions[activeQuestionIndex].options.map((_, oIdx) => {
+                                              const isSelected = newTest.questions[activeQuestionIndex].type === 'multiple'
+                                                ? (newTest.questions[activeQuestionIndex].correctAnswer || []).includes(oIdx)
+                                                : Number(newTest.questions[activeQuestionIndex].correctAnswer) === oIdx;
+                                              return (
+                                                <button
+                                                  key={oIdx}
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const updated = [...newTest.questions];
+                                                    if (newTest.questions[activeQuestionIndex].type === 'multiple') {
+                                                      let arr = [...(updated[activeQuestionIndex].correctAnswer || [])];
+                                                      if (arr.includes(oIdx)) arr = arr.filter(v => v !== oIdx);
+                                                      else arr.push(oIdx);
+                                                      updated[activeQuestionIndex].correctAnswer = arr;
+                                                    } else {
+                                                      updated[activeQuestionIndex].correctAnswer = oIdx;
+                                                    }
+                                                    setNewTest({ ...newTest, questions: updated });
+                                                  }}
+                                                  className={`w-8 h-8 rounded-lg font-black text-xs transition-all flex items-center justify-center cursor-pointer ${
+                                                    isSelected
+                                                      ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105 ring-2 ring-emerald-400'
+                                                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-indigo-400'
+                                                  }`}
+                                                  title={`${String.fromCharCode(65 + oIdx)}-variantni to'g'ri javob qilish`}
+                                                >
+                                                  {String.fromCharCode(65 + oIdx)}
+                                                </button>
+                                              );
+                                            })}
+                                          </div>
+                                          <span className="text-[11px] font-bold text-slate-500 ml-auto">
+                                            Tanlangan: <strong className="text-emerald-600 dark:text-emerald-400 font-black">{String.fromCharCode(65 + (Number(newTest.questions[activeQuestionIndex].correctAnswer) || 0))}-variant</strong>
+                                          </span>
+                                        </div>
+                                      </div>
                                       <button
                                         type="button"
                                         onClick={() => {

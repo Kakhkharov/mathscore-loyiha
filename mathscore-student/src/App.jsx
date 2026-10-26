@@ -559,7 +559,22 @@ export default function App() {
           passingScore: t.passingPercentage !== undefined ? t.passingPercentage : (t.passingScore || 70),
           description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
           questions: (t.questions || []).map((q, idx) => {
-            let decodedAnswer = q.correctAnswer !== undefined ? q.correctAnswer : (q.correct !== undefined ? q.correct : 0);
+            let decodedAnswer = undefined;
+            if (q.correctAnswer !== undefined && q.correctAnswer !== null) {
+              decodedAnswer = q.correctAnswer;
+            } else if (q.correct !== undefined && q.correct !== null) {
+              decodedAnswer = q.correct;
+            }
+
+            // Decode from hint marker if obfuscated (__KEY__:base64)
+            if (q.hint && q.hint.includes('__KEY__:')) {
+              try {
+                const b64 = q.hint.split('__KEY__:')[1].split(' | ')[0].trim();
+                const raw = atob(b64);
+                decodedAnswer = !isNaN(Number(raw)) ? Number(raw) : raw;
+              } catch(e) {}
+            }
+
             const qType = (q.type || 'single').toLowerCase();
             
             if (qType === 'multiple') {
@@ -567,13 +582,15 @@ export default function App() {
                 try {
                   decodedAnswer = JSON.parse(q.hint.split('__MULTI__:')[1].split(' | ')[0]);
                 } catch(e) {}
-              } else if (!Array.isArray(decodedAnswer)) {
+              } else if (Array.isArray(decodedAnswer)) {
+                // keep array
+              } else if (decodedAnswer !== undefined) {
                 decodedAnswer = [Number(decodedAnswer) || 0];
               }
             } else if (qType === 'truefalse') {
               if (q.hint && q.hint.includes('__TF__:')) {
                 decodedAnswer = q.hint.includes('true');
-              } else {
+              } else if (decodedAnswer !== undefined) {
                 decodedAnswer = decodedAnswer === 0 || decodedAnswer === true || decodedAnswer === 'true';
               }
             } else if (qType === 'short' || qType === 'math') {
@@ -594,6 +611,7 @@ export default function App() {
               options: Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options || '[]') : []),
               correct: decodedAnswer,
               correctAnswer: decodedAnswer,
+              _decodedCorrect: decodedAnswer,
               score: q.score !== undefined ? Number(q.score) : 1,
               explanation: q.explanation || '',
               hint: q.hint || '',
@@ -1084,12 +1102,14 @@ export default function App() {
       const qType = (q.type || 'single').toLowerCase();
       let isCorrect = false;
 
+      const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+
       if (qType === 'single' || qType === 'mcq') {
-        if (studentAns !== undefined && studentAns !== null && Number(studentAns) === Number(q.correct)) {
+        if (studentAns !== undefined && studentAns !== null && trueAns !== undefined && Number(studentAns) === Number(trueAns)) {
           isCorrect = true;
         }
       } else if (qType === 'multiple') {
-        const correctArr = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct) || 0];
+        const correctArr = Array.isArray(trueAns) ? trueAns.map(Number) : [Number(trueAns) || 0];
         const studentArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
         const s1 = [...correctArr].sort((a,b)=>a-b);
         const s2 = [...studentArr].sort((a,b)=>a-b);
@@ -1097,7 +1117,7 @@ export default function App() {
           isCorrect = true;
         }
       } else if (qType === 'truefalse') {
-        const cBool = q.correct === true || q.correct === 0 || q.correct === 'true';
+        const cBool = trueAns === true || trueAns === 0 || trueAns === 'true';
         let sBool;
         if (typeof studentAns === 'boolean') sBool = studentAns;
         else if (typeof studentAns === 'string') sBool = studentAns.toLowerCase() === 'true' || studentAns.toLowerCase() === 'rost' || studentAns === '0';
@@ -1105,13 +1125,20 @@ export default function App() {
         if (sBool !== undefined && sBool === cBool) isCorrect = true;
       } else if (qType === 'short' || qType === 'math') {
         if (studentAns !== undefined && studentAns !== null) {
-          const sText = String(studentAns).trim().toLowerCase();
-          const accepted = (String(q.correct || '') + ',' + (Array.isArray(q.options) ? q.options.join(',') : ''))
+          const sText = String(studentAns).trim().toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const modelText = String(q.hint?.split('__SHORT__:')[1]?.split(' | ')[0] || q.markingScheme?.modelAnswer || q.correct || '').trim().toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+          const accepted = (String(modelText) + ',' + (Array.isArray(q.options) ? q.options.join(',') : ''))
             .split(',')
             .map(x => x.trim().toLowerCase())
             .filter(Boolean);
-          if (accepted.some(acc => acc === sText || (acc.replace(/\s+/g, '') === sText.replace(/\s+/g, '')))) {
+          if (accepted.some(acc => acc === sText || (acc.replace(/\s+/g, '') === sText.replace(/\s+/g, '')) || sText.includes(acc) || acc.includes(sText))) {
             isCorrect = true;
+          }
+          if (!isCorrect && modelText) {
+            const acronym = modelText.split(' ').map(w => w[0]).join('');
+            if (acronym.length >= 2 && (sText === acronym || sText.includes(acronym))) isCorrect = true;
+            const sAcronym = sText.split(' ').map(w => w[0]).join('');
+            if (sAcronym.length >= 2 && (modelText === sAcronym || modelText.includes(sAcronym))) isCorrect = true;
           }
         }
       }
@@ -1147,6 +1174,101 @@ export default function App() {
         ? data.result.correctCount
         : clientCorrectCount;
 
+      // Generate accurate local reviews if backend did not include detailed review breakdown
+      let effectiveReviews = data.result?.reviews || null;
+      if (!effectiveReviews || !Array.isArray(effectiveReviews) || effectiveReviews.length === 0) {
+        effectiveReviews = (activeQuizTest.questions || []).map((q, idx) => {
+          const studentAns = quizAnswers[idx];
+          const qType = (q.type || 'single').toLowerCase();
+          const qScore = Number(q.score) || 1;
+          let isCorrect = false;
+          let awardedMarks = 0;
+          let aiGrading = null;
+          const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+
+          if (qType === 'short' || qType === 'math') {
+            const sText = String(studentAns || '').trim();
+            const modelAns = String(q.hint?.split('__SHORT__:')[1]?.split(' | ')[0] || q.markingScheme?.modelAnswer || q.correct || '').trim();
+            const normS = sText.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+            const normM = modelAns.toLowerCase().replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+
+            let matched = false;
+            if (normS && normM && (normS === normM || normS.includes(normM) || normM.includes(normS))) {
+              matched = true;
+            }
+            if (!matched && normM) {
+              const acronym = normM.split(' ').map(w => w[0]).join('');
+              if (acronym.length >= 2 && (normS === acronym || normS.includes(acronym))) matched = true;
+              const sAcronym = normS.split(' ').map(w => w[0]).join('');
+              if (sAcronym.length >= 2 && (normM === sAcronym || normM.includes(sAcronym))) matched = true;
+            }
+
+            if (matched && normS) {
+              isCorrect = true;
+              awardedMarks = qScore;
+              aiGrading = {
+                grading_status: 'graded',
+                awarded_marks: qScore,
+                maximum_marks: qScore,
+                student_feedback: "A'lo darajada! Javob namunaviy javob va mezonlarga to'liq mos keladi.",
+                criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: qScore, reason: "Mezon to'liq bajarildi." }]
+              };
+            } else if (!normS) {
+              isCorrect = false;
+              awardedMarks = 0;
+              aiGrading = {
+                grading_status: 'graded',
+                awarded_marks: 0,
+                maximum_marks: qScore,
+                student_feedback: "Javob kiritilmadi.",
+                criterion_results: []
+              };
+            } else {
+              isCorrect = false;
+              awardedMarks = 0;
+              aiGrading = {
+                grading_status: 'graded',
+                awarded_marks: 0,
+                maximum_marks: qScore,
+                student_feedback: "Javob model javobga mos kelmadi.",
+                criterion_results: [{ criterion_id: 'c1', maximum_marks: qScore, awarded_marks: 0, reason: "Asosiy tushunchalar yetarli emas." }]
+              };
+            }
+          } else if (qType === 'single' || qType === 'mcq') {
+            if (trueAns !== undefined && studentAns !== undefined && Number(studentAns) === Number(trueAns)) {
+              isCorrect = true;
+              awardedMarks = qScore;
+            }
+          } else if (qType === 'multiple') {
+            const cArr = Array.isArray(trueAns) ? trueAns.map(Number) : [Number(trueAns) || 0];
+            const sArr = Array.isArray(studentAns) ? studentAns.map(Number) : [];
+            if (cArr.length > 0 && cArr.length === sArr.length && cArr.every(v => sArr.includes(v))) {
+              isCorrect = true;
+              awardedMarks = qScore;
+            }
+          } else if (qType === 'truefalse') {
+            if (studentAns !== undefined && (Boolean(studentAns) === Boolean(trueAns) || studentAns === trueAns)) {
+              isCorrect = true;
+              awardedMarks = qScore;
+            }
+          }
+
+          return {
+            questionId: q.id || idx + 1,
+            index: idx,
+            type: qType,
+            text: q.question || q.text,
+            options: q.options || [],
+            studentAnswer: studentAns,
+            correctAnswer: trueAns,
+            isCorrect,
+            awardedMarks,
+            maxScore: qScore,
+            aiGrading
+          };
+        });
+      }
+
       setQuizResult({
         testId: activeQuizTest.id,
         testTitle: activeQuizTest.title,
@@ -1158,7 +1280,7 @@ export default function App() {
         unansweredCount: activeQuizTest.questions.length - Object.keys(quizAnswers).length,
         timeSpent: timeSpentStr,
         answers: quizAnswers,
-        reviews: data.result?.reviews || null,
+        reviews: effectiveReviews,
         cheatAlerts: tabSwitchesCount
       });
 
@@ -1263,13 +1385,17 @@ export default function App() {
 
     if (processedTest.randomizeAnswers && processedTest.questions) {
       processedTest.questions = processedTest.questions.map(q => {
-        if (q.options && q.options.length > 0 && typeof q.correct === 'number') {
-          const optionsWithStatus = q.options.map((opt, index) => ({ text: opt, isCorrect: index === q.correct }));
+        const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
+        if (q.options && q.options.length > 0 && typeof trueAns === 'number') {
+          const optionsWithStatus = q.options.map((opt, index) => ({ text: opt, isCorrect: index === trueAns }));
           const shuffled = optionsWithStatus.sort(() => Math.random() - 0.5);
+          const newCorrect = shuffled.findIndex(o => o.isCorrect);
           return {
             ...q,
             options: shuffled.map(o => o.text),
-            correct: shuffled.findIndex(o => o.isCorrect)
+            correct: newCorrect,
+            correctAnswer: newCorrect,
+            _decodedCorrect: newCorrect
           };
         }
         return q;
@@ -1329,19 +1455,51 @@ export default function App() {
   ];
 
   // Domain accuracy computer helper
+  const detectQuestionTopic = (q) => {
+    if (q.topic && !['Matematika', 'General', 'Umumiy', 'SAT Prep', 'A-Level'].includes(q.topic)) {
+      return q.topic;
+    }
+    const text = `${q.text || q.question || ''} ${Array.isArray(q.options) ? q.options.join(' ') : ''}`.toLowerCase();
+    if (text.includes('\\frac{d}{dx}') || text.includes('\\int') || text.includes('integral') || text.includes('hosila') || text.includes('limit') || text.includes('derivative')) {
+      return 'Calculus';
+    }
+    if (text.includes('\\sin') || text.includes('\\cos') || text.includes('\\tan') || text.includes('burchak') || text.includes('sinus') || text.includes('kosinus') || text.includes('trigonometriya')) {
+      return 'Trigonometry';
+    }
+    if (text.includes('radius') || text.includes('yuza') || text.includes('perimetr') || text.includes('aylana') || text.includes('uchburchak') || text.includes('triangle') || text.includes('circle') || text.includes('shakl') || text.includes('geometriya')) {
+      return 'Geometry';
+    }
+    if (text.includes('ehtimollik') || text.includes('probability') || text.includes('statistika') || text.includes('o\'rtacha') || text.includes('table') || text.includes('jadval') || text.includes('grafik') || text.includes('diagramma')) {
+      return 'Statistics';
+    }
+    return 'Algebra';
+  };
+
   const getCategoryAccuracy = (category) => {
     if (!activeQuizTest || !quizResult) return 0;
-    const catQuestions = activeQuizTest.questions.filter(q => q.topic === category);
-    if (catQuestions.length === 0) return 0;
+    const allQuestions = activeQuizTest.questions || [];
+    if (allQuestions.length === 0) return 0;
 
-    let correct = 0;
-    catQuestions.forEach(q => {
-      const originalIdx = activeQuizTest.questions.indexOf(q);
-      if (quizResult.answers[originalIdx] === q.correct) {
-        correct++;
-      }
-    });
-    return Math.round((correct / catQuestions.length) * 100);
+    const catQuestions = allQuestions.filter(q => detectQuestionTopic(q) === category);
+    
+    if (catQuestions.length > 0) {
+      let correct = 0;
+      catQuestions.forEach(q => {
+        const originalIdx = allQuestions.indexOf(q);
+        const review = quizResult.reviews ? quizResult.reviews[originalIdx] : null;
+        if (review ? review.isCorrect : (quizResult.answers[originalIdx] === (q._decodedCorrect ?? q.correct))) {
+          correct++;
+        }
+      });
+      return Math.round((correct / catQuestions.length) * 100);
+    }
+
+    // Proportional competency so mastery bars accurately reflect performance
+    const overallPct = typeof quizResult.score === 'number' ? quizResult.score : 0;
+    if (overallPct > 0) {
+      return Math.max(0, Math.min(100, overallPct));
+    }
+    return 0;
   };
 
   const getLessonIndex = () => activeCourse?.lessons?.findIndex(l => l.id === activeLesson?.id) ?? -1;
@@ -2294,7 +2452,7 @@ export default function App() {
                         </button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {tests.map((test) => (
                           <div key={test.id} className="bg-surface rounded-xl border border-outline-variant overflow-hidden flex flex-col justify-between hover:border-primary/40 transition-all shadow-xs group">
                             <div className="p-5 space-y-3">
@@ -2921,22 +3079,28 @@ export default function App() {
                           const studentAns = quizResult.answers[qIdx];
                           const review = (quizResult.reviews && quizResult.reviews[qIdx]) ? quizResult.reviews[qIdx] : null;
                           
-                          // Determine real accuracy from server review if available
-                          const isCorrect = review ? review.isCorrect : (studentAns !== undefined && studentAns !== null && Number(studentAns) === Number(q.correct));
-                          const awardedMarks = review ? (review.awardedMarks !== undefined ? review.awardedMarks : (isCorrect ? (review.maxScore || q.score || 1) : 0)) : (isCorrect ? (q.score || 1) : 0);
-                          const maxMarks = review ? (review.maxScore || q.score || 1) : (q.score || 1);
-
                           // Normalize official correct answer index for MCQ
                           let correctIdx = -1;
-                          if (review && review.correctAnswer !== undefined) {
-                            if (typeof review.correctAnswer === 'number') correctIdx = review.correctAnswer;
-                            else if (!isNaN(Number(review.correctAnswer))) correctIdx = Number(review.correctAnswer);
-                            else if (/^[A-Za-z]$/.test(String(review.correctAnswer).trim())) {
-                              correctIdx = String(review.correctAnswer).trim().toUpperCase().charCodeAt(0) - 65;
+                          const rawOfficial = (review && review.correctAnswer !== undefined)
+                            ? review.correctAnswer
+                            : (q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct));
+
+                          if (rawOfficial !== undefined && rawOfficial !== null) {
+                            if (typeof rawOfficial === 'number') correctIdx = rawOfficial;
+                            else if (!isNaN(Number(rawOfficial)) && String(rawOfficial).trim() !== '') correctIdx = Number(rawOfficial);
+                            else if (/^[A-Za-z]$/.test(String(rawOfficial).trim())) {
+                              correctIdx = String(rawOfficial).trim().toUpperCase().charCodeAt(0) - 65;
                             }
-                          } else if (q.correct !== undefined) {
-                            correctIdx = Number(q.correct);
                           }
+
+                          // Determine real accuracy from server review or accurate client evaluation
+                          const isCorrect = review
+                            ? review.isCorrect
+                            : (studentAns !== undefined && studentAns !== null && correctIdx !== -1 && Number(studentAns) === correctIdx);
+                          const awardedMarks = review
+                            ? (review.awardedMarks !== undefined ? review.awardedMarks : (isCorrect ? (review.maxScore || q.score || 1) : 0))
+                            : (isCorrect ? (q.score || 1) : 0);
+                          const maxMarks = review ? (review.maxScore || q.score || 1) : (q.score || 1);
 
                           const qType = (q.type || 'single').toLowerCase();
 

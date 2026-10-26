@@ -684,12 +684,12 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
     // Student answer can be mapped by question id or by array index
     let studentAns = undefined;
     if (answers) {
-      if (q.id && answers[q.id] !== undefined) {
-        studentAns = answers[q.id];
-      } else if (answers[idx] !== undefined) {
+      if (answers[idx] !== undefined) {
         studentAns = answers[idx];
       } else if (answers[String(idx)] !== undefined) {
         studentAns = answers[String(idx)];
+      } else if (q.id && answers[q.id] !== undefined) {
+        studentAns = answers[q.id];
       }
     }
 

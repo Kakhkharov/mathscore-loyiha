@@ -10,6 +10,7 @@ const db = {
       case 'courses': return await prisma.course.findMany({ include: { lessons: true } });
       case 'tests': {
         const tests = await prisma.test.findMany({
+          orderBy: { createdAt: 'desc' },
           include: {
             questions: true,
             course: true
