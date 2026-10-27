@@ -607,14 +607,11 @@ export default function App() {
           description: t.description || `${t.title} bo'yicha onlayn diagnostik va yakuniy imtihon testi.`,
           questions: (t.questions || []).map((q, idx) => {
             let decodedAnswer = undefined;
-            if (q.correctAnswer !== undefined && q.correctAnswer !== null) {
+            if (q.correctAnswer !== undefined && q.correctAnswer !== null && q.correctAnswer !== '') {
               decodedAnswer = q.correctAnswer;
-            } else if (q.correct !== undefined && q.correct !== null) {
+            } else if (q.correct !== undefined && q.correct !== null && q.correct !== '') {
               decodedAnswer = q.correct;
-            }
-
-            // Decode from hint marker if obfuscated (__KEY__:base64)
-            if (q.hint && q.hint.includes('__KEY__:')) {
+            } else if (q.hint && q.hint.includes('__KEY__:')) {
               try {
                 const b64 = q.hint.split('__KEY__:')[1].split(' | ')[0].trim();
                 const raw = atob(b64);
@@ -623,6 +620,14 @@ export default function App() {
             }
 
             const qType = (q.type || 'single').toLowerCase();
+
+            if (qType === 'single' || qType === 'mcq') {
+              if (typeof decodedAnswer === 'string' && /^[A-Za-z]$/.test(decodedAnswer.trim())) {
+                decodedAnswer = decodedAnswer.trim().toUpperCase().charCodeAt(0) - 65;
+              } else if (!isNaN(Number(decodedAnswer)) && String(decodedAnswer).trim() !== '') {
+                decodedAnswer = Number(decodedAnswer);
+              }
+            }
             
             if (qType === 'multiple') {
               if (q.hint && q.hint.includes('__MULTI__:')) {
@@ -1695,12 +1700,19 @@ export default function App() {
 
     const clientPercentage = totalScorePossible > 0 ? Math.round((clientEarnedScore / totalScorePossible) * 100) : 0;
 
+    const payloadAnswers = { ...quizAnswers };
+    (activeQuizTest.questions || []).forEach((q, idx) => {
+      if (q.id && quizAnswers[idx] !== undefined) {
+        payloadAnswers[q.id] = quizAnswers[idx];
+      }
+    });
+
     try {
       const response = await fetchWithAuth('/api/submissions', {
         method: 'POST',
         body: JSON.stringify({
           testId: activeQuizTest.id,
-          answers: quizAnswers,
+          answers: payloadAnswers,
           tabSwitches: tabSwitchesCount,
           timeSpent: timeSpentStr
         })
@@ -2088,28 +2100,9 @@ export default function App() {
   const handleStartTestFlow = (test) => {
     let processedTest = JSON.parse(JSON.stringify(test)); // Deep copy to safely modify locally
 
-    if (processedTest.randomizeQuestions && processedTest.questions) {
-      processedTest.questions = processedTest.questions.sort(() => Math.random() - 0.5);
-    }
-
-    if (processedTest.randomizeAnswers && processedTest.questions) {
-      processedTest.questions = processedTest.questions.map(q => {
-        const trueAns = q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct);
-        if (q.options && q.options.length > 0 && typeof trueAns === 'number') {
-          const optionsWithStatus = q.options.map((opt, index) => ({ text: opt, isCorrect: index === trueAns }));
-          const shuffled = optionsWithStatus.sort(() => Math.random() - 0.5);
-          const newCorrect = shuffled.findIndex(o => o.isCorrect);
-          return {
-            ...q,
-            options: shuffled.map(o => o.text),
-            correct: newCorrect,
-            correctAnswer: newCorrect,
-            _decodedCorrect: newCorrect
-          };
-        }
-        return q;
-      });
-    }
+    // Admin tomonidan belgilangan savollar tartibi va javob variantlari qat'iy o'z holicha saqlanadi.
+    // Savollar va javob variantlari hech qachon tasodifiy almashtirilmaydi (shuffle qilinmaydi).
+    // Admin ko'rsatgan to'g'ri javob varianti har bir o'quvchi uchun o'zgarmasdan saqlanib qoladi.
 
     setActiveQuizTest(processedTest);
     setQuizAnswers({});
@@ -4091,7 +4084,7 @@ export default function App() {
                           
                           // Normalize official correct answer index for MCQ
                           let correctIdx = -1;
-                          const rawOfficial = (review && review.correctAnswer !== undefined)
+                          const rawOfficial = (review && review.correctAnswer !== undefined && review.correctAnswer !== null)
                             ? review.correctAnswer
                             : (q._decodedCorrect !== undefined ? q._decodedCorrect : (q.correctAnswer !== undefined ? q.correctAnswer : q.correct));
 
@@ -4100,13 +4093,17 @@ export default function App() {
                             else if (!isNaN(Number(rawOfficial)) && String(rawOfficial).trim() !== '') correctIdx = Number(rawOfficial);
                             else if (/^[A-Za-z]$/.test(String(rawOfficial).trim())) {
                               correctIdx = String(rawOfficial).trim().toUpperCase().charCodeAt(0) - 65;
+                            } else if (Array.isArray(q.options)) {
+                              const match = q.options.findIndex(opt => String(opt).trim().toLowerCase() === String(rawOfficial).trim().toLowerCase());
+                              if (match !== -1) correctIdx = match;
                             }
                           }
 
                           // Determine real accuracy from server review or accurate client evaluation
+                          const studentMatches = (studentAns !== undefined && studentAns !== null && correctIdx !== -1 && Number(studentAns) === correctIdx);
                           const isCorrect = review
-                            ? review.isCorrect
-                            : (studentAns !== undefined && studentAns !== null && correctIdx !== -1 && Number(studentAns) === correctIdx);
+                            ? (Boolean(review.isCorrect) || studentMatches)
+                            : studentMatches;
                           const awardedMarks = review
                             ? (review.awardedMarks !== undefined ? review.awardedMarks : (isCorrect ? (review.maxScore || q.score || 1) : 0))
                             : (isCorrect ? (q.score || 1) : 0);

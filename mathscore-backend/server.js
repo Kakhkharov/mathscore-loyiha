@@ -883,7 +883,9 @@ app.post('/api/submissions', authenticateToken, async (req, res) => {
       imageUrl: q.imageUrl || null,
       topic: q.topic || test.category || 'Umumiy',
       studentAnswer: studentAns,
-      correctAnswer: q.correctAnswer, // Send official correct answer AFTER submission
+      correctAnswer: ((qType === 'single' || qType === 'mcq') && normalizeOptionIndex(q.correctAnswer, options) !== -1)
+        ? normalizeOptionIndex(q.correctAnswer, options)
+        : q.correctAnswer, // Send official correct answer AFTER submission
       isCorrect,
       awardedMarks,
       maxScore: qScore,

@@ -337,8 +337,8 @@ function App() {
       questions: generateMockQuestions().slice(0, 15),
       startDate: "2026-05-20",
       endDate: "2026-06-20",
-      randomizeQuestions: true,
-      randomizeAnswers: true,
+      randomizeQuestions: false,
+      randomizeAnswers: false,
       autoSave: true,
       autoSubmit: true,
       fullscreenMode: true,
@@ -1260,8 +1260,8 @@ function App() {
       })),
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      randomizeQuestions: docxSettings.shuffleQuestions,
-      randomizeAnswers: docxSettings.shuffleAnswers,
+      randomizeQuestions: false,
+      randomizeAnswers: false,
       autoSave: true,
       autoSubmit: true,
       fullscreenMode: false,
@@ -5024,8 +5024,6 @@ function App() {
 
                                   <div className="space-y-3">
                                     {[
-                                      { stateName: 'randomizeQuestions', label: "Savollarni tasodifiy tartiblash (Shuffle questions)", desc: "Har bir student uçun savollar har xil ketma-ketlikda chiqadi" },
-                                      { stateName: 'randomizeAnswers', label: "Javoblarni tasodifiy tartiblash (Shuffle answers)", desc: "MCQ variantlari har bir öquvçida aralaştiriladi" },
                                       { stateName: 'enableCalculator', label: "Kalkulyatorni yoqish (Calculator sheet)", desc: "Student pleyerida interaktiv hisob-kitob kalkulyatori körinadi" },
                                       { stateName: 'enableFormulaSheet', label: "Matematik formulalar varoğini taqdim etish", desc: "Test jarayonida tayyor SAT formulalar varag'ini ochish imkoniyati" }
                                     ].map(item => (
